@@ -1,7 +1,7 @@
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
 import { randomUUID } from 'node:crypto';
-import Fastify from 'fastify';
+import Fastify, { LogController } from 'fastify';
 
 import type { AppConfig } from './config.js';
 import type { Database } from './database.js';
@@ -13,12 +13,36 @@ export type BuildAppDependencies = Readonly<{
   database: Pick<Database, 'check' | 'close'>;
 }>;
 
+function normalizeError(error: unknown) {
+  const errorRecord =
+    typeof error === 'object' && error !== null
+      ? (error as Record<string, unknown>)
+      : {};
+  const candidateStatusCode = errorRecord.statusCode;
+
+  return {
+    statusCode:
+      typeof candidateStatusCode === 'number' &&
+      candidateStatusCode >= 400 &&
+      candidateStatusCode < 500
+        ? candidateStatusCode
+        : 500,
+    name: error instanceof Error ? error.name : 'UnknownError',
+    code:
+      typeof errorRecord.code === 'string'
+        ? errorRecord.code
+        : 'UNCLASSIFIED',
+  };
+}
+
 export async function buildApp(dependencies: BuildAppDependencies) {
   const app = Fastify({
     logger: loggerOptions(dependencies.config),
     genReqId: () => randomUUID(),
-    requestIdLogLabel: 'requestId',
-    disableRequestLogging: true,
+    logController: new LogController({
+      requestIdLogLabel: 'requestId',
+      disableRequestLogging: true,
+    }),
     bodyLimit: 1_048_576,
   });
 
@@ -29,17 +53,16 @@ export async function buildApp(dependencies: BuildAppDependencies) {
     return payload;
   });
 
-  await app.register(swagger, {
-    openapi: {
-      info: {
-        title: 'CHS Web API',
-        description: 'Community Health Screening cloud API',
-        version: '0.1.0',
+  if (dependencies.config.nodeEnv === 'development') {
+    await app.register(swagger, {
+      openapi: {
+        info: {
+          title: 'CHS Web API',
+          description: 'Community Health Screening cloud API',
+          version: '0.1.0',
+        },
       },
-    },
-  });
-
-  if (dependencies.config.nodeEnv !== 'production') {
+    });
     await app.register(swaggerUi, { routePrefix: '/docs' });
   }
 
@@ -60,15 +83,13 @@ export async function buildApp(dependencies: BuildAppDependencies) {
   });
 
   app.setErrorHandler(async (error, request, reply) => {
-    const statusCode =
-      error.statusCode && error.statusCode >= 400 && error.statusCode < 500
-        ? error.statusCode
-        : 500;
+    const normalizedError = normalizeError(error);
+    const { statusCode } = normalizedError;
 
     const errorContext = {
       error: {
-        name: error.name,
-        code: error.code || 'UNCLASSIFIED',
+        name: normalizedError.name,
+        code: normalizedError.code,
       },
     };
 

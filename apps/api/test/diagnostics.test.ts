@@ -31,16 +31,27 @@ async function createTestApp(check: () => Promise<void> = async () => undefined)
 
 describe('diagnostic routes', () => {
   it('reports liveness without checking dependencies', async () => {
-    const app = await createTestApp();
+    let databaseChecks = 0;
+    const app = await createTestApp(async () => {
+      databaseChecks += 1;
+    });
     const response = await app.inject({ method: 'GET', url: '/health/live' });
 
     expect(response.statusCode).toBe(200);
+    expect(databaseChecks).toBe(0);
     expect(response.headers['x-request-id']).toMatch(
       /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
     );
     expect(response.headers['cache-control']).toBe('no-store');
     expect(response.headers['x-content-type-options']).toBe('nosniff');
     expect(response.json()).toMatchObject({ service: 'chs-api', status: 'alive' });
+  });
+
+  it('does not expose API documentation outside development', async () => {
+    const app = await createTestApp();
+    const response = await app.inject({ method: 'GET', url: '/docs' });
+
+    expect(response.statusCode).toBe(404);
   });
 
   it('reports readiness when PostgreSQL is reachable', async () => {

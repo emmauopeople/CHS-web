@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: chs
+      POSTGRES_USER: chs
+      POSTGRES_PASSWORD: chs-local-only
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chs -d chs"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    volumes:
+      - chs-postgres-data:/var/lib/postgresql
+
+volumes:
+  chs-postgres-data:

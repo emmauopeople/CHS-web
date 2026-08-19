@@ -7,10 +7,11 @@ import type { AppConfig } from './config.js';
 import type { Database } from './database.js';
 import { registerDiagnostics } from './diagnostics.js';
 import { loggerOptions } from './logger.js';
+import { registerSyncRoutes } from './sync/routes.js';
 
 export type BuildAppDependencies = Readonly<{
   config: AppConfig;
-  database: Pick<Database, 'check' | 'close'>;
+  database: Pick<Database, 'pool' | 'check' | 'close'>;
 }>;
 
 function normalizeError(error: unknown) {
@@ -66,9 +67,14 @@ export async function buildApp(dependencies: BuildAppDependencies) {
     await app.register(swaggerUi, { routePrefix: '/docs' });
   }
 
-  await registerDiagnostics(app, {
+  const syncMetrics = await registerDiagnostics(app, {
     config: dependencies.config,
     checkDatabase: dependencies.database.check,
+  });
+
+  await registerSyncRoutes(app, {
+    database: dependencies.database.pool,
+    metrics: syncMetrics,
   });
 
   app.addHook('onClose', async () => {

@@ -4,6 +4,11 @@ import { pathToFileURL } from 'node:url'
 import Ajv2020 from 'ajv/dist/2020.js'
 import addFormats from 'ajv-formats'
 
+import {
+  validateSyncBatchRequest,
+  validateSyncBatchResponse
+} from '../src/sync-validation.mjs'
+
 const root = new URL('../', import.meta.url)
 
 const schemaLocations = Object.freeze({
@@ -210,6 +215,14 @@ export function validateContracts() {
     }
     if (schemaName === 'syncRequest') {
       assertRequestSemantics(fixture)
+      if (!validateSyncBatchRequest(fixture).valid) {
+        throw new Error(`Runtime request validator rejected ${fixturePath}`)
+      }
+    } else if (
+      schemaName === 'syncResponse' &&
+      !validateSyncBatchResponse(fixture).valid
+    ) {
+      throw new Error(`Runtime response validator rejected ${fixturePath}`)
     }
   }
 
@@ -228,6 +241,9 @@ export function validateContracts() {
     }
     if (validateRequest(invalidRequest) && semanticsValid) {
       throw new Error(`Invalid fixture was accepted: ${invalidCase.name}`)
+    }
+    if (validateSyncBatchRequest(invalidRequest).valid) {
+      throw new Error(`Runtime validator accepted invalid fixture: ${invalidCase.name}`)
     }
   }
 

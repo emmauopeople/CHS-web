@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import { buildApp } from '../src/app.js';
 import type { AppConfig } from '../src/config.js';
+import type { Database } from '../src/database.js';
 
 const config: AppConfig = {
   nodeEnv: 'test',
@@ -23,7 +24,11 @@ afterEach(async () => {
 async function createTestApp(check: () => Promise<void> = async () => undefined) {
   const app = await buildApp({
     config,
-    database: { check, close: async () => undefined },
+    database: {
+      pool: {} as Database['pool'],
+      check,
+      close: async () => undefined,
+    },
   });
   apps.push(app);
   return app;

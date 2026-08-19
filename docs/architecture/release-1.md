@@ -38,9 +38,11 @@ scaling or ownership needs justify it.
 The `diagnostics` module, HSD-SYNC-001 contract, canonical schema, internal
 sync-intake foundation, and patient identity/Medical ID processor are
 implemented. Screening session, source-linked protocol, patient encounter, and
-vitals ingestion are also implemented. The public sync route remains
-unregistered until batch completion orchestration can produce complete,
-truthful record outcomes and stored replay responses.
+vitals ingestion are also implemented. Authenticated desktop sync submission
+and stored-response recovery routes are registered. Their orchestration layer
+validates the shared contract, processes dependency order, resumes interrupted
+batches safely, and stores complete per-record responses before acknowledging
+the desktop.
 
 ## Non-negotiable data rules
 

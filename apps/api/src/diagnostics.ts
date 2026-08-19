@@ -8,6 +8,14 @@ type DiagnosticsDependencies = Readonly<{
   checkDatabase: () => Promise<void>;
 }>;
 
+export type SyncMetrics = Readonly<{
+  recordBatch: (
+    batchStatus: 'ACCEPTED' | 'PARTIAL' | 'REJECTED',
+    replayed: boolean,
+  ) => void;
+  recordOutcome: (resourceType: string, status: string) => void;
+}>;
+
 const healthResponseSchema = {
   type: 'object',
   additionalProperties: false,
@@ -22,7 +30,7 @@ const healthResponseSchema = {
 export async function registerDiagnostics(
   app: FastifyInstance,
   dependencies: DiagnosticsDependencies,
-): Promise<void> {
+): Promise<SyncMetrics> {
   const registry = new Registry();
   registry.setDefaultLabels({ service: 'chs-api' });
   collectDefaultMetrics({ prefix: 'chs_api_', register: registry });
@@ -38,6 +46,18 @@ export async function registerDiagnostics(
     help: 'CHS API HTTP request duration in seconds',
     labelNames: ['method', 'route', 'status_code'] as const,
     buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5],
+    registers: [registry],
+  });
+  const syncBatches = new Counter({
+    name: 'chs_api_sync_batches_total',
+    help: 'Total completed or replayed desktop synchronization batches',
+    labelNames: ['batch_status', 'replayed'] as const,
+    registers: [registry],
+  });
+  const syncOutcomes = new Counter({
+    name: 'chs_api_sync_record_outcomes_total',
+    help: 'Total desktop synchronization record outcomes',
+    labelNames: ['resource_type', 'status'] as const,
     registers: [registry],
   });
   const requestStartTimes = new WeakMap<object, bigint>();
@@ -124,4 +144,16 @@ export async function registerDiagnostics(
     builtAt: dependencies.config.buildTime,
     runtime: process.version,
   }));
+
+  return {
+    recordBatch(batchStatus, replayed) {
+      syncBatches.inc({
+        batch_status: batchStatus,
+        replayed: replayed ? 'true' : 'false',
+      });
+    },
+    recordOutcome(resourceType, status) {
+      syncOutcomes.inc({ resource_type: resourceType, status });
+    },
+  };
 }

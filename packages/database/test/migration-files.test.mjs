@@ -1,7 +1,17 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 
 import { discoverMigrations } from '../src/migration-files.mjs';
+
+test('database package uses a cross-platform syntax checker', async () => {
+  const packageJson = JSON.parse(
+    await readFile(new URL('../package.json', import.meta.url), 'utf8'),
+  );
+
+  assert.equal(packageJson.scripts.lint, 'node scripts/check-syntax.mjs');
+  assert.equal(packageJson.scripts.typecheck, 'node scripts/check-syntax.mjs');
+});
 
 test('canonical migration is numbered, hashed, and contains the required model', async () => {
   const migrations = await discoverMigrations();

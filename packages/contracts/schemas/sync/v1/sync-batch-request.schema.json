@@ -342,7 +342,74 @@
         "voidReason": { "$ref": "common.schema.json#/$defs/nullableNote" },
         "createdAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" },
         "updatedAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "status": { "const": "DRAFT" } },
+            "required": ["status"]
+          },
+          "then": {
+            "properties": {
+              "completedAt": { "type": "null" },
+              "amendmentOfLocalEncounterId": { "type": "null" },
+              "amendmentReason": { "type": "null" },
+              "voidReason": { "type": "null" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "status": { "const": "COMPLETED" } },
+            "required": ["status"]
+          },
+          "then": {
+            "properties": {
+              "completedAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" },
+              "amendmentOfLocalEncounterId": { "type": "null" },
+              "amendmentReason": { "type": "null" },
+              "voidReason": { "type": "null" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "status": { "const": "AMENDED" } },
+            "required": ["status"]
+          },
+          "then": {
+            "properties": {
+              "completedAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" },
+              "amendmentOfLocalEncounterId": {
+                "$ref": "common.schema.json#/$defs/uuid"
+              },
+              "amendmentReason": {
+                "type": "string",
+                "maxLength": 500,
+                "pattern": "\\S"
+              },
+              "voidReason": { "type": "null" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "status": { "const": "VOID" } },
+            "required": ["status"]
+          },
+          "then": {
+            "properties": {
+              "amendmentOfLocalEncounterId": { "type": "null" },
+              "amendmentReason": { "type": "null" },
+              "voidReason": {
+                "type": "string",
+                "maxLength": 500,
+                "pattern": "\\S"
+              }
+            }
+          }
+        }
+      ]
     },
     "vitalsPayload": {
       "type": "object",

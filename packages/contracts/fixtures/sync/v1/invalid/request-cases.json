@@ -47,6 +47,30 @@
     "value": "60000000-0000-4000-8000-000000000099"
   },
   {
+    "name": "draft encounter has a completion timestamp",
+    "operation": "replace",
+    "path": "/records/2/payload/completedAt",
+    "value": "2026-08-18T11:30:00.000Z"
+  },
+  {
+    "name": "draft encounter has an amendment reason",
+    "operation": "replace",
+    "path": "/records/2/payload/amendmentReason",
+    "value": "Not allowed for a draft"
+  },
+  {
+    "name": "amended encounter is missing its target and reason",
+    "operation": "replace",
+    "path": "/records/2/payload/status",
+    "value": "AMENDED"
+  },
+  {
+    "name": "void encounter is missing its reason",
+    "operation": "replace",
+    "path": "/records/2/payload/status",
+    "value": "VOID"
+  },
+  {
     "name": "vitals performer is absent from the batch",
     "operation": "replace",
     "path": "/records/3/payload/performedByLocalActorId",

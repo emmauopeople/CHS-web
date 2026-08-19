@@ -16,9 +16,9 @@ This repository is building the Release 1 foundation. The API operational
 endpoints, desktop synchronization contract, canonical PostgreSQL schema, and
 secure sync-intake foundation are implemented. Patient identity ingestion and
 atomic CHS Medical ID assignment are implemented internally, along with
-screening session, protocol, patient encounter, and vitals ingestion. Batch
-orchestration is next; the sync HTTP route remains closed until it can return
-complete per-record outcomes.
+screening session, protocol, patient encounter, and vitals ingestion. The batch
+orchestrator exposes authenticated submit and response-recovery routes with
+dependency ordering, crash recovery, durable outcomes, and exact replay.
 
 ## Prerequisites
 
@@ -49,6 +49,14 @@ The API listens on `http://localhost:3000` by default.
 
 API documentation is available at `GET /docs` outside production.
 
+## Desktop synchronization endpoints
+
+- `POST /api/v1/sync/batches` — validate, authenticate, and process a batch
+- `GET /api/v1/sync/batches/{batchId}` — recover its stored response
+
+Both routes require an enrolled installation bearer token. Batch responses
+return one outcome per submitted record in the original request order.
+
 ## Commands
 
 ```bash
@@ -71,6 +79,7 @@ pnpm lint          # run lint checks
 - [HSD-SYNC-002C screening session and protocol ingestion](docs/sync/HSD-SYNC-002C.md)
 - [HSD-SYNC-002D patient screening encounter ingestion](docs/sync/HSD-SYNC-002D.md)
 - [HSD-SYNC-002E vitals and blood-pressure reading ingestion](docs/sync/HSD-SYNC-002E.md)
+- [HSD-SYNC-002F batch orchestration and HTTP routes](docs/sync/HSD-SYNC-002F.md)
 - [HSD-DATA-001 canonical PostgreSQL schema](docs/database/HSD-DATA-001.md)
 
 ## Security note

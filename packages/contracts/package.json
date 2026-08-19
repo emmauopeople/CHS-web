@@ -3,17 +3,23 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "exports": {
+    "./sync-validation": {
+      "types": "./src/sync-validation.d.mts",
+      "default": "./src/sync-validation.mjs"
+    }
+  },
   "engines": {
     "node": ">=24 <25"
   },
-  "devDependencies": {
+  "dependencies": {
     "ajv": "8.20.0",
     "ajv-formats": "3.0.1"
   },
   "scripts": {
     "build": "node test/validate-contracts.mjs",
-    "lint": "node --check test/validate-contracts.mjs",
+    "lint": "node --check src/sync-validation.mjs && node --check test/validate-contracts.mjs",
     "test": "node --test test/contracts.test.mjs",
-    "typecheck": "node --check test/contracts.test.mjs && node --check test/validate-contracts.mjs"
+    "typecheck": "node --check src/sync-validation.mjs && node --check test/contracts.test.mjs && node --check test/validate-contracts.mjs"
   }
 }

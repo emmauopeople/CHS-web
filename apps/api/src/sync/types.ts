@@ -223,3 +223,20 @@ export type InstallationContext = Readonly<{
   configuredLocationId: string;
   timezone: string;
 }>;
+
+export type SyncRecordOutcome =
+  | PatientRecordOutcome
+  | ScreeningSessionRecordOutcome
+  | ScreeningEncounterRecordOutcome
+  | VitalsRecordOutcome;
+
+export type SyncBatchStatus = 'ACCEPTED' | 'PARTIAL' | 'REJECTED';
+
+export type SyncBatchResponse = Readonly<{
+  contractVersion: '1.0';
+  batchId: string;
+  batchStatus: SyncBatchStatus;
+  receivedAt: string;
+  completedAt: string;
+  outcomes: readonly SyncRecordOutcome[];
+}>;

@@ -37,6 +37,7 @@ test(
         '0003_patient_identity_matching_indexes.sql',
         '0004_patient_viewer_query_indexes.sql',
         '0005_operations_access_and_audit.sql',
+        '0006_medical_id_recovery.sql',
       ]);
       assert.deepEqual(secondRun.applied, []);
 
@@ -48,7 +49,7 @@ test(
         [schema],
       );
       const tableNames = tableResult.rows.map((row) => row.table_name);
-      assert.equal(tableNames.length, 26);
+      assert.equal(tableNames.length, 28);
       assert.ok(tableNames.includes('schema_migrations'));
       assert.ok(tableNames.includes('screening_encounters'));
       assert.ok(tableNames.includes('vital_readings'));
@@ -56,6 +57,8 @@ test(
       assert.ok(tableNames.includes('desktop_installation_credentials'));
       assert.ok(tableNames.includes('operations_users'));
       assert.ok(tableNames.includes('operations_access_grants'));
+      assert.ok(tableNames.includes('medical_id_recovery_cases'));
+      assert.ok(tableNames.includes('medical_id_recovery_candidates'));
 
       const identityIndexes = await client.query(
         `SELECT indexname

@@ -13,6 +13,7 @@ import {
   type OperationsTokenVerifier,
 } from './operations/authentication.js';
 import { registerOperationsRoutes } from './operations/routes.js';
+import { registerMedicalIdRecoveryRoutes } from './operations/medical-id-recovery-routes.js';
 import { registerSyncRoutes } from './sync/routes.js';
 
 export type BuildAppDependencies = Readonly<{
@@ -93,6 +94,10 @@ export async function buildApp(dependencies: BuildAppDependencies) {
       : createDisabledOperationsTokenVerifier());
 
   await registerOperationsRoutes(app, {
+    database: dependencies.database.pool,
+    tokenVerifier: operationsTokenVerifier,
+  });
+  await registerMedicalIdRecoveryRoutes(app, {
     database: dependencies.database.pool,
     tokenVerifier: operationsTokenVerifier,
   });

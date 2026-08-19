@@ -102,3 +102,32 @@ export type ProblemDetails = Readonly<{
   code?: string;
   requestId?: string;
 }>;
+
+export type MedicalIdRecoveryCandidate = Readonly<{
+  candidateReference: string;
+  maskedName: string;
+  maskedDateOfBirth: string;
+  sex: 'FEMALE' | 'MALE' | 'OTHER' | 'UNKNOWN';
+  maskedResidence: string | null;
+}>;
+
+export type MedicalIdRecoverySearchResult =
+  | Readonly<{ status: 'NOT_RESOLVED' }>
+  | Readonly<{
+      status: 'CANDIDATE_FOUND';
+      caseReference: string;
+      recoveryToken: string;
+      expiresAt: string;
+      candidates: readonly [MedicalIdRecoveryCandidate];
+    }>
+  | Readonly<{
+      status: 'REVIEW_REQUIRED';
+      caseReference: string;
+      candidateCount: number;
+      candidates: readonly MedicalIdRecoveryCandidate[];
+    }>;
+
+export type MedicalIdRecoveryRevealResult = Readonly<{
+  status: 'REVEALED';
+  chsMedicalId: string;
+}>;

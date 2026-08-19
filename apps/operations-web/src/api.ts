@@ -2,6 +2,8 @@ import type {
   PatientAccessReason,
   PatientDetail,
   PatientListPage,
+  MedicalIdRecoveryRevealResult,
+  MedicalIdRecoverySearchResult,
   PersonStatus,
   ProblemDetails,
 } from './types';
@@ -33,9 +35,25 @@ export type PatientDetailInput = Readonly<{
   pageSize?: number;
 }>;
 
+export type MedicalIdRecoverySearchInput = Readonly<{
+  reasonCode: PatientAccessReason;
+  fullName: string;
+  dateOfBirth: string;
+}>;
+
+export type MedicalIdRecoveryRevealInput = Readonly<{
+  reasonCode: PatientAccessReason;
+  recoveryToken: string;
+  candidateReference: string;
+  confirmed: true;
+}>;
+
 function object(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
+
+const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const medicalIdPattern = /^CHS-[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{4}-[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{4}-[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{4}$/;
 
 function listPage(value: unknown): value is PatientListPage {
   return (
@@ -63,6 +81,56 @@ function patientDetail(value: unknown): value is PatientDetail {
     typeof value.displayName === 'string' &&
     object(value.screeningHistory) &&
     Array.isArray(value.screeningHistory.items)
+  );
+}
+
+function recoveryCandidate(value: unknown): boolean {
+  return (
+    object(value) &&
+    typeof value.candidateReference === 'string' && uuidPattern.test(value.candidateReference) &&
+    typeof value.maskedName === 'string' &&
+    /^\*{4}-\*{2}-\d{2}$/.test(String(value.maskedDateOfBirth)) &&
+    ['FEMALE', 'MALE', 'OTHER', 'UNKNOWN'].includes(String(value.sex)) &&
+    (value.maskedResidence === null || typeof value.maskedResidence === 'string')
+  );
+}
+
+function recoverySearchResult(
+  value: unknown,
+): value is MedicalIdRecoverySearchResult {
+  if (!object(value) || typeof value.status !== 'string') return false;
+  if (value.status === 'NOT_RESOLVED') return true;
+  if (value.status === 'CANDIDATE_FOUND') {
+    return (
+      typeof value.caseReference === 'string' &&
+      uuidPattern.test(value.caseReference) &&
+      typeof value.recoveryToken === 'string' &&
+      /^[A-Za-z0-9_-]{43}$/.test(value.recoveryToken) &&
+      typeof value.expiresAt === 'string' &&
+      Number.isFinite(Date.parse(value.expiresAt)) &&
+      Array.isArray(value.candidates) &&
+      value.candidates.length === 1 &&
+      value.candidates.every(recoveryCandidate)
+    );
+  }
+  return (
+    value.status === 'REVIEW_REQUIRED' &&
+    typeof value.caseReference === 'string' &&
+    uuidPattern.test(value.caseReference) &&
+    Number.isSafeInteger(value.candidateCount) &&
+    Array.isArray(value.candidates) &&
+    value.candidates.every(recoveryCandidate)
+  );
+}
+
+function recoveryRevealResult(
+  value: unknown,
+): value is MedicalIdRecoveryRevealResult {
+  return (
+    object(value) &&
+    value.status === 'REVEALED' &&
+    typeof value.chsMedicalId === 'string' &&
+    medicalIdPattern.test(value.chsMedicalId)
   );
 }
 
@@ -124,5 +192,27 @@ export function createOperationsApi(
         fetchImplementation,
       );
     },
+    searchMedicalIdRecovery(input: MedicalIdRecoverySearchInput) {
+      return post(
+        apiBaseUrl,
+        '/api/v1/operations/medical-id-recovery/search',
+        accessToken,
+        input,
+        recoverySearchResult,
+        fetchImplementation,
+      );
+    },
+    revealMedicalId(input: MedicalIdRecoveryRevealInput) {
+      return post(
+        apiBaseUrl,
+        '/api/v1/operations/medical-id-recovery/reveal',
+        accessToken,
+        input,
+        recoveryRevealResult,
+        fetchImplementation,
+      );
+    },
   };
 }
+
+export type OperationsApi = ReturnType<typeof createOperationsApi>;

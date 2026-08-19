@@ -13,6 +13,7 @@ import {
 } from './auth';
 import type { OperationsWebConfig } from './config';
 import { displayValue, formatDate, formatInstant, humanize } from './format';
+import { MedicalIdRecovery } from './MedicalIdRecovery';
 import type {
   PatientAccessReason,
   PatientDetail,
@@ -380,6 +381,7 @@ export default function App({ config }: AppProps) {
   const [authBusy, setAuthBusy] = useState(() => hasAuthorizationResponse());
   const [authError, setAuthError] = useState<string | null>(null);
   const [reason, setReason] = useState<PatientAccessReason | ''>('');
+  const [workspaceView, setWorkspaceView] = useState<'PATIENTS' | 'RECOVERY'>('PATIENTS');
   const [form, setForm] = useState<SearchForm>(initialSearch);
   const [submittedForm, setSubmittedForm] = useState<SearchForm | null>(null);
   const [results, setResults] = useState<PatientListPage | null>(null);
@@ -505,6 +507,25 @@ export default function App({ config }: AppProps) {
     <div className="app-shell">
       <header className="topbar">
         <Brand />
+        <nav className="workspace-nav" aria-label="Clinical operations">
+          <button
+            className={workspaceView === 'PATIENTS' ? 'active' : ''}
+            type="button"
+            onClick={() => setWorkspaceView('PATIENTS')}
+          >
+            Patient Viewer
+          </button>
+          <button
+            className={workspaceView === 'RECOVERY' ? 'active' : ''}
+            type="button"
+            onClick={() => {
+              clearPatientData();
+              setWorkspaceView('RECOVERY');
+            }}
+          >
+            Recover Medical ID
+          </button>
+        </nav>
         <div className="topbar-actions">
           <span className="secure-indicator"><i aria-hidden="true" /> Secure session</span>
           <button className="button button-quiet" onClick={() => signOut(config.oidc)}>Sign out</button>
@@ -514,8 +535,12 @@ export default function App({ config }: AppProps) {
         <section className="page-heading">
           <div>
             <p className="eyebrow">Central PostgreSQL · canonical records</p>
-            <h1>Patient Viewer</h1>
-            <p>Search deduplicated patient records and review accepted screening history.</p>
+            <h1>{workspaceView === 'PATIENTS' ? 'Patient Viewer' : 'Medical ID Recovery'}</h1>
+            <p>
+              {workspaceView === 'PATIENTS'
+                ? 'Search deduplicated patient records and review accepted screening history.'
+                : 'Safely recover an existing CHS Medical ID without creating a replacement.'}
+            </p>
           </div>
           <div className="reason-field">
             <label htmlFor="reason-code">Reason for access <span aria-hidden="true">*</span></label>
@@ -533,70 +558,84 @@ export default function App({ config }: AppProps) {
             <small>Required and recorded in the access audit.</small>
           </div>
         </section>
+        {workspaceView === 'PATIENTS' ? (
+          <>
+            <section className="card search-card">
+              <PatientSearchForm
+                value={form}
+                reason={reason}
+                busy={searchBusy}
+                onChange={setForm}
+                onSubmit={() => void runSearch(1)}
+                onClear={() => {
+                  setForm(initialSearch);
+                  clearPatientData();
+                }}
+              />
+            </section>
 
-        <section className="card search-card">
-          <PatientSearchForm
-            value={form}
+            <div className="privacy-strip">
+              <span aria-hidden="true">✓</span>
+              Only clean, accepted canonical records are shown. Raw sync payloads and unresolved identity candidates are excluded.
+            </div>
+
+            {searchError ? <div className="alert alert-error" role="alert">{searchError}</div> : null}
+            <div className="results-heading">
+              <div>
+                <h2>Patient results</h2>
+                <p aria-live="polite">
+                  {results ? `${results.totalItems} patient${results.totalItems === 1 ? '' : 's'} found` : 'Run a search to view patients.'}
+                </p>
+              </div>
+              {searchBusy ? <span className="loading-label" role="status">Searching…</span> : null}
+            </div>
+            {results ? (
+              <section className="card results-card">
+                <PatientTable result={results} selectedId={selectedId} onSelect={(patient) => void openPatient(patient)} />
+                <Pagination
+                  page={results.page}
+                  totalPages={results.totalPages}
+                  busy={searchBusy}
+                  onPage={(page) => submittedForm && void runSearch(page, submittedForm)}
+                />
+              </section>
+            ) : (
+              <section className="card empty-state initial-empty">
+                <span className="empty-icon" aria-hidden="true">⌕</span>
+                <h2>No patient search has been run</h2>
+                <p>Select a reason for access, enter search criteria, and choose Search.</p>
+              </section>
+            )}
+          </>
+        ) : api ? (
+          <MedicalIdRecovery
+            api={api}
             reason={reason}
-            busy={searchBusy}
-            onChange={setForm}
-            onSubmit={() => void runSearch(1)}
-            onClear={() => {
-              setForm(initialSearch);
-              clearPatientData();
+            onUnauthorized={() => {
+              clearAuthSession();
+              setSession(null);
             }}
           />
-        </section>
-
-        <div className="privacy-strip">
-          <span aria-hidden="true">✓</span>
-          Only clean, accepted canonical records are shown. Raw sync payloads and unresolved identity candidates are excluded.
-        </div>
-
-        {searchError ? <div className="alert alert-error" role="alert">{searchError}</div> : null}
-        <div className="results-heading">
-          <div>
-            <h2>Patient results</h2>
-            <p aria-live="polite">
-              {results ? `${results.totalItems} patient${results.totalItems === 1 ? '' : 's'} found` : 'Run a search to view patients.'}
-            </p>
-          </div>
-          {searchBusy ? <span className="loading-label" role="status">Searching…</span> : null}
-        </div>
-        {results ? (
-          <section className="card results-card">
-            <PatientTable result={results} selectedId={selectedId} onSelect={(patient) => void openPatient(patient)} />
-            <Pagination
-              page={results.page}
-              totalPages={results.totalPages}
-              busy={searchBusy}
-              onPage={(page) => submittedForm && void runSearch(page, submittedForm)}
-            />
-          </section>
-        ) : (
-          <section className="card empty-state initial-empty">
-            <span className="empty-icon" aria-hidden="true">⌕</span>
-            <h2>No patient search has been run</h2>
-            <p>Select a reason for access, enter search criteria, and choose Search.</p>
-          </section>
-        )}
+        ) : null}
       </main>
-      <PatientPanel
-        detail={detail}
-        busy={detailBusy}
-        error={detailError}
-        onClose={() => {
-          requestSequence.current += 1;
-          setSelectedId(null);
-          setDetail(null);
-          setDetailError(null);
-          setDetailBusy(false);
-        }}
-        onHistoryPage={(page) => {
-          const patient = results?.items.find((item) => item.personId === selectedId);
-          if (patient) void openPatient(patient, page);
-        }}
-      />
+      {workspaceView === 'PATIENTS' ? (
+        <PatientPanel
+          detail={detail}
+          busy={detailBusy}
+          error={detailError}
+          onClose={() => {
+            requestSequence.current += 1;
+            setSelectedId(null);
+            setDetail(null);
+            setDetailError(null);
+            setDetailBusy(false);
+          }}
+          onHistoryPage={(page) => {
+            const patient = results?.items.find((item) => item.personId === selectedId);
+            if (patient) void openPatient(patient, page);
+          }}
+        />
+      ) : null}
     </div>
   );
 }

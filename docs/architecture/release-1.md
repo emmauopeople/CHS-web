@@ -52,6 +52,15 @@ before returning patient data. The temporary React viewer consumes this
 boundary using Authorization Code with PKCE and keeps patient identifiers out of
 browser URLs.
 
+The operations module also exposes a separate Medical ID recovery boundary.
+An active `MEDICAL_ID_RECOVER` grant and reason-for-access are required. The
+first step performs conservative exact demographic matching within the
+server-derived organization scope and returns masked candidates only. A unique
+candidate receives a five-minute, session-bound, one-time confirmation token;
+ambiguous evidence becomes a non-revealable review case. The confirmation step
+reads the already active identifier and never inserts or replaces one. Both
+steps are durably audited.
+
 ## Non-negotiable data rules
 
 - Every accepted source record retains source organization, installation,

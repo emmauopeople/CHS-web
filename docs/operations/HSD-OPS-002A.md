@@ -1,6 +1,6 @@
 # HSD-OPS-002A: React operations patient viewer
 
-Status: Draft for implementation review
+Status: Implemented
 
 ## Purpose
 

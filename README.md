@@ -23,7 +23,8 @@ The operations module provides scoped, read-only canonical patient list and
 clinical-detail queries through OIDC-authenticated, database-authorized,
 reason-for-access protected, and audited POST endpoints. The React operations
 viewer consumes this boundary with PKCE sign-in, reason-gated patient search,
-and canonical screening and vitals detail views.
+canonical screening and vitals detail views, and a permission-controlled
+one-time workflow for recovering an existing CHS Medical ID.
 
 ## Prerequisites
 
@@ -79,6 +80,17 @@ identifiers remain in redacted JSON bodies rather than URLs. The API derives
 global or organization scope from PostgreSQL grants; it never accepts scope from
 the browser.
 
+## Medical ID recovery endpoints
+
+- `POST /api/v1/operations/medical-id-recovery/search` — find masked recovery candidates
+- `POST /api/v1/operations/medical-id-recovery/reveal` — reveal one confirmed existing ID once
+
+Medical ID recovery requires a separate `MEDICAL_ID_RECOVER` grant. Exact
+name-and-date-of-birth evidence returns masked candidates only. Ambiguous
+evidence creates a review case without a reveal token; a unique candidate can
+be confirmed once within five minutes and only from the originating OIDC
+session. Recovery never allocates or replaces an identifier.
+
 ## Commands
 
 ```bash
@@ -106,6 +118,7 @@ pnpm lint          # run lint checks
 - [HSD-OPS-001A canonical patient query service](docs/operations/HSD-OPS-001A.md)
 - [HSD-OPS-001B authenticated and audited patient access](docs/operations/HSD-OPS-001B.md)
 - [HSD-OPS-002A React operations patient viewer](docs/operations/HSD-OPS-002A.md)
+- [HSD-OPS-002B Medical ID recovery](docs/operations/HSD-OPS-002B.md)
 - [HSD-DATA-001 canonical PostgreSQL schema](docs/database/HSD-DATA-001.md)
 
 ## Security note

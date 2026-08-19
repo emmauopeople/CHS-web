@@ -247,6 +247,8 @@
         "sessionDate",
         "status",
         "notes",
+        "openedByLocalActorId",
+        "closedByLocalActorId",
         "openedAt",
         "closedAt",
         "createdAt",
@@ -261,6 +263,13 @@
         "sessionDate": { "$ref": "common.schema.json#/$defs/localDate" },
         "status": { "enum": ["OPEN", "CLOSED"] },
         "notes": { "$ref": "common.schema.json#/$defs/nullableNote" },
+        "openedByLocalActorId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "closedByLocalActorId": {
+          "oneOf": [
+            { "$ref": "common.schema.json#/$defs/uuid" },
+            { "type": "null" }
+          ]
+        },
         "openedAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" },
         "closedAt": {
           "oneOf": [
@@ -274,9 +283,15 @@
       "allOf": [
         {
           "if": { "properties": { "status": { "const": "OPEN" } } },
-          "then": { "properties": { "closedAt": { "type": "null" } } },
+          "then": {
+            "properties": {
+              "closedByLocalActorId": { "type": "null" },
+              "closedAt": { "type": "null" }
+            }
+          },
           "else": {
             "properties": {
+              "closedByLocalActorId": { "$ref": "common.schema.json#/$defs/uuid" },
               "closedAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" }
             }
           }
@@ -291,6 +306,7 @@
         "localScreeningSessionId",
         "localLocationId",
         "localProtocolVersionId",
+        "recordedByLocalActorId",
         "status",
         "startedAt",
         "completedAt",
@@ -306,6 +322,7 @@
         "localScreeningSessionId": { "$ref": "common.schema.json#/$defs/uuid" },
         "localLocationId": { "$ref": "common.schema.json#/$defs/uuid" },
         "localProtocolVersionId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "recordedByLocalActorId": { "$ref": "common.schema.json#/$defs/uuid" },
         "status": { "enum": ["DRAFT", "COMPLETED", "AMENDED", "VOID"] },
         "startedAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" },
         "completedAt": {
@@ -332,6 +349,7 @@
       "additionalProperties": false,
       "required": [
         "localEncounterId",
+        "performedByLocalActorId",
         "status",
         "weightKg",
         "waistCm",
@@ -342,6 +360,7 @@
       ],
       "properties": {
         "localEncounterId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "performedByLocalActorId": { "$ref": "common.schema.json#/$defs/uuid" },
         "status": { "enum": ["DRAFT", "VITALS_COMPLETE"] },
         "weightKg": { "type": ["number", "null"], "exclusiveMinimum": 0, "maximum": 500 },
         "waistCm": { "type": ["number", "null"], "exclusiveMinimum": 0, "maximum": 400 },

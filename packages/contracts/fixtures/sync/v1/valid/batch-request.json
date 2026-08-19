@@ -10,10 +10,17 @@
   "actors": [
     {
       "localActorId": "60000000-0000-4000-8000-000000000001",
-      "displayName": "Synthetic Screener",
-      "role": "NURSE",
+      "displayName": "Synthetic Local Administrator",
+      "role": "LOCAL_ADMIN",
       "active": true,
       "updatedAt": "2026-08-18T09:00:00.000Z"
+    },
+    {
+      "localActorId": "60000000-0000-4000-8000-000000000002",
+      "displayName": "Synthetic Nurse",
+      "role": "NURSE",
+      "active": true,
+      "updatedAt": "2026-08-18T09:30:00.000Z"
     }
   ],
   "records": [
@@ -67,6 +74,8 @@
         "sessionDate": "2026-08-18",
         "status": "OPEN",
         "notes": "Synthetic contract fixture",
+        "openedByLocalActorId": "60000000-0000-4000-8000-000000000002",
+        "closedByLocalActorId": null,
         "openedAt": "2026-08-18T10:05:00.000Z",
         "closedAt": null,
         "createdAt": "2026-08-18T10:05:00.000Z",
@@ -87,6 +96,7 @@
         "localScreeningSessionId": "70000000-0000-4000-8000-000000000001",
         "localLocationId": "30000000-0000-4000-8000-000000000001",
         "localProtocolVersionId": "80000000-0000-4000-8000-000000000001",
+        "recordedByLocalActorId": "60000000-0000-4000-8000-000000000002",
         "status": "DRAFT",
         "startedAt": "2026-08-18T11:00:00.000Z",
         "completedAt": null,
@@ -109,6 +119,7 @@
       "sourceActorLocalId": "60000000-0000-4000-8000-000000000001",
       "payload": {
         "localEncounterId": "90000000-0000-4000-8000-000000000001",
+        "performedByLocalActorId": "60000000-0000-4000-8000-000000000002",
         "status": "VITALS_COMPLETE",
         "weightKg": 68.5,
         "waistCm": 82.2,

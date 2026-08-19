@@ -17,6 +17,7 @@ const schemaLocations = Object.freeze({
 
 const validFixtureCases = Object.freeze([
   ['syncRequest', 'fixtures/sync/v1/valid/batch-request.json'],
+  ['syncRequest', 'fixtures/sync/v1/valid/closed-session-request.json'],
   ['syncResponse', 'fixtures/sync/v1/valid/batch-response.json'],
   ['recoveryRequest', 'fixtures/identity/v1/valid/recovery-request.json'],
   ['recoveryResponse', 'fixtures/identity/v1/valid/recovery-response-match.json'],
@@ -89,8 +90,29 @@ function assertRequestSemantics(request) {
   const recordIds = new Set()
   const snapshotKeys = new Set()
   for (const record of request.records) {
-    if (!actorIds.has(record.sourceActorLocalId)) {
-      throw new Error(`Record references unknown source actor: ${record.recordId}`)
+    const actorReferences = [['sourceActorLocalId', record.sourceActorLocalId]]
+
+    if (record.resourceType === 'SCREENING_SESSION') {
+      actorReferences.push(
+        ['payload.openedByLocalActorId', record.payload.openedByLocalActorId],
+        ['payload.closedByLocalActorId', record.payload.closedByLocalActorId]
+      )
+    } else if (record.resourceType === 'SCREENING_ENCOUNTER') {
+      actorReferences.push([
+        'payload.recordedByLocalActorId',
+        record.payload.recordedByLocalActorId
+      ])
+    } else if (record.resourceType === 'VITALS') {
+      actorReferences.push([
+        'payload.performedByLocalActorId',
+        record.payload.performedByLocalActorId
+      ])
+    }
+
+    for (const [field, actorId] of actorReferences) {
+      if (actorId !== null && !actorIds.has(actorId)) {
+        throw new Error(`Record ${record.recordId} has unknown actor at ${field}`)
+      }
     }
     if (recordIds.has(record.recordId)) {
       throw new Error(`Duplicate record ID: ${record.recordId}`)

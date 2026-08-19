@@ -6,8 +6,8 @@ import { validateContracts } from './validate-contracts.mjs'
 test('HSD-SYNC-001 schemas, fixtures, and OpenAPI remain compatible', () => {
   assert.deepEqual(validateContracts(), {
     schemas: 6,
-    validFixtures: 6,
-    invalidFixtures: 5,
+    validFixtures: 7,
+    invalidFixtures: 9,
     openApiOperations: 3
   })
 })

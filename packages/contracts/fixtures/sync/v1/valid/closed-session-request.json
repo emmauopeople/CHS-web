@@ -1,0 +1,54 @@
+{
+  "contractVersion": "1.0",
+  "batchId": "10000000-0000-4000-8000-000000000002",
+  "installationId": "20000000-0000-4000-8000-000000000001",
+  "locationId": "30000000-0000-4000-8000-000000000001",
+  "installationTimezone": "Africa/Douala",
+  "desktopApplicationVersion": "0.13.0",
+  "desktopSchemaVersion": 13,
+  "createdAt": "2026-08-18T17:05:00.000Z",
+  "actors": [
+    {
+      "localActorId": "60000000-0000-4000-8000-000000000001",
+      "displayName": "Synthetic Local Administrator",
+      "role": "LOCAL_ADMIN",
+      "active": true,
+      "updatedAt": "2026-08-18T09:00:00.000Z"
+    },
+    {
+      "localActorId": "60000000-0000-4000-8000-000000000002",
+      "displayName": "Synthetic Nurse",
+      "role": "NURSE",
+      "active": true,
+      "updatedAt": "2026-08-18T09:30:00.000Z"
+    }
+  ],
+  "records": [
+    {
+      "recordId": "40000000-0000-4000-8000-000000000005",
+      "resourceType": "SCREENING_SESSION",
+      "localResourceId": "70000000-0000-4000-8000-000000000001",
+      "sourceRevision": 2,
+      "schemaVersion": "screening-session.v1",
+      "operation": "UPSERT",
+      "capturedAt": "2026-08-18T17:00:00.000Z",
+      "sourceActorLocalId": "60000000-0000-4000-8000-000000000001",
+      "payload": {
+        "localLocationId": "30000000-0000-4000-8000-000000000001",
+        "localProtocolVersionId": "80000000-0000-4000-8000-000000000001",
+        "protocolKey": "community-screening",
+        "protocolVersionLabel": "2026.1",
+        "protocolChecksum": "sha256:synthetic-fixture-000000000000000000000000000000000000000000000000000000",
+        "sessionDate": "2026-08-18",
+        "status": "CLOSED",
+        "notes": "Synthetic closed-session contract fixture",
+        "openedByLocalActorId": "60000000-0000-4000-8000-000000000002",
+        "closedByLocalActorId": "60000000-0000-4000-8000-000000000001",
+        "openedAt": "2026-08-18T10:05:00.000Z",
+        "closedAt": "2026-08-18T17:00:00.000Z",
+        "createdAt": "2026-08-18T10:05:00.000Z",
+        "updatedAt": "2026-08-18T17:00:00.000Z"
+      }
+    }
+  ]
+}

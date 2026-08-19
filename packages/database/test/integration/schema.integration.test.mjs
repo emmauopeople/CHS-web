@@ -34,6 +34,7 @@ test(
       assert.deepEqual(firstRun.applied, [
         '0001_canonical_screening_foundation.sql',
         '0002_desktop_installation_credentials.sql',
+        '0003_patient_identity_matching_indexes.sql',
       ]);
       assert.deepEqual(secondRun.applied, []);
 
@@ -51,6 +52,29 @@ test(
       assert.ok(tableNames.includes('vital_readings'));
       assert.ok(tableNames.includes('sync_batch_actors'));
       assert.ok(tableNames.includes('desktop_installation_credentials'));
+
+      const identityIndexes = await client.query(
+        `SELECT indexname
+         FROM pg_indexes
+         WHERE schemaname = $1
+           AND indexname IN (
+             'ix_persons_identity_name_birth',
+             'ix_persons_identity_name_phone',
+             'ix_persons_identity_name_approximate_age',
+             'ix_person_identifiers_active_lookup'
+           )
+         ORDER BY indexname`,
+        [schema],
+      );
+      assert.deepEqual(
+        identityIndexes.rows.map((row) => row.indexname),
+        [
+          'ix_person_identifiers_active_lookup',
+          'ix_persons_identity_name_approximate_age',
+          'ix_persons_identity_name_birth',
+          'ix_persons_identity_name_phone',
+        ],
+      );
 
       await assert.rejects(
         client.query(

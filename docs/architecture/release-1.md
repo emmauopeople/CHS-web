@@ -35,10 +35,11 @@ scaling or ownership needs justify it.
 - `operations`: internal queries used by the temporary React application.
 - `audit`: append-only records of sensitive reads and state changes.
 
-The `diagnostics` module, HSD-SYNC-001 contract, canonical schema, and internal
-sync-intake foundation are implemented. The public sync route remains
-unregistered until the identity and clinical processors can produce complete,
-truthful record outcomes.
+The `diagnostics` module, HSD-SYNC-001 contract, canonical schema, internal
+sync-intake foundation, and patient identity/Medical ID processor are
+implemented. The public sync route remains unregistered until the clinical
+processors and batch completion orchestration can produce complete, truthful
+record outcomes.
 
 ## Non-negotiable data rules
 

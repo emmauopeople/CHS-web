@@ -14,8 +14,9 @@ analysis are intentionally deferred until later releases.
 
 This repository is building the Release 1 foundation. The API operational
 endpoints, desktop synchronization contract, canonical PostgreSQL schema, and
-secure sync-intake foundation are implemented. Patient identity ingestion is
-the next vertical slice; the sync HTTP route remains closed until it can return
+secure sync-intake foundation are implemented. Patient identity ingestion and
+atomic CHS Medical ID assignment are implemented internally. Clinical record
+processors are next; the sync HTTP route remains closed until it can return
 complete per-record outcomes.
 
 ## Prerequisites
@@ -65,6 +66,7 @@ pnpm lint          # run lint checks
 - [Desktop sync discovery checklist](docs/sync/desktop-contract-discovery.md)
 - [HSD-SYNC-001 desktop-to-web contract](docs/contracts/HSD-SYNC-001.md)
 - [HSD-SYNC-002A sync batch intake foundation](docs/sync/HSD-SYNC-002A.md)
+- [HSD-SYNC-002B patient identity ingestion](docs/sync/HSD-SYNC-002B.md)
 - [HSD-DATA-001 canonical PostgreSQL schema](docs/database/HSD-DATA-001.md)
 
 ## Security note

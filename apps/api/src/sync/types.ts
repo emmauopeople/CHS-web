@@ -29,6 +29,54 @@ export type SyncRecordSnapshot = Readonly<{
   payload: unknown;
 }>;
 
+export type PatientPayload = Readonly<{
+  localPatientCode: string;
+  knownChsMedicalId: string | null;
+  displayName: string;
+  givenName: string | null;
+  familyName: string | null;
+  otherNames: string | null;
+  dateOfBirth: string | null;
+  approximateAgeYears: number | null;
+  ageAsOfDate: string | null;
+  sex: 'FEMALE' | 'MALE' | 'OTHER' | 'UNKNOWN';
+  phone: string | null;
+  alternateContactName: string | null;
+  alternateContactPhone: string | null;
+  village: string | null;
+  quarter: string | null;
+  residenceNotes: string | null;
+  status: 'ACTIVE' | 'INACTIVE';
+  acknowledgmentStatus: 'ACKNOWLEDGED' | 'DECLINED' | 'NOT_REQUESTED';
+  createdAt: string;
+  updatedAt: string;
+}>;
+
+export type PatientSyncRecord = Omit<SyncRecordSnapshot, 'payload' | 'resourceType'> &
+  Readonly<{
+    resourceType: 'PATIENT';
+    payload: PatientPayload;
+  }>;
+
+export type SyncRecordError = Readonly<{
+  code: string;
+  path: string;
+  retryable: boolean;
+}>;
+
+export type PatientRecordOutcome = Readonly<{
+  recordId: string;
+  resourceType: 'PATIENT';
+  localResourceId: string;
+  sourceRevision: number;
+  status: 'ACCEPTED' | 'UNCHANGED' | 'REVIEW_REQUIRED' | 'REJECTED' | 'RETRY';
+  canonicalResourceId: string | null;
+  centralPersonId: string | null;
+  chsMedicalId: string | null;
+  medicalIdStatus: 'ASSIGNED' | 'CONFIRMED' | 'PENDING_REVIEW' | null;
+  errors: readonly SyncRecordError[];
+}>;
+
 export type SyncBatchRequest = Readonly<{
   contractVersion: '1.0';
   batchId: string;

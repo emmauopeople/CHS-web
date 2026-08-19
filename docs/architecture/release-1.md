@@ -35,9 +35,10 @@ scaling or ownership needs justify it.
 - `operations`: internal queries used by the temporary React application.
 - `audit`: append-only records of sensitive reads and state changes.
 
-Only `diagnostics` is implemented in the foundation increment. Desktop contract
-discovery is complete, and `HSD-SYNC-001` defines the contract that must be
-accepted before clinical entities are committed to code or migrations.
+The `diagnostics` module, HSD-SYNC-001 contract, canonical schema, and internal
+sync-intake foundation are implemented. The public sync route remains
+unregistered until the identity and clinical processors can produce complete,
+truthful record outcomes.
 
 ## Non-negotiable data rules
 

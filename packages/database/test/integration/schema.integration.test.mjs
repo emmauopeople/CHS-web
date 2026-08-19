@@ -33,6 +33,7 @@ test(
 
       assert.deepEqual(firstRun.applied, [
         '0001_canonical_screening_foundation.sql',
+        '0002_desktop_installation_credentials.sql',
       ]);
       assert.deepEqual(secondRun.applied, []);
 
@@ -44,11 +45,12 @@ test(
         [schema],
       );
       const tableNames = tableResult.rows.map((row) => row.table_name);
-      assert.equal(tableNames.length, 23);
+      assert.equal(tableNames.length, 24);
       assert.ok(tableNames.includes('schema_migrations'));
       assert.ok(tableNames.includes('screening_encounters'));
       assert.ok(tableNames.includes('vital_readings'));
       assert.ok(tableNames.includes('sync_batch_actors'));
+      assert.ok(tableNames.includes('desktop_installation_credentials'));
 
       await assert.rejects(
         client.query(
@@ -65,6 +67,54 @@ test(
       );
 
       await seedCanonicalScreening({ client, now, hash });
+
+      await client.query(
+        `INSERT INTO desktop_installation_credentials (
+           id, installation_id, token_prefix, token_hash, label, status,
+           issued_at, created_at, updated_at
+         ) VALUES ($1, $2, 'chs_inst_v1_abcdefgh', $3, 'Synthetic credential',
+           'ACTIVE', $4, $4, $4)`,
+        [
+          '21000000-0000-4000-8000-000000000001',
+          '20000000-0000-4000-8000-000000000001',
+          'b'.repeat(64),
+          now,
+        ],
+      );
+
+      await assert.rejects(
+        client.query(
+          `INSERT INTO desktop_installation_credentials (
+             id, installation_id, token_prefix, token_hash, label, status,
+             issued_at, created_at, updated_at
+           ) VALUES ($1, $2, 'chs_inst_v1_ijklmnop', $3,
+             'Duplicate synthetic credential', 'ACTIVE', $4, $4, $4)`,
+          [
+            '21000000-0000-4000-8000-000000000002',
+            '20000000-0000-4000-8000-000000000001',
+            'b'.repeat(64),
+            now,
+          ],
+        ),
+        /uq_desktop_installation_credentials_hash/,
+      );
+
+      await assert.rejects(
+        client.query(
+          `INSERT INTO desktop_installation_credentials (
+             id, installation_id, token_prefix, token_hash, label, status,
+             issued_at, created_at, updated_at
+           ) VALUES ($1, $2, 'chs_inst_v1_qrstuvwx', $3,
+             'Invalid revoked credential', 'REVOKED', $4, $4, $4)`,
+          [
+            '21000000-0000-4000-8000-000000000003',
+            '20000000-0000-4000-8000-000000000001',
+            'c'.repeat(64),
+            now,
+          ],
+        ),
+        /ck_desktop_installation_credentials_revocation/,
+      );
 
       await assert.rejects(
         client.query(

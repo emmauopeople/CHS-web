@@ -79,6 +79,7 @@ this contract clarification does not require a new PostgreSQL migration.
 - `organizations`
 - `locations`
 - `desktop_installations`
+- `desktop_installation_credentials`
 - `location_source_links`
 - `practitioners`
 - `practitioner_source_links`
@@ -160,6 +161,8 @@ conversion.
 
 ## Sync persistence rules
 
+- Store only a SHA-256 digest and non-secret prefix for each high-entropy
+  installation token; never store the raw token.
 - Store request and record SHA-256 hashes, not raw PHI payloads.
 - Preserve each batch's actor snapshots separately from the actor's latest
   source-link state.

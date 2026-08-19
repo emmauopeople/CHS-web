@@ -12,8 +12,17 @@ export type PatientAccessReason =
   | 'QUALITY_IMPROVEMENT'
   | 'OPERATIONS_SUPPORT';
 
-export type PatientAuditAction = 'PATIENT_LIST_VIEW' | 'PATIENT_DETAIL_VIEW';
-export type PatientAuditOutcome = 'SUCCESS' | 'DENIED' | 'NOT_FOUND' | 'ERROR';
+export type PatientAuditAction =
+  | 'PATIENT_LIST_VIEW'
+  | 'PATIENT_DETAIL_VIEW'
+  | 'MEDICAL_ID_RECOVERY_SEARCH'
+  | 'MEDICAL_ID_RECOVERY_REVEAL';
+export type PatientAuditOutcome =
+  | 'SUCCESS'
+  | 'DENIED'
+  | 'NOT_FOUND'
+  | 'REVIEW_REQUIRED'
+  | 'ERROR';
 
 export type PatientAuditEvent = Readonly<{
   operationsUserId: string | null;
@@ -61,6 +70,12 @@ export async function recordPatientAccessAudit(
     route: event.route,
     ...event.metadata,
   };
+  const entityType =
+    event.action === 'PATIENT_DETAIL_VIEW'
+      ? 'PERSON'
+      : event.action === 'PATIENT_LIST_VIEW'
+        ? 'PATIENT_SEARCH'
+        : 'MEDICAL_ID_RECOVERY';
 
   await database.query(
     `INSERT INTO audit_events (
@@ -74,7 +89,7 @@ export async function recordPatientAccessAudit(
       organizationId,
       event.operationsUserId,
       event.action,
-      event.action === 'PATIENT_DETAIL_VIEW' ? 'PERSON' : 'PATIENT_SEARCH',
+      entityType,
       event.entityId,
       event.reason,
       event.requestId,

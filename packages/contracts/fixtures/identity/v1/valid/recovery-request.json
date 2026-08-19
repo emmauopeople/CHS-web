@@ -1,0 +1,15 @@
+{
+  "contractVersion": "1.0",
+  "installationId": "20000000-0000-4000-8000-000000000001",
+  "localPatientId": "50000000-0000-4000-8000-000000000001",
+  "reasonCode": "DESKTOP_MEDICAL_ID_MISSING",
+  "evidence": {
+    "displayName": "Synthetic Example",
+    "dateOfBirth": "1985-04-12",
+    "approximateAgeYears": null,
+    "ageAsOfDate": null,
+    "sex": "FEMALE",
+    "phone": "+237600000001",
+    "village": "Test Village"
+  }
+}

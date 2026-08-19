@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chs.example/contracts/sync/v1/problem-details.schema.json",
+  "title": "CHS API problem details",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["type", "title", "status", "code", "requestId"],
+  "properties": {
+    "type": { "type": "string", "format": "uri-reference" },
+    "title": { "type": "string", "minLength": 1, "maxLength": 160 },
+    "status": { "type": "integer", "minimum": 400, "maximum": 599 },
+    "code": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]{2,63}$" },
+    "requestId": { "type": "string", "minLength": 1, "maxLength": 128 }
+  }
+}

@@ -1,0 +1,25 @@
+[
+  {
+    "name": "missing record provenance",
+    "operation": "remove",
+    "path": "/records/0/capturedAt"
+  },
+  {
+    "name": "unknown top-level property",
+    "operation": "add",
+    "path": "/unapprovedProperty",
+    "value": true
+  },
+  {
+    "name": "invalid patient sex enum",
+    "operation": "replace",
+    "path": "/records/0/payload/sex",
+    "value": "UNSPECIFIED"
+  },
+  {
+    "name": "out-of-range systolic reading",
+    "operation": "replace",
+    "path": "/records/3/payload/readings/0/systolic",
+    "value": 301
+  }
+]

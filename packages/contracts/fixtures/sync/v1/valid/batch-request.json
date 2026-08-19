@@ -1,0 +1,128 @@
+{
+  "contractVersion": "1.0",
+  "batchId": "10000000-0000-4000-8000-000000000001",
+  "installationId": "20000000-0000-4000-8000-000000000001",
+  "locationId": "30000000-0000-4000-8000-000000000001",
+  "installationTimezone": "Africa/Douala",
+  "desktopApplicationVersion": "0.12.0",
+  "desktopSchemaVersion": 12,
+  "createdAt": "2026-08-18T12:00:00.000Z",
+  "records": [
+    {
+      "recordId": "40000000-0000-4000-8000-000000000001",
+      "resourceType": "PATIENT",
+      "localResourceId": "50000000-0000-4000-8000-000000000001",
+      "sourceRevision": 2,
+      "schemaVersion": "patient.v1",
+      "operation": "UPSERT",
+      "capturedAt": "2026-08-18T11:45:00.000Z",
+      "sourceActorLocalId": "60000000-0000-4000-8000-000000000001",
+      "payload": {
+        "localPatientCode": "PT-000001",
+        "knownChsMedicalId": null,
+        "displayName": "Synthetic Example",
+        "givenName": "Synthetic",
+        "familyName": "Example",
+        "otherNames": null,
+        "dateOfBirth": "1985-04-12",
+        "approximateAgeYears": null,
+        "ageAsOfDate": null,
+        "sex": "FEMALE",
+        "phone": "+237600000001",
+        "alternateContactName": null,
+        "alternateContactPhone": null,
+        "village": "Test Village",
+        "quarter": "Test Quarter",
+        "residenceNotes": null,
+        "status": "ACTIVE",
+        "acknowledgmentStatus": "ACKNOWLEDGED",
+        "createdAt": "2026-08-18T10:00:00.000Z",
+        "updatedAt": "2026-08-18T11:45:00.000Z"
+      }
+    },
+    {
+      "recordId": "40000000-0000-4000-8000-000000000002",
+      "resourceType": "SCREENING_SESSION",
+      "localResourceId": "70000000-0000-4000-8000-000000000001",
+      "sourceRevision": 1,
+      "schemaVersion": "screening-session.v1",
+      "operation": "UPSERT",
+      "capturedAt": "2026-08-18T10:05:00.000Z",
+      "sourceActorLocalId": "60000000-0000-4000-8000-000000000001",
+      "payload": {
+        "localLocationId": "30000000-0000-4000-8000-000000000001",
+        "localProtocolVersionId": "80000000-0000-4000-8000-000000000001",
+        "protocolKey": "community-screening",
+        "protocolVersionLabel": "2026.1",
+        "protocolChecksum": "sha256:synthetic-fixture-000000000000000000000000000000000000000000000000000000",
+        "sessionDate": "2026-08-18",
+        "status": "OPEN",
+        "notes": "Synthetic contract fixture",
+        "openedAt": "2026-08-18T10:05:00.000Z",
+        "closedAt": null,
+        "createdAt": "2026-08-18T10:05:00.000Z",
+        "updatedAt": "2026-08-18T10:05:00.000Z"
+      }
+    },
+    {
+      "recordId": "40000000-0000-4000-8000-000000000003",
+      "resourceType": "SCREENING_ENCOUNTER",
+      "localResourceId": "90000000-0000-4000-8000-000000000001",
+      "sourceRevision": 1,
+      "schemaVersion": "screening-encounter.v1",
+      "operation": "UPSERT",
+      "capturedAt": "2026-08-18T11:00:00.000Z",
+      "sourceActorLocalId": "60000000-0000-4000-8000-000000000001",
+      "payload": {
+        "localPatientId": "50000000-0000-4000-8000-000000000001",
+        "localScreeningSessionId": "70000000-0000-4000-8000-000000000001",
+        "localLocationId": "30000000-0000-4000-8000-000000000001",
+        "localProtocolVersionId": "80000000-0000-4000-8000-000000000001",
+        "status": "DRAFT",
+        "startedAt": "2026-08-18T11:00:00.000Z",
+        "completedAt": null,
+        "sourceType": "LOCAL",
+        "amendmentOfLocalEncounterId": null,
+        "amendmentReason": null,
+        "voidReason": null,
+        "createdAt": "2026-08-18T11:00:00.000Z",
+        "updatedAt": "2026-08-18T11:00:00.000Z"
+      }
+    },
+    {
+      "recordId": "40000000-0000-4000-8000-000000000004",
+      "resourceType": "VITALS",
+      "localResourceId": "a0000000-0000-4000-8000-000000000001",
+      "sourceRevision": 1,
+      "schemaVersion": "vitals.v1",
+      "operation": "UPSERT",
+      "capturedAt": "2026-08-18T11:15:00.000Z",
+      "sourceActorLocalId": "60000000-0000-4000-8000-000000000001",
+      "payload": {
+        "localEncounterId": "90000000-0000-4000-8000-000000000001",
+        "status": "VITALS_COMPLETE",
+        "weightKg": 68.5,
+        "waistCm": 82.2,
+        "notes": null,
+        "createdAt": "2026-08-18T11:05:00.000Z",
+        "updatedAt": "2026-08-18T11:15:00.000Z",
+        "readings": [
+          {
+            "localReadingId": "b0000000-0000-4000-8000-000000000001",
+            "sequenceNumber": 1,
+            "systolic": 122,
+            "diastolic": 78,
+            "pulse": 72,
+            "measurementSite": "RIGHT_ARM",
+            "patientPosition": "SITTING",
+            "measurementLocalDate": "2026-08-18",
+            "measurementLocalTime": "12:12",
+            "measurementTimezone": "Africa/Douala",
+            "createdAt": "2026-08-18T11:12:00.000Z",
+            "updatedAt": "2026-08-18T11:12:00.000Z"
+          }
+        ]
+      }
+    }
+  ]
+}

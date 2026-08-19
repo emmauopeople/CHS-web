@@ -1,0 +1,149 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "CHS Desktop Synchronization API",
+    "version": "1.0.0",
+    "description": "Contract HSD-SYNC-001. Payload examples are synthetic."
+  },
+  "servers": [
+    { "url": "https://api.example.invalid" }
+  ],
+  "tags": [
+    { "name": "Synchronization" },
+    { "name": "Identity" }
+  ],
+  "paths": {
+    "/api/v1/sync/batches": {
+      "post": {
+        "tags": ["Synchronization"],
+        "operationId": "submitSyncBatchV1",
+        "summary": "Submit a retry-safe desktop snapshot batch",
+        "security": [{ "installationBearer": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "../schemas/sync/v1/sync-batch-request.schema.json"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Stored per-record outcomes, including replayed responses",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../schemas/sync/v1/sync-batch-response.schema.json"
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Problem" },
+          "401": { "$ref": "#/components/responses/Problem" },
+          "403": { "$ref": "#/components/responses/Problem" },
+          "409": { "$ref": "#/components/responses/Problem" },
+          "413": { "$ref": "#/components/responses/Problem" },
+          "429": { "$ref": "#/components/responses/Problem" },
+          "500": { "$ref": "#/components/responses/Problem" },
+          "503": { "$ref": "#/components/responses/Problem" }
+        }
+      }
+    },
+    "/api/v1/sync/batches/{batchId}": {
+      "get": {
+        "tags": ["Synchronization"],
+        "operationId": "getSyncBatchV1",
+        "summary": "Recover the stored response after a lost client response",
+        "security": [{ "installationBearer": [] }],
+        "parameters": [
+          {
+            "name": "batchId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Stored batch response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../schemas/sync/v1/sync-batch-response.schema.json"
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Problem" },
+          "403": { "$ref": "#/components/responses/Problem" },
+          "404": { "$ref": "#/components/responses/Problem" },
+          "429": { "$ref": "#/components/responses/Problem" },
+          "500": { "$ref": "#/components/responses/Problem" }
+        }
+      }
+    },
+    "/api/v1/identity/medical-id-recovery": {
+      "post": {
+        "tags": ["Identity"],
+        "operationId": "recoverMedicalIdV1",
+        "summary": "Recover an existing CHS medical ID without creating one",
+        "security": [{ "operationsBearer": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "../schemas/identity/v1/medical-id-recovery-request.schema.json"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Recovery result without candidate-list disclosure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../schemas/identity/v1/medical-id-recovery-response.schema.json"
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Problem" },
+          "401": { "$ref": "#/components/responses/Problem" },
+          "403": { "$ref": "#/components/responses/Problem" },
+          "429": { "$ref": "#/components/responses/Problem" },
+          "500": { "$ref": "#/components/responses/Problem" }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "installationBearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "opaque"
+      },
+      "operationsBearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "responses": {
+      "Problem": {
+        "description": "Request-level problem; never includes patient values",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "../schemas/sync/v1/problem-details.schema.json"
+            }
+          }
+        }
+      }
+    }
+  }
+}

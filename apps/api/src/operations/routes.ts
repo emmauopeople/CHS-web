@@ -158,6 +158,14 @@ function requestContext(request: FastifyRequest) {
   };
 }
 
+async function preventPatientResponseCaching(
+  _request: FastifyRequest,
+  reply: FastifyReply,
+): Promise<void> {
+  reply.header('cache-control', 'no-store');
+  reply.header('pragma', 'no-cache');
+}
+
 async function authenticateAndAuthorize(
   request: FastifyRequest,
   dependencies: OperationsRouteDependencies,
@@ -208,7 +216,7 @@ export async function registerOperationsRoutes(
 ): Promise<void> {
   app.post<{ Body: PatientSearchBody }>(
     '/api/v1/operations/patients/search',
-    { schema: patientSearchSchema },
+    { schema: patientSearchSchema, onRequest: preventPatientResponseCaching },
     async (request, reply) => {
       let principal: OperationsPrincipal | null = null;
       let auditAttempted = false;
@@ -269,7 +277,7 @@ export async function registerOperationsRoutes(
 
   app.post<{ Body: PatientDetailBody }>(
     '/api/v1/operations/patients/detail',
-    { schema: patientDetailSchema },
+    { schema: patientDetailSchema, onRequest: preventPatientResponseCaching },
     async (request, reply) => {
       let principal: OperationsPrincipal | null = null;
       let auditAttempted = false;

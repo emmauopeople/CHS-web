@@ -107,6 +107,8 @@ runIntegration('audited operations patient routes', () => {
       payload: {},
     });
     expect(missingReason.statusCode).toBe(400);
+    expect(missingReason.headers['cache-control']).toBe('no-store');
+    expect(missingReason.headers.pragma).toBe('no-cache');
 
     const missingToken = await app.inject({
       method: 'POST',
@@ -143,6 +145,7 @@ runIntegration('audited operations patient routes', () => {
       },
     });
     expect(response.statusCode).toBe(200);
+    expect(response.headers['cache-control']).toBe('no-store');
     expect(response.json()).toMatchObject({
       totalItems: 1,
       items: [{ personId: patient1, chsMedicalId: 'CHS-AAAA-BBBB-CCCC' }],

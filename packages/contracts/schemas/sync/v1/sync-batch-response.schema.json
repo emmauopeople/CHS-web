@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chs.example/contracts/sync/v1/sync-batch-response.schema.json",
+  "title": "CHS desktop synchronization batch response v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contractVersion", "batchId", "batchStatus", "receivedAt", "completedAt", "outcomes"],
+  "properties": {
+    "contractVersion": { "const": "1.0" },
+    "batchId": { "$ref": "common.schema.json#/$defs/uuid" },
+    "batchStatus": { "enum": ["ACCEPTED", "PARTIAL", "REJECTED"] },
+    "receivedAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" },
+    "completedAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" },
+    "outcomes": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100,
+      "items": { "$ref": "#/$defs/recordOutcome" }
+    }
+  },
+  "$defs": {
+    "recordOutcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "recordId",
+        "resourceType",
+        "localResourceId",
+        "sourceRevision",
+        "status",
+        "canonicalResourceId",
+        "centralPersonId",
+        "chsMedicalId",
+        "medicalIdStatus",
+        "errors"
+      ],
+      "properties": {
+        "recordId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "resourceType": {
+          "enum": ["PATIENT", "SCREENING_SESSION", "SCREENING_ENCOUNTER", "VITALS"]
+        },
+        "localResourceId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "sourceRevision": { "type": "integer", "minimum": 1 },
+        "status": {
+          "enum": ["ACCEPTED", "UNCHANGED", "REVIEW_REQUIRED", "REJECTED", "RETRY"]
+        },
+        "canonicalResourceId": {
+          "oneOf": [
+            { "$ref": "common.schema.json#/$defs/uuid" },
+            { "type": "null" }
+          ]
+        },
+        "centralPersonId": {
+          "oneOf": [
+            { "$ref": "common.schema.json#/$defs/uuid" },
+            { "type": "null" }
+          ]
+        },
+        "chsMedicalId": {
+          "type": ["string", "null"],
+          "minLength": 8,
+          "maxLength": 64
+        },
+        "medicalIdStatus": {
+          "type": ["string", "null"],
+          "enum": ["ASSIGNED", "CONFIRMED", "PENDING_REVIEW", null]
+        },
+        "errors": {
+          "type": "array",
+          "maxItems": 20,
+          "items": { "$ref": "#/$defs/recordError" }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "not": { "properties": { "resourceType": { "const": "PATIENT" } } }
+          },
+          "then": {
+            "properties": {
+              "centralPersonId": { "type": "null" },
+              "chsMedicalId": { "type": "null" },
+              "medicalIdStatus": { "type": "null" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "medicalIdStatus": { "enum": ["ASSIGNED", "CONFIRMED"] }
+            },
+            "required": ["medicalIdStatus"]
+          },
+          "then": {
+            "properties": {
+              "status": { "enum": ["ACCEPTED", "UNCHANGED"] },
+              "centralPersonId": { "$ref": "common.schema.json#/$defs/uuid" },
+              "chsMedicalId": { "type": "string", "minLength": 8, "maxLength": 64 }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "medicalIdStatus": { "const": "PENDING_REVIEW" } },
+            "required": ["medicalIdStatus"]
+          },
+          "then": {
+            "properties": {
+              "status": { "const": "REVIEW_REQUIRED" },
+              "centralPersonId": { "type": "null" },
+              "chsMedicalId": { "type": "null" }
+            }
+          }
+        }
+      ]
+    },
+    "recordError": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "path", "retryable"],
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]{2,63}$"
+        },
+        "path": {
+          "type": "string",
+          "maxLength": 240,
+          "pattern": "^(?:/.*)?$"
+        },
+        "retryable": { "type": "boolean" }
+      }
+    }
+  }
+}

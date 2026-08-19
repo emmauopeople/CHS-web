@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chs.example/contracts/identity/v1/medical-id-recovery-response.schema.json",
+  "title": "CHS medical-ID recovery response v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractVersion",
+    "status",
+    "centralPersonId",
+    "chsMedicalId",
+    "reviewCaseId"
+  ],
+  "properties": {
+    "contractVersion": { "const": "1.0" },
+    "status": { "enum": ["MATCH_FOUND", "NO_MATCH", "REVIEW_REQUIRED"] },
+    "centralPersonId": {
+      "type": ["string", "null"],
+      "format": "uuid"
+    },
+    "chsMedicalId": {
+      "type": ["string", "null"],
+      "minLength": 8,
+      "maxLength": 64
+    },
+    "reviewCaseId": {
+      "type": ["string", "null"],
+      "format": "uuid"
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "status": { "const": "MATCH_FOUND" },
+        "centralPersonId": { "type": "string", "format": "uuid" },
+        "chsMedicalId": { "type": "string", "minLength": 8, "maxLength": 64 },
+        "reviewCaseId": { "type": "null" }
+      }
+    },
+    {
+      "properties": {
+        "status": { "const": "NO_MATCH" },
+        "centralPersonId": { "type": "null" },
+        "chsMedicalId": { "type": "null" },
+        "reviewCaseId": { "type": "null" }
+      }
+    },
+    {
+      "properties": {
+        "status": { "const": "REVIEW_REQUIRED" },
+        "centralPersonId": { "type": "null" },
+        "chsMedicalId": { "type": "null" },
+        "reviewCaseId": { "type": "string", "format": "uuid" }
+      }
+    }
+  ]
+}

@@ -12,10 +12,10 @@ analysis are intentionally deferred until later releases.
 
 ## Repository status
 
-This repository is at the Release 1 foundation stage. The API service and its
-operational endpoints are implemented. The clinical schema and synchronization
-payload will be designed after the desktop application's current data model and
-sample payloads have been inspected.
+This repository is at the Release 1 contract stage. The API foundation and its
+operational endpoints are implemented. The desktop synchronization contract is
+defined from the inspected desktop data model before clinical migrations or
+ingestion handlers are added.
 
 ## Prerequisites
 
@@ -59,6 +59,7 @@ pnpm lint          # run lint checks
 
 - [Release 1 architecture](docs/architecture/release-1.md)
 - [Desktop sync discovery checklist](docs/sync/desktop-contract-discovery.md)
+- [HSD-SYNC-001 desktop-to-web contract](docs/contracts/HSD-SYNC-001.md)
 
 ## Security note
 

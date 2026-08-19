@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chs.example/contracts/sync/v1/common.schema.json",
+  "title": "CHS synchronization common types",
+  "$defs": {
+    "uuid": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "utcTimestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "localDate": {
+      "type": "string",
+      "format": "date"
+    },
+    "localTime": {
+      "type": "string",
+      "pattern": "^(?:[01]\\d|2[0-3]):[0-5]\\d$"
+    },
+    "ianaTimezone": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 64,
+      "pattern": "^[A-Za-z_+-]+(?:/[A-Za-z0-9_+.-]+)+$"
+    },
+    "nullableShortText": {
+      "type": ["string", "null"],
+      "maxLength": 240
+    },
+    "nullableNote": {
+      "type": ["string", "null"],
+      "maxLength": 500
+    }
+  }
+}

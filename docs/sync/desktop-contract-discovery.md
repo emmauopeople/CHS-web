@@ -1,8 +1,12 @@
 # Desktop sync contract discovery
 
-The sync API cannot be finalized safely until the existing desktop data model
-and offline retry behavior are understood. Do not use real patient data for
-this exercise.
+Status: completed for the HSD-SYNC-001 version 1 vertical slice. The resulting
+decisions and machine-readable artifacts are documented in
+[`HSD-SYNC-001`](../contracts/HSD-SYNC-001.md).
+
+The sync API was not finalized until the existing desktop data model and
+offline retry behavior were understood. No real patient data was used for this
+exercise.
 
 ## Required inputs
 
@@ -46,3 +50,19 @@ Discovery will produce versioned JSON Schemas and OpenAPI definitions for:
 
 The accepted schemas will be represented in synthetic contract tests shared by
 the API and desktop application.
+
+## Findings
+
+- Stable installation, location, patient, session, encounter, vitals, and
+  reading UUIDs already exist.
+- The installation stores an IANA timezone and records expose row or record
+  revisions.
+- The current outbox is durable but its payloads are audit notifications, not
+  complete clinical snapshots.
+- The desktop sync worker must materialize the current full snapshot from
+  SQLite and keep the outbox ID as its delivery idempotency key.
+- Patient local codes are installation-local. A returned CHS medical ID is an
+  additional identifier and never replaces the desktop patient UUID.
+- Version 1 covers patient demographics, sessions, encounters, and vitals.
+  Lifestyle and food payloads remain deferred until their desktop persistence
+  models stabilize.

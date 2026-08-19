@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chs.example/contracts/identity/v1/medical-id-recovery-request.schema.json",
+  "title": "CHS medical-ID recovery request v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractVersion",
+    "installationId",
+    "localPatientId",
+    "reasonCode",
+    "evidence"
+  ],
+  "properties": {
+    "contractVersion": { "const": "1.0" },
+    "installationId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "localPatientId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "reasonCode": { "const": "DESKTOP_MEDICAL_ID_MISSING" },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "displayName",
+        "dateOfBirth",
+        "approximateAgeYears",
+        "ageAsOfDate",
+        "sex",
+        "phone",
+        "village"
+      ],
+      "properties": {
+        "displayName": { "type": "string", "minLength": 1, "maxLength": 180 },
+        "dateOfBirth": {
+          "type": ["string", "null"],
+          "format": "date"
+        },
+        "approximateAgeYears": {
+          "type": ["integer", "null"],
+          "minimum": 0,
+          "maximum": 120
+        },
+        "ageAsOfDate": {
+          "type": ["string", "null"],
+          "format": "date"
+        },
+        "sex": { "enum": ["FEMALE", "MALE", "OTHER", "UNKNOWN"] },
+        "phone": { "type": ["string", "null"], "maxLength": 80 },
+        "village": { "type": ["string", "null"], "maxLength": 120 }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "dateOfBirth": { "type": "string", "format": "date" },
+            "approximateAgeYears": { "type": "null" },
+            "ageAsOfDate": { "type": "null" }
+          }
+        },
+        {
+          "properties": {
+            "dateOfBirth": { "type": "null" },
+            "approximateAgeYears": { "type": "integer", "minimum": 0, "maximum": 120 },
+            "ageAsOfDate": { "type": "string", "format": "date" }
+          }
+        }
+      ]
+    }
+  }
+}

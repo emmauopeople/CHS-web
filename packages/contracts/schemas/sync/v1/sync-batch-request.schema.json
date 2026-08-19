@@ -1,0 +1,421 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chs.example/contracts/sync/v1/sync-batch-request.schema.json",
+  "title": "CHS desktop synchronization batch request v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractVersion",
+    "batchId",
+    "installationId",
+    "locationId",
+    "installationTimezone",
+    "desktopApplicationVersion",
+    "desktopSchemaVersion",
+    "createdAt",
+    "records"
+  ],
+  "properties": {
+    "contractVersion": { "const": "1.0" },
+    "batchId": { "$ref": "common.schema.json#/$defs/uuid" },
+    "installationId": { "$ref": "common.schema.json#/$defs/uuid" },
+    "locationId": { "$ref": "common.schema.json#/$defs/uuid" },
+    "installationTimezone": { "$ref": "common.schema.json#/$defs/ianaTimezone" },
+    "desktopApplicationVersion": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "desktopSchemaVersion": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "createdAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" },
+    "records": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100,
+      "items": {
+        "oneOf": [
+          { "$ref": "#/$defs/patientRecord" },
+          { "$ref": "#/$defs/sessionRecord" },
+          { "$ref": "#/$defs/encounterRecord" },
+          { "$ref": "#/$defs/vitalsRecord" }
+        ]
+      }
+    }
+  },
+  "$defs": {
+    "recordBase": {
+      "type": "object",
+      "required": [
+        "recordId",
+        "resourceType",
+        "localResourceId",
+        "sourceRevision",
+        "schemaVersion",
+        "operation",
+        "capturedAt",
+        "sourceActorLocalId",
+        "payload"
+      ],
+      "properties": {
+        "recordId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "resourceType": {
+          "enum": ["PATIENT", "SCREENING_SESSION", "SCREENING_ENCOUNTER", "VITALS"]
+        },
+        "localResourceId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "sourceRevision": { "type": "integer", "minimum": 1 },
+        "schemaVersion": { "type": "string" },
+        "operation": { "const": "UPSERT" },
+        "capturedAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" },
+        "sourceActorLocalId": {
+          "oneOf": [
+            { "$ref": "common.schema.json#/$defs/uuid" },
+            { "type": "null" }
+          ]
+        },
+        "payload": { "type": "object" }
+      }
+    },
+    "patientRecord": {
+      "type": "object",
+      "allOf": [
+        { "$ref": "#/$defs/recordBase" },
+        {
+          "properties": {
+            "resourceType": { "const": "PATIENT" },
+            "schemaVersion": { "const": "patient.v1" },
+            "payload": { "$ref": "#/$defs/patientPayload" }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "sessionRecord": {
+      "type": "object",
+      "allOf": [
+        { "$ref": "#/$defs/recordBase" },
+        {
+          "properties": {
+            "resourceType": { "const": "SCREENING_SESSION" },
+            "schemaVersion": { "const": "screening-session.v1" },
+            "payload": { "$ref": "#/$defs/sessionPayload" }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "encounterRecord": {
+      "type": "object",
+      "allOf": [
+        { "$ref": "#/$defs/recordBase" },
+        {
+          "properties": {
+            "resourceType": { "const": "SCREENING_ENCOUNTER" },
+            "schemaVersion": { "const": "screening-encounter.v1" },
+            "payload": { "$ref": "#/$defs/encounterPayload" }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "vitalsRecord": {
+      "type": "object",
+      "allOf": [
+        { "$ref": "#/$defs/recordBase" },
+        {
+          "properties": {
+            "resourceType": { "const": "VITALS" },
+            "schemaVersion": { "const": "vitals.v1" },
+            "payload": { "$ref": "#/$defs/vitalsPayload" }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "patientPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "localPatientCode",
+        "knownChsMedicalId",
+        "displayName",
+        "givenName",
+        "familyName",
+        "otherNames",
+        "dateOfBirth",
+        "approximateAgeYears",
+        "ageAsOfDate",
+        "sex",
+        "phone",
+        "alternateContactName",
+        "alternateContactPhone",
+        "village",
+        "quarter",
+        "residenceNotes",
+        "status",
+        "acknowledgmentStatus",
+        "createdAt",
+        "updatedAt"
+      ],
+      "properties": {
+        "localPatientCode": {
+          "type": "string",
+          "pattern": "^PT-[0-9]{6}$"
+        },
+        "knownChsMedicalId": {
+          "type": ["string", "null"],
+          "minLength": 8,
+          "maxLength": 64
+        },
+        "displayName": { "type": "string", "minLength": 1, "maxLength": 180 },
+        "givenName": { "$ref": "common.schema.json#/$defs/nullableShortText" },
+        "familyName": { "$ref": "common.schema.json#/$defs/nullableShortText" },
+        "otherNames": { "$ref": "common.schema.json#/$defs/nullableShortText" },
+        "dateOfBirth": {
+          "oneOf": [
+            { "$ref": "common.schema.json#/$defs/localDate" },
+            { "type": "null" }
+          ]
+        },
+        "approximateAgeYears": {
+          "type": ["integer", "null"],
+          "minimum": 0,
+          "maximum": 120
+        },
+        "ageAsOfDate": {
+          "oneOf": [
+            { "$ref": "common.schema.json#/$defs/localDate" },
+            { "type": "null" }
+          ]
+        },
+        "sex": { "enum": ["FEMALE", "MALE", "OTHER", "UNKNOWN"] },
+        "phone": { "type": ["string", "null"], "maxLength": 80 },
+        "alternateContactName": { "type": ["string", "null"], "maxLength": 120 },
+        "alternateContactPhone": { "type": ["string", "null"], "maxLength": 80 },
+        "village": { "type": ["string", "null"], "maxLength": 120 },
+        "quarter": { "type": ["string", "null"], "maxLength": 120 },
+        "residenceNotes": { "$ref": "common.schema.json#/$defs/nullableNote" },
+        "status": { "enum": ["ACTIVE", "INACTIVE"] },
+        "acknowledgmentStatus": {
+          "enum": ["ACKNOWLEDGED", "DECLINED", "NOT_REQUESTED"]
+        },
+        "createdAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" },
+        "updatedAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "dateOfBirth": { "$ref": "common.schema.json#/$defs/localDate" },
+            "approximateAgeYears": { "type": "null" },
+            "ageAsOfDate": { "type": "null" }
+          }
+        },
+        {
+          "properties": {
+            "dateOfBirth": { "type": "null" },
+            "approximateAgeYears": { "type": "integer", "minimum": 0, "maximum": 120 },
+            "ageAsOfDate": { "$ref": "common.schema.json#/$defs/localDate" }
+          }
+        }
+      ]
+    },
+    "sessionPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "localLocationId",
+        "localProtocolVersionId",
+        "protocolKey",
+        "protocolVersionLabel",
+        "protocolChecksum",
+        "sessionDate",
+        "status",
+        "notes",
+        "openedAt",
+        "closedAt",
+        "createdAt",
+        "updatedAt"
+      ],
+      "properties": {
+        "localLocationId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "localProtocolVersionId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "protocolKey": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "protocolVersionLabel": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "protocolChecksum": { "type": "string", "minLength": 16, "maxLength": 128 },
+        "sessionDate": { "$ref": "common.schema.json#/$defs/localDate" },
+        "status": { "enum": ["OPEN", "CLOSED"] },
+        "notes": { "$ref": "common.schema.json#/$defs/nullableNote" },
+        "openedAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" },
+        "closedAt": {
+          "oneOf": [
+            { "$ref": "common.schema.json#/$defs/utcTimestamp" },
+            { "type": "null" }
+          ]
+        },
+        "createdAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" },
+        "updatedAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "status": { "const": "OPEN" } } },
+          "then": { "properties": { "closedAt": { "type": "null" } } },
+          "else": {
+            "properties": {
+              "closedAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" }
+            }
+          }
+        }
+      ]
+    },
+    "encounterPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "localPatientId",
+        "localScreeningSessionId",
+        "localLocationId",
+        "localProtocolVersionId",
+        "status",
+        "startedAt",
+        "completedAt",
+        "sourceType",
+        "amendmentOfLocalEncounterId",
+        "amendmentReason",
+        "voidReason",
+        "createdAt",
+        "updatedAt"
+      ],
+      "properties": {
+        "localPatientId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "localScreeningSessionId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "localLocationId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "localProtocolVersionId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "status": { "enum": ["DRAFT", "COMPLETED", "AMENDED", "VOID"] },
+        "startedAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" },
+        "completedAt": {
+          "oneOf": [
+            { "$ref": "common.schema.json#/$defs/utcTimestamp" },
+            { "type": "null" }
+          ]
+        },
+        "sourceType": { "const": "LOCAL" },
+        "amendmentOfLocalEncounterId": {
+          "oneOf": [
+            { "$ref": "common.schema.json#/$defs/uuid" },
+            { "type": "null" }
+          ]
+        },
+        "amendmentReason": { "$ref": "common.schema.json#/$defs/nullableNote" },
+        "voidReason": { "$ref": "common.schema.json#/$defs/nullableNote" },
+        "createdAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" },
+        "updatedAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" }
+      }
+    },
+    "vitalsPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "localEncounterId",
+        "status",
+        "weightKg",
+        "waistCm",
+        "notes",
+        "createdAt",
+        "updatedAt",
+        "readings"
+      ],
+      "properties": {
+        "localEncounterId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "status": { "enum": ["DRAFT", "VITALS_COMPLETE"] },
+        "weightKg": { "type": ["number", "null"], "exclusiveMinimum": 0, "maximum": 500 },
+        "waistCm": { "type": ["number", "null"], "exclusiveMinimum": 0, "maximum": 400 },
+        "notes": { "$ref": "common.schema.json#/$defs/nullableNote" },
+        "createdAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" },
+        "updatedAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" },
+        "readings": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 12,
+          "items": { "$ref": "#/$defs/vitalsReading" }
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "status": { "const": "VITALS_COMPLETE" } } },
+          "then": {
+            "properties": {
+              "readings": {
+                "type": "array",
+                "items": { "$ref": "#/$defs/completeVitalsReading" }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "vitalsReading": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "localReadingId",
+        "sequenceNumber",
+        "systolic",
+        "diastolic",
+        "pulse",
+        "measurementSite",
+        "patientPosition",
+        "measurementLocalDate",
+        "measurementLocalTime",
+        "measurementTimezone",
+        "createdAt",
+        "updatedAt"
+      ],
+      "properties": {
+        "localReadingId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "sequenceNumber": { "type": "integer", "minimum": 1, "maximum": 12 },
+        "systolic": { "type": ["integer", "null"], "minimum": 1, "maximum": 300 },
+        "diastolic": { "type": ["integer", "null"], "minimum": 1, "maximum": 120 },
+        "pulse": { "type": ["integer", "null"], "minimum": 1, "maximum": 300 },
+        "measurementSite": {
+          "type": ["string", "null"],
+          "enum": ["RIGHT_ARM", "LEFT_ARM", "LEFT_LEG", "RIGHT_LEG", null]
+        },
+        "patientPosition": {
+          "type": ["string", "null"],
+          "enum": ["LYING", "STANDING", "SITTING", null]
+        },
+        "measurementLocalDate": { "$ref": "common.schema.json#/$defs/localDate" },
+        "measurementLocalTime": {
+          "oneOf": [
+            { "$ref": "common.schema.json#/$defs/localTime" },
+            { "type": "null" }
+          ]
+        },
+        "measurementTimezone": { "$ref": "common.schema.json#/$defs/ianaTimezone" },
+        "createdAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" },
+        "updatedAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" }
+      }
+    },
+    "completeVitalsReading": {
+      "type": "object",
+      "allOf": [
+        { "$ref": "#/$defs/vitalsReading" },
+        {
+          "type": "object",
+          "properties": {
+            "systolic": { "type": "integer", "minimum": 1, "maximum": 300 },
+            "diastolic": { "type": "integer", "minimum": 1, "maximum": 120 },
+            "pulse": { "type": "integer", "minimum": 1, "maximum": 300 },
+            "measurementSite": {
+              "enum": ["RIGHT_ARM", "LEFT_ARM", "LEFT_LEG", "RIGHT_LEG"]
+            },
+            "patientPosition": { "enum": ["LYING", "STANDING", "SITTING"] },
+            "measurementLocalTime": { "$ref": "common.schema.json#/$defs/localTime" }
+          }
+        }
+      ]
+    }
+  }
+}

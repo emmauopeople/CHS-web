@@ -107,6 +107,27 @@ function assertRequestSemantics(request) {
         'payload.performedByLocalActorId',
         record.payload.performedByLocalActorId
       ])
+      const readingIds = new Set()
+      const sequences = new Set()
+      for (const reading of record.payload.readings) {
+        if (readingIds.has(reading.localReadingId)) {
+          throw new Error(`Duplicate vitals reading ID: ${reading.localReadingId}`)
+        }
+        if (sequences.has(reading.sequenceNumber)) {
+          throw new Error(`Duplicate vitals reading sequence: ${reading.sequenceNumber}`)
+        }
+        if (reading.measurementTimezone !== request.installationTimezone) {
+          throw new Error(
+            `Vitals reading timezone differs from installation: ${reading.localReadingId}`
+          )
+        }
+        readingIds.add(reading.localReadingId)
+        sequences.add(reading.sequenceNumber)
+      }
+      const orderedSequences = [...sequences].sort((left, right) => left - right)
+      if (orderedSequences.some((sequence, index) => sequence !== index + 1)) {
+        throw new Error(`Vitals reading sequence is not contiguous: ${record.recordId}`)
+      }
     }
 
     for (const [field, actorId] of actorReferences) {

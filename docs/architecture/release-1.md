@@ -37,10 +37,10 @@ scaling or ownership needs justify it.
 
 The `diagnostics` module, HSD-SYNC-001 contract, canonical schema, internal
 sync-intake foundation, and patient identity/Medical ID processor are
-implemented. Screening session, source-linked protocol, and patient encounter
-ingestion are also implemented. The public sync route remains unregistered
-until the vitals and batch completion processors can produce complete, truthful
-record outcomes.
+implemented. Screening session, source-linked protocol, patient encounter, and
+vitals ingestion are also implemented. The public sync route remains
+unregistered until batch completion orchestration can produce complete,
+truthful record outcomes and stored replay responses.
 
 ## Non-negotiable data rules
 

@@ -155,6 +155,55 @@ export type ScreeningEncounterRecordOutcome = Readonly<{
   errors: readonly SyncRecordError[];
 }>;
 
+export type VitalsReadingPayload = Readonly<{
+  localReadingId: string;
+  sequenceNumber: number;
+  systolic: number | null;
+  diastolic: number | null;
+  pulse: number | null;
+  measurementSite: 'RIGHT_ARM' | 'LEFT_ARM' | 'LEFT_LEG' | 'RIGHT_LEG' | null;
+  patientPosition: 'LYING' | 'STANDING' | 'SITTING' | null;
+  measurementLocalDate: string;
+  measurementLocalTime: string | null;
+  measurementTimezone: string;
+  createdAt: string;
+  updatedAt: string;
+}>;
+
+export type VitalsPayload = Readonly<{
+  localEncounterId: string;
+  performedByLocalActorId: string;
+  status: 'DRAFT' | 'VITALS_COMPLETE';
+  weightKg: number | null;
+  waistCm: number | null;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+  readings: readonly VitalsReadingPayload[];
+}>;
+
+export type VitalsSyncRecord = Omit<
+  SyncRecordSnapshot,
+  'payload' | 'resourceType'
+> &
+  Readonly<{
+    resourceType: 'VITALS';
+    payload: VitalsPayload;
+  }>;
+
+export type VitalsRecordOutcome = Readonly<{
+  recordId: string;
+  resourceType: 'VITALS';
+  localResourceId: string;
+  sourceRevision: number;
+  status: 'ACCEPTED' | 'UNCHANGED' | 'REJECTED' | 'RETRY';
+  canonicalResourceId: string | null;
+  centralPersonId: null;
+  chsMedicalId: null;
+  medicalIdStatus: null;
+  errors: readonly SyncRecordError[];
+}>;
+
 export type SyncBatchRequest = Readonly<{
   contractVersion: '1.0';
   batchId: string;

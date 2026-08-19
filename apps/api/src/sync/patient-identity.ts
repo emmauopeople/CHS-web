@@ -450,7 +450,7 @@ async function findKnownMedicalId(
     `SELECT
        person.id,
        person.name_normalized,
-       person.date_of_birth,
+       person.date_of_birth::text AS date_of_birth,
        person.phone_normalized,
        identifier.person_id,
        identifier.identifier_value

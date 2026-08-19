@@ -164,7 +164,9 @@ Desktop persistence uses UTC timestamps for record provenance. A vitals reading
 also carries `measurementLocalDate`, `measurementLocalTime`, and
 `measurementTimezone`, because the clinical measurement time is entered in
 local time. The server preserves those source fields and derives an instant
-only with timezone-aware conversion; it must not assume UTC.
+only with timezone-aware conversion; it must not assume UTC. Reading timezones
+must match the enrolled installation timezone, and reading sequence numbers are
+unique and contiguous from 1 within each vital set.
 
 Client timestamps are provenance, not trusted ordering controls. The server
 uses `sourceRevision` for entity ordering and its own receive timestamp for

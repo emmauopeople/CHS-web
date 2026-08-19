@@ -75,5 +75,29 @@
     "operation": "replace",
     "path": "/records/3/payload/performedByLocalActorId",
     "value": "60000000-0000-4000-8000-000000000099"
+  },
+  {
+    "name": "completed vitals reading is missing pulse",
+    "operation": "replace",
+    "path": "/records/3/payload/readings/0/pulse",
+    "value": null
+  },
+  {
+    "name": "completed vitals reading is missing local time",
+    "operation": "replace",
+    "path": "/records/3/payload/readings/0/measurementLocalTime",
+    "value": null
+  },
+  {
+    "name": "vitals reading sequence is not contiguous",
+    "operation": "replace",
+    "path": "/records/3/payload/readings/0/sequenceNumber",
+    "value": 2
+  },
+  {
+    "name": "vitals reading timezone differs from installation",
+    "operation": "replace",
+    "path": "/records/3/payload/readings/0/measurementTimezone",
+    "value": "America/Chicago"
   }
 ]

@@ -13,9 +13,10 @@ analysis are intentionally deferred until later releases.
 ## Repository status
 
 This repository is building the Release 1 foundation. The API operational
-endpoints, desktop synchronization contract, and canonical PostgreSQL schema
-foundation are implemented. Sync ingestion handlers are the next vertical
-slice.
+endpoints, desktop synchronization contract, canonical PostgreSQL schema, and
+secure sync-intake foundation are implemented. Patient identity ingestion is
+the next vertical slice; the sync HTTP route remains closed until it can return
+complete per-record outcomes.
 
 ## Prerequisites
 
@@ -63,6 +64,7 @@ pnpm lint          # run lint checks
 - [Release 1 architecture](docs/architecture/release-1.md)
 - [Desktop sync discovery checklist](docs/sync/desktop-contract-discovery.md)
 - [HSD-SYNC-001 desktop-to-web contract](docs/contracts/HSD-SYNC-001.md)
+- [HSD-SYNC-002A sync batch intake foundation](docs/sync/HSD-SYNC-002A.md)
 - [HSD-DATA-001 canonical PostgreSQL schema](docs/database/HSD-DATA-001.md)
 
 ## Security note

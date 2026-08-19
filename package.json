@@ -12,7 +12,7 @@
   "scripts": {
     "build": "pnpm --recursive build",
     "db:migrate": "pnpm --filter @chs/database migrate",
-    "db:test": "pnpm --filter @chs/database test:integration",
+    "db:test": "pnpm --filter @chs/database test:integration && pnpm --filter @chs/api test:integration",
     "dev:api": "pnpm --filter @chs/api dev",
     "lint": "pnpm --recursive lint",
     "test": "pnpm --recursive test",

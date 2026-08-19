@@ -16,11 +16,20 @@ test('database package uses a cross-platform syntax checker', async () => {
 test('canonical migration is numbered, hashed, and contains the required model', async () => {
   const migrations = await discoverMigrations();
 
-  assert.equal(migrations.length, 1);
+  assert.equal(migrations.length, 2);
   assert.equal(migrations[0].version, '0001');
   assert.equal(
     migrations[0].filename,
     '0001_canonical_screening_foundation.sql',
+  );
+  assert.equal(
+    migrations[1].filename,
+    '0002_desktop_installation_credentials.sql',
+  );
+  assert.match(migrations[1].checksum, /^[0-9a-f]{64}$/);
+  assert.match(
+    migrations[1].sql,
+    /CREATE TABLE desktop_installation_credentials \(/,
   );
   assert.match(migrations[0].checksum, /^[0-9a-f]{64}$/);
 

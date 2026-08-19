@@ -11,10 +11,10 @@
   },
   "scripts": {
     "build": "node src/validate-migrations.mjs",
-    "lint": "node --check src/*.mjs test/*.mjs test/integration/*.mjs",
+    "lint": "node scripts/check-syntax.mjs",
     "migrate": "node --env-file-if-exists=../../.env src/migrate.mjs",
     "test": "node --test test/migration-files.test.mjs",
     "test:integration": "node --env-file-if-exists=../../.env --test test/integration/schema.integration.test.mjs",
-    "typecheck": "node --check src/*.mjs test/*.mjs test/integration/*.mjs"
+    "typecheck": "node scripts/check-syntax.mjs"
   }
 }

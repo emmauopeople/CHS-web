@@ -92,10 +92,21 @@ Version 1.0 accepts these snapshots:
 Only `UPSERT` is allowed in version 1.0. A voided encounter is represented by a
 new encounter snapshot with status `VOID`; records are not physically deleted.
 
-`sourceActorLocalId` is mandatory and retained for provenance. It must resolve
-to exactly one entry in the batch `actors` array. Actor snapshots include only
-the local UUID, display name, role, active status, and source update timestamp;
-usernames and authentication data are excluded.
+`sourceActorLocalId` is mandatory and retained for mutation provenance: it is
+the local user whose action created the versioned snapshot being synchronized.
+It does not imply that this user performed the clinical work. Clinical
+attribution is carried separately in the resource payload:
+
+- a session has `openedByLocalActorId` and, when closed,
+  `closedByLocalActorId`;
+- an encounter has `recordedByLocalActorId`;
+- a vital set has `performedByLocalActorId`.
+
+Every non-null actor reference must resolve to exactly one entry in the batch
+`actors` array. Actor snapshots include only the local UUID, display name,
+role, active status, and source update timestamp; usernames and authentication
+data are excluded. An actor may be inactive when the historical record is
+synchronized, but the actor snapshot remains required.
 
 A desktop-local user is not automatically treated as a verified centrally
 authenticated provider. The web platform creates a source-linked practitioner
@@ -115,11 +126,23 @@ an explicit review or future provider-enrollment workflow.
 | Encounter `sourceRevision` | `screening_encounters.record_version` |
 | Vitals `sourceRevision` | `screening_vitals_drafts.row_version` |
 | `sourceActorLocalId` | Relevant local `created_by`, `updated_by`, or `recorded_by` UUID |
+| Session `openedByLocalActorId` | `screening_sessions.opened_by` |
+| Session `closedByLocalActorId` | `screening_sessions.closed_by`; null while open |
+| Encounter `recordedByLocalActorId` | `screening_encounters.recorded_by` |
+| Vitals `performedByLocalActorId` | Encounter `recorded_by` for the current desktop workflow |
 
 The actor display name and role come from the desktop `users` row referenced by
-that UUID. The combination provides enough source identity to preserve the
-screening performer and later construct Practitioner and PractitionerRole
+each UUID. The combination provides enough source identity to distinguish the
+operator who changed a record from the clinician who opened, closed, recorded,
+or performed it, and later construct Practitioner and PractitionerRole
 relationships without synchronizing credentials.
+
+The current desktop schema records one actor for an encounter rather than one
+actor per vital reading. Therefore `performedByLocalActorId` is the encounter's
+`recorded_by` actor in version 1.0. If a later workflow allows different people
+to perform individual readings, a versioned additive contract change must
+introduce reading-level attribution; ingestion must not infer it from the sync
+operator.
 
 A session snapshot also includes the protocol key, version label, and checksum,
 so the web platform does not infer clinical meaning from a desktop-local
@@ -217,8 +240,11 @@ are mandatory in the endpoint implementation.
 Additive optional fields may be introduced within version 1 only after both
 clients tolerate unknown response properties. Any new required field, changed
 meaning, removed enum value, or incompatible validation rule requires a new
-major contract path. The desktop pins a reviewed contract release and includes
-its own application/schema versions on every batch.
+major contract path after version 1.0 is implemented. This draft amendment adds
+required clinical-attribution fields before either sync endpoint or desktop
+worker exists, so it remains contract version `1.0`. The desktop pins a reviewed
+contract release and includes its own application/schema versions on every
+batch.
 
 ## Security and privacy
 
@@ -236,7 +262,8 @@ its own application/schema versions on every batch.
 - OpenAPI 3.1 documents all three operations and their security schemes.
 - JSON Schema validates every version 1 request and response fixture.
 - Invalid fixtures prove rejection of missing provenance, unknown properties,
-  invalid enums, and out-of-range vitals.
+  invalid enums, out-of-range vitals, unknown clinical actors, and invalid
+  session-closing attribution.
 - All local references, revisions, units, and time semantics are explicit.
 - Batch and record retry behavior is deterministic.
 - A patient outcome can return both central IDs without replacing desktop IDs.

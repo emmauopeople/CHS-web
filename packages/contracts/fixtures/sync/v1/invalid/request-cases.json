@@ -27,5 +27,29 @@
     "operation": "replace",
     "path": "/records/3/sourceActorLocalId",
     "value": "60000000-0000-4000-8000-000000000099"
+  },
+  {
+    "name": "session opener is absent from the batch",
+    "operation": "replace",
+    "path": "/records/1/payload/openedByLocalActorId",
+    "value": "60000000-0000-4000-8000-000000000099"
+  },
+  {
+    "name": "open session has a closing actor",
+    "operation": "replace",
+    "path": "/records/1/payload/closedByLocalActorId",
+    "value": "60000000-0000-4000-8000-000000000002"
+  },
+  {
+    "name": "encounter recorder is absent from the batch",
+    "operation": "replace",
+    "path": "/records/2/payload/recordedByLocalActorId",
+    "value": "60000000-0000-4000-8000-000000000099"
+  },
+  {
+    "name": "vitals performer is absent from the batch",
+    "operation": "replace",
+    "path": "/records/3/payload/performedByLocalActorId",
+    "value": "60000000-0000-4000-8000-000000000099"
   }
 ]

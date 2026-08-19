@@ -42,12 +42,9 @@ Source IDs never replace canonical IDs. A future reconciliation workflow may
 link actor records from multiple installations to the same practitioner, but
 the ingestion service must not make that inference automatically.
 
-## Source actor amendment
+## Actor snapshots and clinical attribution
 
-The original contract supplied only `sourceActorLocalId`. That is insufficient
-to create a meaningful practitioner and role later. HSD-SYNC-001 remains in
-draft and is amended before endpoint implementation to include a batch-level
-`actors` array containing:
+HSD-SYNC-001 includes a batch-level `actors` array containing:
 
 - immutable local actor UUID;
 - display name;
@@ -55,8 +52,25 @@ draft and is amended before endpoint implementation to include a batch-level
 - active status;
 - source update timestamp.
 
-Every submitted record references one of those actors. Usernames, password
-data, and authentication secrets are not synchronized.
+Every submitted record references the actor responsible for the synchronized
+mutation through `sourceActorLocalId`. Session, encounter, and vitals payloads
+also reference their clinical actors separately. Every non-null reference must
+resolve to exactly one actor snapshot. Usernames, password data, and
+authentication secrets are not synchronized.
+
+The ingestion mapping is explicit:
+
+| Contract attribution | Canonical column |
+| --- | --- |
+| Session `openedByLocalActorId` | `screening_sessions.opened_by_practitioner_id` |
+| Session `closedByLocalActorId` | `screening_sessions.closed_by_practitioner_id` |
+| Encounter `recordedByLocalActorId` | `screening_encounters.recorded_by_practitioner_id` |
+| Vitals `performedByLocalActorId` | `screening_vital_sets.recorded_by_practitioner_id` |
+
+`sourceActorLocalId` remains linked to the immutable sync record and batch actor
+snapshot for provenance. Ingestion must not use it as a fallback for a missing
+clinical actor. The schema already has the required practitioner columns, so
+this contract clarification does not require a new PostgreSQL migration.
 
 ## Core tables
 

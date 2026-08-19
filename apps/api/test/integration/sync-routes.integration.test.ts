@@ -34,6 +34,8 @@ const config: AppConfig = {
   databasePoolMax: 4,
   buildCommit: 'sync-route-test',
   buildTime: '2026-08-19T00:00:00.000Z',
+  trustedProxyCidrs: [],
+  operationsOidc: null,
 };
 
 runIntegration('desktop synchronization HTTP routes', () => {

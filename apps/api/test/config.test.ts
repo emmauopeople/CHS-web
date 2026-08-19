@@ -13,6 +13,11 @@ describe('configuration', () => {
       DATABASE_POOL_MAX: '20',
       BUILD_COMMIT: 'abc123',
       BUILD_TIME: '2026-08-18T00:00:00.000Z',
+      TRUSTED_PROXY_CIDRS: 'loopback,10.0.0.0/8',
+      OPERATIONS_OIDC_ISSUER: 'https://identity.example.test/',
+      OPERATIONS_OIDC_AUDIENCE: 'chs-operations-api',
+      OPERATIONS_OIDC_JWKS_URL:
+        'https://identity.example.test/.well-known/jwks.json',
     });
 
     expect(config).toMatchObject({
@@ -21,6 +26,12 @@ describe('configuration', () => {
       port: 8080,
       databasePoolMax: 20,
       buildCommit: 'abc123',
+      trustedProxyCidrs: ['loopback', '10.0.0.0/8'],
+      operationsOidc: {
+        issuer: 'https://identity.example.test/',
+        audience: 'chs-operations-api',
+        clockToleranceSeconds: 30,
+      },
     });
   });
 
@@ -34,5 +45,24 @@ describe('configuration', () => {
     expect(() =>
       loadConfig({ DATABASE_URL: 'postgresql://example.invalid/chs', PORT: '3000x' }),
     ).toThrow('PORT must be a positive integer');
+  });
+
+  it('requires complete OIDC configuration and HTTPS JWKS in production', () => {
+    expect(() =>
+      loadConfig({
+        DATABASE_URL: 'postgresql://example.invalid/chs',
+        OPERATIONS_OIDC_ISSUER: 'https://identity.example.test/',
+      }),
+    ).toThrow('must be configured together');
+
+    expect(() =>
+      loadConfig({
+        NODE_ENV: 'production',
+        DATABASE_URL: 'postgresql://example.invalid/chs',
+        OPERATIONS_OIDC_ISSUER: 'https://identity.example.test/',
+        OPERATIONS_OIDC_AUDIENCE: 'chs-operations-api',
+        OPERATIONS_OIDC_JWKS_URL: 'http://identity.example.test/jwks.json',
+      }),
+    ).toThrow('must use HTTPS');
   });
 });

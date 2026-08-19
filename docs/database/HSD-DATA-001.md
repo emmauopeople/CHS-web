@@ -84,6 +84,8 @@ this contract clarification does not require a new PostgreSQL migration.
 - `practitioners`
 - `practitioner_source_links`
 - `practitioner_roles`
+- `operations_users`
+- `operations_access_grants`
 - `screening_protocols`
 - `protocol_source_links`
 
@@ -109,6 +111,12 @@ this contract clarification does not require a new PostgreSQL migration.
 - `sync_records`
 - `audit_events`
 - `schema_migrations`, owned by the migration runner
+
+`operations_users` binds a pre-enrolled internal account to its exact OIDC
+issuer and subject. `operations_access_grants` assigns explicit permissions at
+global or organization scope. These human access records are separate from
+clinical practitioners and desktop installation credentials. `audit_events`
+can reference an operations user and records an explicit access outcome.
 
 ## FHIR mapping readiness
 

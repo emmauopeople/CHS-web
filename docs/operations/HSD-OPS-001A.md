@@ -1,6 +1,6 @@
 # HSD-OPS-001A: Canonical patient query service
 
-Status: Draft for implementation review
+Status: Implemented
 
 ## Purpose
 

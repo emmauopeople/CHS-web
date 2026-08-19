@@ -19,10 +19,10 @@ atomic CHS Medical ID assignment are implemented internally, along with
 screening session, protocol, patient encounter, and vitals ingestion. The batch
 orchestrator exposes authenticated submit and response-recovery routes with
 dependency ordering, crash recovery, durable outcomes, and exact replay.
-The internal operations module also provides scoped, read-only canonical
-patient list and clinical-detail queries for the temporary patient viewer;
-those queries are not registered as HTTP routes until operations authentication
-is implemented.
+The operations module provides scoped, read-only canonical patient list and
+clinical-detail queries through OIDC-authenticated, database-authorized,
+reason-for-access protected, and audited POST endpoints. The React viewer is the
+next consumer of this boundary.
 
 ## Prerequisites
 
@@ -61,6 +61,17 @@ API documentation is available at `GET /docs` outside production.
 Both routes require an enrolled installation bearer token. Batch responses
 return one outcome per submitted record in the original request order.
 
+## Operations patient endpoints
+
+- `POST /api/v1/operations/patients/search` — search canonical patients
+- `POST /api/v1/operations/patients/detail` — read canonical clinical detail
+
+Both routes require a valid OIDC access token, an active server-side
+`PATIENT_READ` grant, and a controlled reason-for-access. Search and patient
+identifiers remain in redacted JSON bodies rather than URLs. The API derives
+global or organization scope from PostgreSQL grants; it never accepts scope from
+the browser.
+
 ## Commands
 
 ```bash
@@ -85,6 +96,7 @@ pnpm lint          # run lint checks
 - [HSD-SYNC-002E vitals and blood-pressure reading ingestion](docs/sync/HSD-SYNC-002E.md)
 - [HSD-SYNC-002F batch orchestration and HTTP routes](docs/sync/HSD-SYNC-002F.md)
 - [HSD-OPS-001A canonical patient query service](docs/operations/HSD-OPS-001A.md)
+- [HSD-OPS-001B authenticated and audited patient access](docs/operations/HSD-OPS-001B.md)
 - [HSD-DATA-001 canonical PostgreSQL schema](docs/database/HSD-DATA-001.md)
 
 ## Security note

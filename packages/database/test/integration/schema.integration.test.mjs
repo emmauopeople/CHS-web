@@ -35,6 +35,7 @@ test(
         '0001_canonical_screening_foundation.sql',
         '0002_desktop_installation_credentials.sql',
         '0003_patient_identity_matching_indexes.sql',
+        '0004_patient_viewer_query_indexes.sql',
       ]);
       assert.deepEqual(secondRun.applied, []);
 
@@ -73,6 +74,25 @@ test(
           'ix_persons_identity_name_approximate_age',
           'ix_persons_identity_name_birth',
           'ix_persons_identity_name_phone',
+        ],
+      );
+
+      const viewerIndexes = await client.query(
+        `SELECT indexname
+         FROM pg_indexes
+         WHERE schemaname = $1
+           AND indexname IN (
+             'ix_persons_viewer_status_name_prefix',
+             'ix_screening_encounters_viewer_history'
+           )
+         ORDER BY indexname`,
+        [schema],
+      );
+      assert.deepEqual(
+        viewerIndexes.rows.map((row) => row.indexname),
+        [
+          'ix_persons_viewer_status_name_prefix',
+          'ix_screening_encounters_viewer_history',
         ],
       );
 

@@ -19,6 +19,10 @@ atomic CHS Medical ID assignment are implemented internally, along with
 screening session, protocol, patient encounter, and vitals ingestion. The batch
 orchestrator exposes authenticated submit and response-recovery routes with
 dependency ordering, crash recovery, durable outcomes, and exact replay.
+The internal operations module also provides scoped, read-only canonical
+patient list and clinical-detail queries for the temporary patient viewer;
+those queries are not registered as HTTP routes until operations authentication
+is implemented.
 
 ## Prerequisites
 
@@ -80,6 +84,7 @@ pnpm lint          # run lint checks
 - [HSD-SYNC-002D patient screening encounter ingestion](docs/sync/HSD-SYNC-002D.md)
 - [HSD-SYNC-002E vitals and blood-pressure reading ingestion](docs/sync/HSD-SYNC-002E.md)
 - [HSD-SYNC-002F batch orchestration and HTTP routes](docs/sync/HSD-SYNC-002F.md)
+- [HSD-OPS-001A canonical patient query service](docs/operations/HSD-OPS-001A.md)
 - [HSD-DATA-001 canonical PostgreSQL schema](docs/database/HSD-DATA-001.md)
 
 ## Security note

@@ -174,6 +174,15 @@ conversion.
 - A sync record points to at most one type-appropriate canonical target.
 - Error JSON contains machine codes and JSON Pointers, never source values.
 
+## Patient-viewer query support
+
+Migration `0004_patient_viewer_query_indexes.sql` adds read-path indexes for
+status/name-prefix patient search and non-void encounter history. It does not
+change clinical entities or relationships. The operations query service reads
+canonical persons and active primary CHS Medical IDs, scopes access through
+patient source registrations and organizations, and assembles screening
+relationships without copying data into a second read store.
+
 ## Migration policy
 
 Numbered SQL migrations are immutable after merge. The migration runner:

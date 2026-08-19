@@ -44,6 +44,11 @@ validates the shared contract, processes dependency order, resumes interrupted
 batches safely, and stores complete per-record responses before acknowledging
 the desktop.
 
+The operations module has a read-only canonical patient list and clinical
+detail service with explicit global or organization access scope. It remains an
+internal module: patient-viewer HTTP routes will be registered only after the
+operations authentication and audited-access boundary is implemented.
+
 ## Non-negotiable data rules
 
 - Every accepted source record retains source organization, installation,

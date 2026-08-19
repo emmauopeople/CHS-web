@@ -45,9 +45,11 @@ batches safely, and stores complete per-record responses before acknowledging
 the desktop.
 
 The operations module has a read-only canonical patient list and clinical
-detail service with explicit global or organization access scope. It remains an
-internal module: patient-viewer HTTP routes will be registered only after the
-operations authentication and audited-access boundary is implemented.
+detail service with explicit global or organization access scope. Protected POST
+routes now validate OIDC access tokens, derive permission and scope from
+server-side grants, require a reason-for-access, and record sensitive-read audit
+events before returning patient data. The temporary React viewer remains the
+next consumer of this boundary.
 
 ## Non-negotiable data rules
 

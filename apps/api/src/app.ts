@@ -7,11 +7,18 @@ import type { AppConfig } from './config.js';
 import type { Database } from './database.js';
 import { registerDiagnostics } from './diagnostics.js';
 import { loggerOptions } from './logger.js';
+import {
+  createDisabledOperationsTokenVerifier,
+  createOidcOperationsTokenVerifier,
+  type OperationsTokenVerifier,
+} from './operations/authentication.js';
+import { registerOperationsRoutes } from './operations/routes.js';
 import { registerSyncRoutes } from './sync/routes.js';
 
 export type BuildAppDependencies = Readonly<{
   config: AppConfig;
   database: Pick<Database, 'pool' | 'check' | 'close'>;
+  operationsTokenVerifier?: OperationsTokenVerifier;
 }>;
 
 function normalizeError(error: unknown) {
@@ -45,6 +52,13 @@ export async function buildApp(dependencies: BuildAppDependencies) {
       disableRequestLogging: true,
     }),
     bodyLimit: 1_048_576,
+    ajv: {
+      customOptions: { removeAdditional: false },
+    },
+    trustProxy:
+      dependencies.config.trustedProxyCidrs.length > 0
+        ? [...dependencies.config.trustedProxyCidrs]
+        : false,
   });
 
   app.addHook('onSend', async (_request, reply, payload) => {
@@ -70,6 +84,17 @@ export async function buildApp(dependencies: BuildAppDependencies) {
   const syncMetrics = await registerDiagnostics(app, {
     config: dependencies.config,
     checkDatabase: dependencies.database.check,
+  });
+
+  const operationsTokenVerifier =
+    dependencies.operationsTokenVerifier ??
+    (dependencies.config.operationsOidc
+      ? createOidcOperationsTokenVerifier(dependencies.config.operationsOidc)
+      : createDisabledOperationsTokenVerifier());
+
+  await registerOperationsRoutes(app, {
+    database: dependencies.database.pool,
+    tokenVerifier: operationsTokenVerifier,
   });
 
   await registerSyncRoutes(app, {

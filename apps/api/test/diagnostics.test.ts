@@ -13,6 +13,8 @@ const config: AppConfig = {
   databasePoolMax: 1,
   buildCommit: 'test-commit',
   buildTime: '2026-08-18T00:00:00.000Z',
+  trustedProxyCidrs: [],
+  operationsOidc: null,
 };
 
 const apps: Awaited<ReturnType<typeof buildApp>>[] = [];

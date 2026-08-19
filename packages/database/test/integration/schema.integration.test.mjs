@@ -36,6 +36,7 @@ test(
         '0002_desktop_installation_credentials.sql',
         '0003_patient_identity_matching_indexes.sql',
         '0004_patient_viewer_query_indexes.sql',
+        '0005_operations_access_and_audit.sql',
       ]);
       assert.deepEqual(secondRun.applied, []);
 
@@ -47,12 +48,14 @@ test(
         [schema],
       );
       const tableNames = tableResult.rows.map((row) => row.table_name);
-      assert.equal(tableNames.length, 24);
+      assert.equal(tableNames.length, 26);
       assert.ok(tableNames.includes('schema_migrations'));
       assert.ok(tableNames.includes('screening_encounters'));
       assert.ok(tableNames.includes('vital_readings'));
       assert.ok(tableNames.includes('sync_batch_actors'));
       assert.ok(tableNames.includes('desktop_installation_credentials'));
+      assert.ok(tableNames.includes('operations_users'));
+      assert.ok(tableNames.includes('operations_access_grants'));
 
       const identityIndexes = await client.query(
         `SELECT indexname
@@ -111,6 +114,53 @@ test(
       );
 
       await seedCanonicalScreening({ client, now, hash });
+
+      await client.query(
+        `INSERT INTO operations_users (
+           id, oidc_issuer, oidc_subject, display_name, status, created_at, updated_at
+         ) VALUES ($1, 'https://identity.example.test/', 'operations-user-1',
+           'Synthetic Operations User', 'ACTIVE', $2, $2)`,
+        ['90000000-0000-4000-8000-000000000001', now],
+      );
+      await client.query(
+        `INSERT INTO operations_access_grants (
+           id, operations_user_id, permission_code, scope_kind,
+           organization_id, granted_at, created_at, updated_at
+         ) VALUES ($1, $2, 'PATIENT_READ', 'GLOBAL', NULL, $3, $3, $3)`,
+        [
+          '91000000-0000-4000-8000-000000000001',
+          '90000000-0000-4000-8000-000000000001',
+          now,
+        ],
+      );
+      await assert.rejects(
+        client.query(
+          `INSERT INTO operations_access_grants (
+             id, operations_user_id, permission_code, scope_kind,
+             organization_id, granted_at, created_at, updated_at
+           ) VALUES ($1, $2, 'PATIENT_READ', 'GLOBAL', NULL, $3, $3, $3)`,
+          [
+            '91000000-0000-4000-8000-000000000002',
+            '90000000-0000-4000-8000-000000000001',
+            now,
+          ],
+        ),
+        /uq_operations_access_grants/,
+      );
+      await assert.rejects(
+        client.query(
+          `INSERT INTO operations_access_grants (
+             id, operations_user_id, permission_code, scope_kind,
+             organization_id, granted_at, created_at, updated_at
+           ) VALUES ($1, $2, 'PATIENT_READ', 'ORGANIZATION', NULL, $3, $3, $3)`,
+          [
+            '91000000-0000-4000-8000-000000000003',
+            '90000000-0000-4000-8000-000000000001',
+            now,
+          ],
+        ),
+        /ck_operations_access_grants_scope/,
+      );
 
       await client.query(
         `INSERT INTO desktop_installation_credentials (

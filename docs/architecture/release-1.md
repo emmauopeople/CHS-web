@@ -61,6 +61,14 @@ ambiguous evidence becomes a non-revealable review case. The confirmation step
 reads the already active identifier and never inserts or replaces one. Both
 steps are durably audited.
 
+Synchronization support now includes a separate operational monitoring
+boundary. A dedicated `SYNC_MONITOR` grant controls access independently of
+patient viewing and Medical ID recovery. Scoped API queries show batch state,
+desktop/version context, outcome counts, stalled processing, and grouped stable
+error codes. They deliberately exclude clinical payloads, response bodies,
+payload hashes, record identifiers, error paths, and error messages. A React
+dashboard will consume this boundary in HSD-OPS-003B.
+
 ## Non-negotiable data rules
 
 - Every accepted source record retains source organization, installation,

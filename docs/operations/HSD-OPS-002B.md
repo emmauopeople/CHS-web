@@ -1,6 +1,6 @@
 # HSD-OPS-002B: Medical ID recovery
 
-Status: Draft for implementation review
+Status: Implemented
 
 ## Purpose
 

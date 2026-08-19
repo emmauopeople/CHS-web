@@ -25,6 +25,8 @@ reason-for-access protected, and audited POST endpoints. The React operations
 viewer consumes this boundary with PKCE sign-in, reason-gated patient search,
 canonical screening and vitals detail views, and a permission-controlled
 one-time workflow for recovering an existing CHS Medical ID.
+The operations API also exposes a scoped, redacted view of desktop sync batch
+health for operational troubleshooting.
 
 ## Prerequisites
 
@@ -91,6 +93,16 @@ evidence creates a review case without a reveal token; a unique candidate can
 be confirmed once within five minutes and only from the originating OIDC
 session. Recovery never allocates or replaces an identifier.
 
+## Synchronization monitoring endpoints
+
+- `POST /api/v1/operations/sync/batches/search` — list scoped batch health and outcome counts
+- `POST /api/v1/operations/sync/batches/detail` — read grouped resource outcomes and error codes
+
+Both endpoints require the dedicated `SYNC_MONITOR` grant and the controlled
+`OPERATIONS_SUPPORT` reason. They return operational metadata and stable error
+codes only. Raw payloads, stored response bodies, payload hashes, record IDs,
+patient identifiers, error paths, and error messages are excluded.
+
 ## Commands
 
 ```bash
@@ -119,6 +131,7 @@ pnpm lint          # run lint checks
 - [HSD-OPS-001B authenticated and audited patient access](docs/operations/HSD-OPS-001B.md)
 - [HSD-OPS-002A React operations patient viewer](docs/operations/HSD-OPS-002A.md)
 - [HSD-OPS-002B Medical ID recovery](docs/operations/HSD-OPS-002B.md)
+- [HSD-OPS-003A synchronization monitoring API](docs/operations/HSD-OPS-003A.md)
 - [HSD-DATA-001 canonical PostgreSQL schema](docs/database/HSD-DATA-001.md)
 
 ## Security note

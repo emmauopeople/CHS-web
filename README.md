@@ -21,8 +21,9 @@ orchestrator exposes authenticated submit and response-recovery routes with
 dependency ordering, crash recovery, durable outcomes, and exact replay.
 The operations module provides scoped, read-only canonical patient list and
 clinical-detail queries through OIDC-authenticated, database-authorized,
-reason-for-access protected, and audited POST endpoints. The React viewer is the
-next consumer of this boundary.
+reason-for-access protected, and audited POST endpoints. The React operations
+viewer consumes this boundary with PKCE sign-in, reason-gated patient search,
+and canonical screening and vitals detail views.
 
 ## Prerequisites
 
@@ -42,6 +43,12 @@ pnpm dev:api
 ```
 
 The API listens on `http://localhost:3000` by default.
+
+Configure the public OIDC SPA values in `.env`, then run `pnpm dev:web` in a
+second terminal. The patient viewer listens on `http://127.0.0.1:4173` and
+proxies `/api` to the local API. See
+[HSD-OPS-002A](docs/operations/HSD-OPS-002A.md) for identity-provider and
+redirect-URI requirements.
 
 ## Operational endpoints
 
@@ -76,6 +83,7 @@ the browser.
 
 ```bash
 pnpm dev:api       # run the API in watch mode
+pnpm dev:web       # run the React operations viewer
 pnpm db:migrate    # apply checksum-protected PostgreSQL migrations
 pnpm db:test       # test migrations and constraints against PostgreSQL
 pnpm build         # compile every workspace package
@@ -97,6 +105,7 @@ pnpm lint          # run lint checks
 - [HSD-SYNC-002F batch orchestration and HTTP routes](docs/sync/HSD-SYNC-002F.md)
 - [HSD-OPS-001A canonical patient query service](docs/operations/HSD-OPS-001A.md)
 - [HSD-OPS-001B authenticated and audited patient access](docs/operations/HSD-OPS-001B.md)
+- [HSD-OPS-002A React operations patient viewer](docs/operations/HSD-OPS-002A.md)
 - [HSD-DATA-001 canonical PostgreSQL schema](docs/database/HSD-DATA-001.md)
 
 ## Security note

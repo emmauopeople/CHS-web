@@ -1,6 +1,6 @@
 # HSD-OPS-001B: Authenticated and audited patient access
 
-Status: Draft for implementation review
+Status: Implemented
 
 ## Purpose
 

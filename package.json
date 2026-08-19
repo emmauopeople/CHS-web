@@ -14,6 +14,7 @@
     "db:migrate": "pnpm --filter @chs/database migrate",
     "db:test": "pnpm --filter @chs/database test:integration && pnpm --filter @chs/api test:integration",
     "dev:api": "pnpm --filter @chs/api dev",
+    "dev:web": "pnpm --filter @chs/operations-web dev",
     "lint": "pnpm --recursive lint",
     "test": "pnpm --recursive test",
     "typecheck": "pnpm --recursive typecheck"

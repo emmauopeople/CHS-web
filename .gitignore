@@ -1,10 +1,12 @@
 node_modules/
+.pnpm-store/
 dist/
 coverage/
 .env
 .env.*
 !.env.example
 *.log
+*.tsbuildinfo
 .DS_Store
 .idea/
 .vscode/

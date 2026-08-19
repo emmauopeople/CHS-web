@@ -46,10 +46,11 @@ the desktop.
 
 The operations module has a read-only canonical patient list and clinical
 detail service with explicit global or organization access scope. Protected POST
-routes now validate OIDC access tokens, derive permission and scope from
-server-side grants, require a reason-for-access, and record sensitive-read audit
-events before returning patient data. The temporary React viewer remains the
-next consumer of this boundary.
+routes validate OIDC access tokens, derive permission and scope from server-side
+grants, require a reason-for-access, and record sensitive-read audit events
+before returning patient data. The temporary React viewer consumes this
+boundary using Authorization Code with PKCE and keeps patient identifiers out of
+browser URLs.
 
 ## Non-negotiable data rules
 

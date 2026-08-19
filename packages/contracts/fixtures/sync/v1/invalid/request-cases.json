@@ -21,5 +21,11 @@
     "operation": "replace",
     "path": "/records/3/payload/readings/0/systolic",
     "value": 301
+  },
+  {
+    "name": "record references an actor absent from the batch",
+    "operation": "replace",
+    "path": "/records/3/sourceActorLocalId",
+    "value": "60000000-0000-4000-8000-000000000099"
   }
 ]

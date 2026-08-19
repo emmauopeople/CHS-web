@@ -13,6 +13,7 @@
     "desktopApplicationVersion",
     "desktopSchemaVersion",
     "createdAt",
+    "actors",
     "records"
   ],
   "properties": {
@@ -31,6 +32,12 @@
       "minimum": 1
     },
     "createdAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" },
+    "actors": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 50,
+      "items": { "$ref": "#/$defs/sourceActorSnapshot" }
+    },
     "records": {
       "type": "array",
       "minItems": 1,
@@ -46,6 +53,18 @@
     }
   },
   "$defs": {
+    "sourceActorSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["localActorId", "displayName", "role", "active", "updatedAt"],
+      "properties": {
+        "localActorId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "displayName": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "role": { "enum": ["LOCAL_ADMIN", "NURSE", "TRAINED_SCREENER"] },
+        "active": { "type": "boolean" },
+        "updatedAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" }
+      }
+    },
     "recordBase": {
       "type": "object",
       "required": [
@@ -69,12 +88,7 @@
         "schemaVersion": { "type": "string" },
         "operation": { "const": "UPSERT" },
         "capturedAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" },
-        "sourceActorLocalId": {
-          "oneOf": [
-            { "$ref": "common.schema.json#/$defs/uuid" },
-            { "type": "null" }
-          ]
-        },
+        "sourceActorLocalId": { "$ref": "common.schema.json#/$defs/uuid" },
         "payload": { "type": "object" }
       }
     },

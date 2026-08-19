@@ -52,6 +52,9 @@ export async function buildApp(dependencies: BuildAppDependencies) {
       disableRequestLogging: true,
     }),
     bodyLimit: 1_048_576,
+    ajv: {
+      customOptions: { removeAdditional: false },
+    },
     trustProxy:
       dependencies.config.trustedProxyCidrs.length > 0
         ? [...dependencies.config.trustedProxyCidrs]

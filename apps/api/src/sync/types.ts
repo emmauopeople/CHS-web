@@ -77,6 +77,45 @@ export type PatientRecordOutcome = Readonly<{
   errors: readonly SyncRecordError[];
 }>;
 
+export type ScreeningSessionPayload = Readonly<{
+  localLocationId: string;
+  localProtocolVersionId: string;
+  protocolKey: string;
+  protocolVersionLabel: string;
+  protocolChecksum: string;
+  sessionDate: string;
+  status: 'OPEN' | 'CLOSED';
+  notes: string | null;
+  openedByLocalActorId: string;
+  closedByLocalActorId: string | null;
+  openedAt: string;
+  closedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}>;
+
+export type ScreeningSessionSyncRecord = Omit<
+  SyncRecordSnapshot,
+  'payload' | 'resourceType'
+> &
+  Readonly<{
+    resourceType: 'SCREENING_SESSION';
+    payload: ScreeningSessionPayload;
+  }>;
+
+export type ScreeningSessionRecordOutcome = Readonly<{
+  recordId: string;
+  resourceType: 'SCREENING_SESSION';
+  localResourceId: string;
+  sourceRevision: number;
+  status: 'ACCEPTED' | 'UNCHANGED' | 'REJECTED' | 'RETRY';
+  canonicalResourceId: string | null;
+  centralPersonId: null;
+  chsMedicalId: null;
+  medicalIdStatus: null;
+  errors: readonly SyncRecordError[];
+}>;
+
 export type SyncBatchRequest = Readonly<{
   contractVersion: '1.0';
   batchId: string;

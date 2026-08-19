@@ -93,8 +93,8 @@ runIntegration('audited operations patient routes', () => {
   });
 
   afterAll(async () => {
-    await app.close();
-    await servicePool.end();
+    if (app) await app.close();
+    if (servicePool) await servicePool.end();
     await administrationPool.query(`DROP SCHEMA IF EXISTS "${schema}" CASCADE`);
     await administrationPool.end();
   });
@@ -326,6 +326,7 @@ async function seed(pool: pg.Pool) {
       normalized: 'alpha example',
       medicalId: 'CHS-AAAA-BBBB-CCCC',
       installationId: '21000000-0000-4000-8000-000000000001',
+      localPatientCode: 'PT-000001',
     },
     {
       id: patient2,
@@ -333,6 +334,7 @@ async function seed(pool: pg.Pool) {
       normalized: 'beta example',
       medicalId: 'CHS-DDDD-EEEE-FFFF',
       installationId: '21000000-0000-4000-8000-000000000002',
+      localPatientCode: 'PT-000002',
     },
   ]) {
     await pool.query(
@@ -362,7 +364,7 @@ async function seed(pool: pg.Pool) {
         patient.id,
         patient.installationId,
         randomUUID(),
-        `PT-${patient.id.slice(-1)}`,
+        patient.localPatientCode,
         'b'.repeat(64),
         now,
       ],

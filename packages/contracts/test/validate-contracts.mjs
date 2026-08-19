@@ -77,6 +77,34 @@ function applyMutation(document, mutation) {
   return mutated
 }
 
+function assertRequestSemantics(request) {
+  const actorIds = new Set()
+  for (const actor of request.actors) {
+    if (actorIds.has(actor.localActorId)) {
+      throw new Error(`Duplicate source actor: ${actor.localActorId}`)
+    }
+    actorIds.add(actor.localActorId)
+  }
+
+  const recordIds = new Set()
+  const snapshotKeys = new Set()
+  for (const record of request.records) {
+    if (!actorIds.has(record.sourceActorLocalId)) {
+      throw new Error(`Record references unknown source actor: ${record.recordId}`)
+    }
+    if (recordIds.has(record.recordId)) {
+      throw new Error(`Duplicate record ID: ${record.recordId}`)
+    }
+    recordIds.add(record.recordId)
+
+    const snapshotKey = [record.resourceType, record.localResourceId, record.sourceRevision].join(':')
+    if (snapshotKeys.has(snapshotKey)) {
+      throw new Error(`Duplicate source snapshot: ${snapshotKey}`)
+    }
+    snapshotKeys.add(snapshotKey)
+  }
+}
+
 function assertOpenApi() {
   const openApiPath = 'openapi/sync-v1.openapi.json'
   const document = readJson(openApiPath)
@@ -137,6 +165,9 @@ export function validateContracts() {
     if (!validate(fixture)) {
       throw new Error(`Fixture ${fixturePath} is invalid: ${formatErrors(validate.errors)}`)
     }
+    if (schemaName === 'syncRequest') {
+      assertRequestSemantics(fixture)
+    }
   }
 
   const requestSchemaId = readJson(schemaLocations.syncRequest).$id
@@ -146,7 +177,13 @@ export function validateContracts() {
 
   for (const invalidCase of invalidCases) {
     const invalidRequest = applyMutation(validRequest, invalidCase)
-    if (validateRequest(invalidRequest)) {
+    let semanticsValid = true
+    try {
+      assertRequestSemantics(invalidRequest)
+    } catch {
+      semanticsValid = false
+    }
+    if (validateRequest(invalidRequest) && semanticsValid) {
       throw new Error(`Invalid fixture was accepted: ${invalidCase.name}`)
     }
   }

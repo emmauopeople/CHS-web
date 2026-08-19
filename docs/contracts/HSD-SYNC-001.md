@@ -69,6 +69,7 @@ Each batch carries:
 - installation IANA timezone;
 - desktop application and SQLite schema versions;
 - UTC batch creation timestamp;
+- batch-level snapshots of the local actors referenced by records;
 - between 1 and 100 versioned records.
 
 The API request-body limit remains 1 MiB. The desktop must split larger work
@@ -91,8 +92,15 @@ Version 1.0 accepts these snapshots:
 Only `UPSERT` is allowed in version 1.0. A voided encounter is represented by a
 new encounter snapshot with status `VOID`; records are not physically deleted.
 
-`sourceActorLocalId` is retained for provenance only. A desktop-local user UUID
-is not treated as a centrally authenticated provider identity.
+`sourceActorLocalId` is mandatory and retained for provenance. It must resolve
+to exactly one entry in the batch `actors` array. Actor snapshots include only
+the local UUID, display name, role, active status, and source update timestamp;
+usernames and authentication data are excluded.
+
+A desktop-local user is not automatically treated as a verified centrally
+authenticated provider. The web platform creates a source-linked practitioner
+record and may reconcile it with a centrally verified practitioner only through
+an explicit review or future provider-enrollment workflow.
 
 ### Desktop source mapping
 
@@ -107,6 +115,11 @@ is not treated as a centrally authenticated provider identity.
 | Encounter `sourceRevision` | `screening_encounters.record_version` |
 | Vitals `sourceRevision` | `screening_vitals_drafts.row_version` |
 | `sourceActorLocalId` | Relevant local `created_by`, `updated_by`, or `recorded_by` UUID |
+
+The actor display name and role come from the desktop `users` row referenced by
+that UUID. The combination provides enough source identity to preserve the
+screening performer and later construct Practitioner and PractitionerRole
+relationships without synchronizing credentials.
 
 A session snapshot also includes the protocol key, version label, and checksum,
 so the web platform does not infer clinical meaning from a desktop-local

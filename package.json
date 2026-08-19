@@ -11,6 +11,8 @@
   "packageManager": "pnpm@11.19.0",
   "scripts": {
     "build": "pnpm --recursive build",
+    "db:migrate": "pnpm --filter @chs/database migrate",
+    "db:test": "pnpm --filter @chs/database test:integration",
     "dev:api": "pnpm --filter @chs/api dev",
     "lint": "pnpm --recursive lint",
     "test": "pnpm --recursive test",

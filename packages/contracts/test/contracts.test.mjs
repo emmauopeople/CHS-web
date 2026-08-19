@@ -7,7 +7,7 @@ test('HSD-SYNC-001 schemas, fixtures, and OpenAPI remain compatible', () => {
   assert.deepEqual(validateContracts(), {
     schemas: 6,
     validFixtures: 6,
-    invalidFixtures: 4,
+    invalidFixtures: 5,
     openApiOperations: 3
   })
 })

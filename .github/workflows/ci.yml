@@ -16,6 +16,20 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: chs_test
+          POSTGRES_USER: chs
+          POSTGRES_PASSWORD: chs-ci-only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U chs -d chs_test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
     steps:
       - name: Check out source
         uses: actions/checkout@v4
@@ -36,6 +50,11 @@ jobs:
 
       - name: Test
         run: pnpm test
+
+      - name: Test PostgreSQL migrations and constraints
+        run: pnpm db:test
+        env:
+          DATABASE_TEST_URL: postgresql://chs:chs-ci-only@localhost:5432/chs_test
 
       - name: Build
         run: pnpm build

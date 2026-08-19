@@ -12,10 +12,10 @@ analysis are intentionally deferred until later releases.
 
 ## Repository status
 
-This repository is at the Release 1 contract stage. The API foundation and its
-operational endpoints are implemented. The desktop synchronization contract is
-defined from the inspected desktop data model before clinical migrations or
-ingestion handlers are added.
+This repository is building the Release 1 foundation. The API operational
+endpoints, desktop synchronization contract, and canonical PostgreSQL schema
+foundation are implemented. Sync ingestion handlers are the next vertical
+slice.
 
 ## Prerequisites
 
@@ -30,6 +30,7 @@ corepack enable
 pnpm install
 cp .env.example .env
 docker compose up -d postgres
+pnpm db:migrate
 pnpm dev:api
 ```
 
@@ -49,6 +50,8 @@ API documentation is available at `GET /docs` outside production.
 
 ```bash
 pnpm dev:api       # run the API in watch mode
+pnpm db:migrate    # apply checksum-protected PostgreSQL migrations
+pnpm db:test       # test migrations and constraints against PostgreSQL
 pnpm build         # compile every workspace package
 pnpm typecheck     # type-check every workspace package
 pnpm test          # run automated tests
@@ -60,6 +63,7 @@ pnpm lint          # run lint checks
 - [Release 1 architecture](docs/architecture/release-1.md)
 - [Desktop sync discovery checklist](docs/sync/desktop-contract-discovery.md)
 - [HSD-SYNC-001 desktop-to-web contract](docs/contracts/HSD-SYNC-001.md)
+- [HSD-DATA-001 canonical PostgreSQL schema](docs/database/HSD-DATA-001.md)
 
 ## Security note
 

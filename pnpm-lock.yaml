@@ -54,6 +54,12 @@ importers:
         specifier: 3.0.1
         version: 3.0.1(ajv@8.20.0)
 
+  packages/database:
+    dependencies:
+      pg:
+        specifier: 8.22.0
+        version: 8.22.0
+
 packages:
 
   '@esbuild/aix-ppc64@0.28.2':

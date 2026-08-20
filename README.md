@@ -77,6 +77,12 @@ with `pnpm admin:installation:enroll -- --input <enrollment.json>`. See
 [HSD-SYNC-003A](docs/sync/HSD-SYNC-003A.md) for the controlled procedure and
 security requirements.
 
+Before enrollment, operators create the canonical screening organization and
+location with `pnpm admin:screening-context:provision -- --input <context.json>`.
+This infrastructure process is documented in
+[HSD-ADMIN-001A](docs/administration/HSD-ADMIN-001A.md) and is separate from
+future hospital/provider onboarding.
+
 Operators replace or invalidate an installation token with the guarded
 `admin:installation:rotate` and `admin:installation:revoke` commands documented
 in [HSD-SYNC-003B](docs/sync/HSD-SYNC-003B.md).
@@ -122,6 +128,7 @@ remain in non-cacheable POST bodies and are not stored in browser URLs.
 ```bash
 pnpm dev:api       # run the API in watch mode
 pnpm dev:web       # run the React operations viewer
+pnpm admin:screening-context:provision -- --input <file> # create organization/location IDs
 pnpm admin:installation:enroll -- --input <file> # enroll one desktop installation
 pnpm admin:installation:rotate -- --input <file> # atomically replace its token
 pnpm admin:installation:revoke -- --input <file> # explicitly revoke a token
@@ -146,6 +153,7 @@ pnpm lint          # run lint checks
 - [HSD-SYNC-002F batch orchestration and HTTP routes](docs/sync/HSD-SYNC-002F.md)
 - [HSD-SYNC-003A controlled desktop installation enrollment](docs/sync/HSD-SYNC-003A.md)
 - [HSD-SYNC-003B desktop credential rotation and revocation](docs/sync/HSD-SYNC-003B.md)
+- [HSD-ADMIN-001A canonical screening context provisioning](docs/administration/HSD-ADMIN-001A.md)
 - [HSD-OPS-001A canonical patient query service](docs/operations/HSD-OPS-001A.md)
 - [HSD-OPS-001B authenticated and audited patient access](docs/operations/HSD-OPS-001B.md)
 - [HSD-OPS-002A React operations patient viewer](docs/operations/HSD-OPS-002A.md)

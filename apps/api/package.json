@@ -22,6 +22,7 @@
     "vitest": "4.1.10"
   },
   "scripts": {
+    "admin:screening-context:provision": "node --env-file-if-exists=../../.env --import tsx src/commands/provision-screening-context.ts",
     "admin:installation:enroll": "node --env-file-if-exists=../../.env --import tsx src/commands/enroll-installation.ts",
     "admin:installation:revoke": "node --env-file-if-exists=../../.env --import tsx src/commands/manage-installation-credential.ts revoke",
     "admin:installation:rotate": "node --env-file-if-exists=../../.env --import tsx src/commands/manage-installation-credential.ts rotate",
@@ -30,7 +31,7 @@
     "lint": "tsc -p tsconfig.json --noEmit",
     "start": "node dist/main.js",
     "test": "vitest run",
-    "test:integration": "node --env-file-if-exists=../../.env ./node_modules/vitest/vitest.mjs run test/integration",
+    "test:integration": "node --env-file-if-exists=../../.env ./node_modules/vitest/vitest.mjs run test/integration --no-file-parallelism",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   }
 }

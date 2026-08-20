@@ -14,9 +14,11 @@ not the hospital/provider OAuth2 flow planned for a later release.
 
 ## Preconditions
 
-The canonical organization and location must already exist and be active. The
-location must belong to the organization. The operator obtains the stable
-installation and source-location UUIDs from the desktop deployment package.
+The canonical organization and location must already exist and be active. Use
+[HSD-ADMIN-001A](../administration/HSD-ADMIN-001A.md) to provision them and
+obtain their central IDs. The location must belong to the organization. The
+operator obtains the stable installation and source-location UUIDs from the
+desktop deployment package.
 
 Create an input file containing only non-secret enrollment data:
 

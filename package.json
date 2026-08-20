@@ -10,6 +10,7 @@
   },
   "packageManager": "pnpm@11.19.0",
   "scripts": {
+    "admin:screening-context:provision": "pnpm --filter @chs/api admin:screening-context:provision",
     "admin:installation:enroll": "pnpm --filter @chs/api admin:installation:enroll",
     "admin:installation:revoke": "pnpm --filter @chs/api admin:installation:revoke",
     "admin:installation:rotate": "pnpm --filter @chs/api admin:installation:rotate",

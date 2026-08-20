@@ -28,6 +28,8 @@ one-time workflow for recovering an existing CHS Medical ID.
 The operations API also exposes a scoped, redacted view of desktop sync batch
 health. The React operations portal consumes it through a low-bandwidth,
 manually refreshed synchronization dashboard.
+Internal operations identities and their least-privilege portal grants can be
+created through a controlled operator command after the OIDC identity exists.
 
 ## Prerequisites
 
@@ -123,11 +125,22 @@ The operations portal provides a Sync Monitoring workspace for filtering,
 paging, and inspecting these redacted results. Filters and batch references
 remain in non-cacheable POST bodies and are not stored in browser URLs.
 
+## Operations access provisioning
+
+After creating an internal account in the configured identity provider,
+infrastructure operators bind its exact issuer/subject and grant only the
+required portal permissions with
+`pnpm admin:operations-access:provision -- --input <access.json>`. The command
+supports `PATIENT_READ`, `MEDICAL_ID_RECOVER`, and `SYNC_MONITOR` at global or
+organization scope. See
+[HSD-ADMIN-001B](docs/administration/HSD-ADMIN-001B.md).
+
 ## Commands
 
 ```bash
 pnpm dev:api       # run the API in watch mode
 pnpm dev:web       # run the React operations viewer
+pnpm admin:operations-access:provision -- --input <file> # create an internal viewer grant
 pnpm admin:screening-context:provision -- --input <file> # create organization/location IDs
 pnpm admin:installation:enroll -- --input <file> # enroll one desktop installation
 pnpm admin:installation:rotate -- --input <file> # atomically replace its token
@@ -154,6 +167,7 @@ pnpm lint          # run lint checks
 - [HSD-SYNC-003A controlled desktop installation enrollment](docs/sync/HSD-SYNC-003A.md)
 - [HSD-SYNC-003B desktop credential rotation and revocation](docs/sync/HSD-SYNC-003B.md)
 - [HSD-ADMIN-001A canonical screening context provisioning](docs/administration/HSD-ADMIN-001A.md)
+- [HSD-ADMIN-001B operations access provisioning](docs/administration/HSD-ADMIN-001B.md)
 - [HSD-OPS-001A canonical patient query service](docs/operations/HSD-OPS-001A.md)
 - [HSD-OPS-001B authenticated and audited patient access](docs/operations/HSD-OPS-001B.md)
 - [HSD-OPS-002A React operations patient viewer](docs/operations/HSD-OPS-002A.md)

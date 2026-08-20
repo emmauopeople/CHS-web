@@ -65,6 +65,12 @@ export type IdentityReviewEvidenceDetail = Readonly<{
   approximateAgeYears: number | null;
   ageAsOfDate: string | null;
   sex: 'FEMALE' | 'MALE' | 'OTHER' | 'UNKNOWN';
+  acknowledgmentStatus:
+    | 'ACKNOWLEDGED'
+    | 'DECLINED'
+    | 'NOT_REQUESTED'
+    | null;
+  patientStatus: 'ACTIVE' | 'INACTIVE' | null;
   phone: string | null;
   village: string | null;
   quarter: string | null;
@@ -183,6 +189,8 @@ type DetailRow = Readonly<{
   approximate_age_years: number | null;
   age_as_of_date: string | null;
   sex: IdentityReviewEvidenceDetail['sex'] | null;
+  acknowledgment_status: IdentityReviewEvidenceDetail['acknowledgmentStatus'];
+  patient_status: IdentityReviewEvidenceDetail['patientStatus'];
   phone: string | null;
   village: string | null;
   quarter: string | null;
@@ -454,6 +462,8 @@ function evidenceDetail(row: DetailRow): IdentityReviewEvidenceDetail | null {
     approximateAgeYears: row.approximate_age_years,
     ageAsOfDate: row.age_as_of_date,
     sex: row.sex,
+    acknowledgmentStatus: row.acknowledgment_status,
+    patientStatus: row.patient_status,
     phone: row.phone,
     village: row.village,
     quarter: row.quarter,
@@ -521,6 +531,8 @@ export async function getIdentityReviewCaseDetail(
          evidence.approximate_age_years,
          evidence.age_as_of_date::text AS age_as_of_date,
          evidence.sex,
+         evidence.acknowledgment_status,
+         evidence.patient_status,
          evidence.phone,
          evidence.village,
          evidence.quarter,

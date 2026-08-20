@@ -7,7 +7,8 @@ Status: Implemented
 This increment provides the read-only backend boundary for investigating open
 patient identity-review cases. It lets a separately authorized internal
 reviewer compare the newest submitted desktop identity evidence with masked
-canonical candidates before any resolution action is designed.
+canonical candidates before using the controlled resolution action implemented
+by HSD-OPS-004B.
 
 This is not a patient-search endpoint and does not expose review data to users
 with only `PATIENT_READ`, `MEDICAL_ID_RECOVER`, or `SYNC_MONITOR` access.
@@ -87,7 +88,6 @@ integration tests run when `DATABASE_TEST_URL` is configured.
 
 ## Out of scope
 
-This increment does not resolve, merge, create, dismiss, or mutate identity
-cases. It does not add the React identity-review workspace. Those are separate
-increments so the future write workflow can define concurrency, irreversible
-effects, Medical ID behavior, and audit requirements explicitly.
+This query increment does not itself resolve, merge, create, dismiss, or mutate
+identity cases. HSD-OPS-004B provides the separate guarded resolution endpoint.
+The React identity-review workspace remains a later increment.

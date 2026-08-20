@@ -27,12 +27,14 @@ export type OperationsAuthorizationErrorCode =
   | 'PATIENT_READ_NOT_PERMITTED'
   | 'MEDICAL_ID_RECOVERY_NOT_PERMITTED'
   | 'IDENTITY_REVIEW_NOT_PERMITTED'
+  | 'IDENTITY_REVIEW_RESOLUTION_NOT_PERMITTED'
   | 'SYNC_MONITOR_NOT_PERMITTED';
 
 export type OperationsPermission =
   | 'PATIENT_READ'
   | 'MEDICAL_ID_RECOVER'
   | 'IDENTITY_REVIEW'
+  | 'IDENTITY_REVIEW_RESOLVE'
   | 'SYNC_MONITOR';
 
 export class OperationsAuthorizationError extends Error {
@@ -58,6 +60,8 @@ function permissionDeniedCode(
       return 'MEDICAL_ID_RECOVERY_NOT_PERMITTED';
     case 'IDENTITY_REVIEW':
       return 'IDENTITY_REVIEW_NOT_PERMITTED';
+    case 'IDENTITY_REVIEW_RESOLVE':
+      return 'IDENTITY_REVIEW_RESOLUTION_NOT_PERMITTED';
     case 'SYNC_MONITOR':
       return 'SYNC_MONITOR_NOT_PERMITTED';
   }
@@ -183,5 +187,23 @@ export function authorizeIdentityReview(
   identity: VerifiedOperationsIdentity,
   now: Date = new Date(),
 ): Promise<OperationsPrincipal> {
-  return authorizeOperationsPermission(database, identity, 'IDENTITY_REVIEW', now);
+  return authorizeOperationsPermission(
+    database,
+    identity,
+    'IDENTITY_REVIEW',
+    now,
+  );
+}
+
+export function authorizeIdentityReviewResolution(
+  database: AccessDatabase,
+  identity: VerifiedOperationsIdentity,
+  now: Date = new Date(),
+): Promise<OperationsPrincipal> {
+  return authorizeOperationsPermission(
+    database,
+    identity,
+    'IDENTITY_REVIEW_RESOLVE',
+    now,
+  );
 }

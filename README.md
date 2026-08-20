@@ -33,7 +33,9 @@ created through a controlled operator command after the OIDC identity exists.
 Sync-created identity-review cases retain append-only, minimum-necessary
 evidence snapshots without raw payload JSON. A separately authorized,
 organization-scoped operations API now exposes a masked review queue and
-audited, read-only case detail for later reconciliation work.
+audited case detail. Authorized reviewers can now resolve a case by linking a
+listed candidate or atomically creating a new canonical person and CHS Medical
+ID.
 
 ## Prerequisites
 
@@ -133,12 +135,15 @@ remain in non-cacheable POST bodies and are not stored in browser URLs.
 
 - `POST /api/v1/operations/identity-reviews/search` — list scoped open review cases
 - `POST /api/v1/operations/identity-reviews/detail` — compare submitted evidence with masked candidates
+- `POST /api/v1/operations/identity-reviews/resolve` — link a listed candidate or create a new canonical identity
 
-Both endpoints require the dedicated `IDENTITY_REVIEW` grant and the controlled
+Search and detail require `IDENTITY_REVIEW`; resolution separately requires
+`IDENTITY_REVIEW_RESOLVE`. All three require the controlled
 `IDENTITY_RECONCILIATION` reason. Queue identity hints and all canonical
 candidates are masked, missing and out-of-scope case references are
-indistinguishable, and every query attempt is audited. This API is read-only;
-case resolution and its React workspace remain separate increments.
+indistinguishable, and every query or resolution attempt is audited. Resolution
+requires a stale-state guard, an idempotency key, a reviewer note, and complete
+evidence. The React review workspace remains a separate increment.
 
 ## Operations access provisioning
 
@@ -146,8 +151,8 @@ After creating an internal account in the configured identity provider,
 infrastructure operators bind its exact issuer/subject and grant only the
 required portal permissions with
 `pnpm admin:operations-access:provision -- --input <access.json>`. The command
-supports `PATIENT_READ`, `MEDICAL_ID_RECOVER`, `IDENTITY_REVIEW`, and
-`SYNC_MONITOR` at global or organization scope. See
+supports `PATIENT_READ`, `MEDICAL_ID_RECOVER`, `IDENTITY_REVIEW`,
+`IDENTITY_REVIEW_RESOLVE`, and `SYNC_MONITOR` at global or organization scope. See
 [HSD-ADMIN-001B](docs/administration/HSD-ADMIN-001B.md).
 
 ## Commands
@@ -190,6 +195,7 @@ pnpm lint          # run lint checks
 - [HSD-OPS-003A synchronization monitoring API](docs/operations/HSD-OPS-003A.md)
 - [HSD-OPS-003B React synchronization dashboard](docs/operations/HSD-OPS-003B.md)
 - [HSD-OPS-004A identity review query API](docs/operations/HSD-OPS-004A.md)
+- [HSD-OPS-004B identity review resolution API](docs/operations/HSD-OPS-004B.md)
 - [HSD-DATA-001 canonical PostgreSQL schema](docs/database/HSD-DATA-001.md)
 - [HSD-DATA-002 identity review evidence foundation](docs/database/HSD-DATA-002.md)
 

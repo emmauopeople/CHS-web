@@ -24,10 +24,12 @@ const installation2 = '34000000-0000-4000-8000-000000000002';
 const availableCase = '44000000-0000-4000-8000-000000000001';
 const pendingCase = '44000000-0000-4000-8000-000000000002';
 const hiddenCase = '44000000-0000-4000-8000-000000000003';
+const createCase = '44000000-0000-4000-8000-000000000004';
 const candidate1 = '54000000-0000-4000-8000-000000000001';
 const candidate2 = '54000000-0000-4000-8000-000000000002';
 const reviewerUser = '94000000-0000-4000-8000-000000000001';
 const deniedUser = '94000000-0000-4000-8000-000000000002';
+const readOnlyReviewerUser = '94000000-0000-4000-8000-000000000003';
 
 const config: AppConfig = {
   nodeEnv: 'test',
@@ -49,9 +51,11 @@ const tokenVerifier: OperationsTokenVerifier = {
     }
     const token = /^Bearer ([^\s]+)$/.exec(header)?.[1];
     const subject = token
-      ? { 'reviewer-token': 'reviewer-user', 'denied-token': 'denied-user' }[
-          token
-        ]
+      ? {
+          'reviewer-token': 'reviewer-user',
+          'denied-token': 'denied-user',
+          'read-only-reviewer-token': 'read-only-reviewer-user',
+        }[token]
       : undefined;
     if (!subject) {
       throw new OperationsAuthenticationError('INVALID_OPERATIONS_TOKEN', 401);
@@ -167,7 +171,7 @@ runIntegration('audited identity-review query routes', () => {
     expect(response.statusCode).toBe(200);
     expect(response.headers['cache-control']).toBe('no-store');
     expect(response.json()).toMatchObject({
-      totalItems: 2,
+      totalItems: 3,
       items: expect.arrayContaining([
         expect.objectContaining({
           caseReference: availableCase,
@@ -283,6 +287,267 @@ runIntegration('audited identity-review query routes', () => {
       expect(audit.rows[0]?.outcome_code).toBe('NOT_FOUND');
     }
   });
+
+  it('rejects an unlisted candidate and stale reviewer state without mutation', async () => {
+    const attempts = [
+      {
+        caseReference: availableCase,
+        expectedUpdatedAt: now,
+        resolution: {
+          kind: 'LINK_EXISTING',
+          candidatePersonReference: randomUUID(),
+        },
+        code: 'IDENTITY_REVIEW_CANDIDATE_NOT_AVAILABLE',
+      },
+      {
+        caseReference: createCase,
+        expectedUpdatedAt: '2026-08-20T12:00:01.000Z',
+        resolution: { kind: 'CREATE_NEW' },
+        code: 'IDENTITY_REVIEW_STALE',
+      },
+    ];
+
+    for (const attempt of attempts) {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/v1/operations/identity-reviews/resolve',
+        headers: { authorization: 'Bearer reviewer-token' },
+        payload: {
+          reasonCode: 'IDENTITY_RECONCILIATION',
+          resolutionRequestId: randomUUID(),
+          caseReference: attempt.caseReference,
+          expectedUpdatedAt: attempt.expectedUpdatedAt,
+          resolutionNote: 'This synthetic attempt must be rejected without mutation.',
+          resolution: attempt.resolution,
+        },
+      });
+      expect(response.statusCode).toBe(409);
+      expect(response.json()).toMatchObject({ code: attempt.code });
+    }
+
+    const states = await servicePool.query(
+      `SELECT id, status, resolved_person_id
+       FROM identity_review_cases WHERE id = ANY($1::uuid[]) ORDER BY id`,
+      [[availableCase, createCase]],
+    );
+    expect(states.rows).toEqual([
+      { id: availableCase, status: 'OPEN', resolved_person_id: null },
+      { id: createCase, status: 'OPEN', resolved_person_id: null },
+    ]);
+  });
+
+  it('requires resolution authority in addition to read-only review access', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/api/v1/operations/identity-reviews/resolve',
+      headers: { authorization: 'Bearer read-only-reviewer-token' },
+      payload: {
+        reasonCode: 'IDENTITY_RECONCILIATION',
+        resolutionRequestId: randomUUID(),
+        caseReference: availableCase,
+        expectedUpdatedAt: now,
+        resolutionNote: 'A read-only reviewer must not make this identity decision.',
+        resolution: {
+          kind: 'LINK_EXISTING',
+          candidatePersonReference: candidate1,
+        },
+      },
+    });
+    expect(response.statusCode).toBe(403);
+    expect(response.json()).toMatchObject({
+      code: 'IDENTITY_REVIEW_ACCESS_DENIED',
+    });
+    const audit = await servicePool.query(
+      `SELECT operations_user_id, outcome_code, metadata
+       FROM audit_events WHERE request_id = $1`,
+      [response.headers['x-request-id']],
+    );
+    expect(audit.rows[0]).toMatchObject({
+      operations_user_id: readOnlyReviewerUser,
+      outcome_code: 'DENIED',
+      metadata: {
+        authorizationCode: 'IDENTITY_REVIEW_RESOLUTION_NOT_PERMITTED',
+      },
+    });
+  });
+
+  it('atomically links a listed candidate and replays the same resolution request', async () => {
+    const resolutionRequestId = randomUUID();
+    const payload = {
+      reasonCode: 'IDENTITY_RECONCILIATION',
+      resolutionRequestId,
+      caseReference: availableCase,
+      expectedUpdatedAt: now,
+      resolutionNote: 'Verified the submitted demographics against the candidate.',
+      resolution: {
+        kind: 'LINK_EXISTING',
+        candidatePersonReference: candidate1,
+      },
+    };
+    const response = await app.inject({
+      method: 'POST',
+      url: '/api/v1/operations/identity-reviews/resolve',
+      headers: { authorization: 'Bearer reviewer-token' },
+      payload,
+    });
+    expect(response.statusCode).toBe(200);
+    expect(response.headers['cache-control']).toBe('no-store');
+    expect(response.json()).toMatchObject({
+      resolutionRequestId,
+      caseReference: availableCase,
+      resolutionStatus: 'RESOLVED_EXISTING',
+      resolvedPersonReference: candidate1,
+      chsMedicalId: 'CHS-AAAA-BBBB-CCCC',
+      sourceRevision: 2,
+      replayed: false,
+    });
+
+    const state = await servicePool.query(
+      `SELECT review_case.status, source_link.person_id,
+              resolution.operations_user_id, resolution.action_code
+       FROM identity_review_cases AS review_case
+       JOIN patient_source_links AS source_link
+         ON source_link.installation_id = review_case.installation_id
+        AND source_link.local_patient_id = review_case.local_patient_id
+       JOIN identity_review_resolutions AS resolution
+         ON resolution.review_case_id = review_case.id
+       WHERE review_case.id = $1`,
+      [availableCase],
+    );
+    expect(state.rows[0]).toMatchObject({
+      status: 'RESOLVED_EXISTING',
+      person_id: candidate1,
+      operations_user_id: reviewerUser,
+      action_code: 'LINK_EXISTING',
+    });
+
+    const audit = await servicePool.query(
+      `SELECT action_code, outcome_code, metadata
+       FROM audit_events WHERE request_id = $1`,
+      [response.headers['x-request-id']],
+    );
+    expect(audit.rows[0]).toMatchObject({
+      action_code: 'IDENTITY_REVIEW_RESOLVE',
+      outcome_code: 'SUCCESS',
+      metadata: {
+        resolutionAction: 'LINK_EXISTING',
+        resolutionStatus: 'RESOLVED_EXISTING',
+        replayed: false,
+      },
+    });
+
+    const replay = await app.inject({
+      method: 'POST',
+      url: '/api/v1/operations/identity-reviews/resolve',
+      headers: { authorization: 'Bearer reviewer-token' },
+      payload,
+    });
+    expect(replay.statusCode).toBe(200);
+    expect(replay.json()).toMatchObject({
+      resolutionRequestId,
+      resolvedPersonReference: candidate1,
+      replayed: true,
+    });
+    const changedReplay = await app.inject({
+      method: 'POST',
+      url: '/api/v1/operations/identity-reviews/resolve',
+      headers: { authorization: 'Bearer reviewer-token' },
+      payload: {
+        ...payload,
+        resolutionNote: 'A changed command must not reuse an earlier request identifier.',
+      },
+    });
+    expect(changedReplay.statusCode).toBe(409);
+    expect(changedReplay.json()).toMatchObject({
+      code: 'IDENTITY_REVIEW_RESOLUTION_REQUEST_REUSE',
+    });
+    const counts = await servicePool.query(
+      `SELECT
+         (SELECT count(*)::int FROM identity_review_resolutions
+          WHERE review_case_id = $1) AS resolution_count,
+         (SELECT count(*)::int FROM patient_source_links
+          WHERE installation_id = $2 AND local_patient_id = $3) AS link_count`,
+      [availableCase, installation1, '64000000-0000-4000-8000-000000000001'],
+    );
+    expect(counts.rows[0]).toEqual({ resolution_count: 1, link_count: 1 });
+  });
+
+  it('creates one canonical person and medical ID from complete review evidence', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/api/v1/operations/identity-reviews/resolve',
+      headers: { authorization: 'Bearer reviewer-token' },
+      payload: {
+        reasonCode: 'IDENTITY_RECONCILIATION',
+        resolutionRequestId: randomUUID(),
+        caseReference: createCase,
+        expectedUpdatedAt: now,
+        resolutionNote: 'Reviewed the evidence and confirmed this is a new individual.',
+        resolution: { kind: 'CREATE_NEW' },
+      },
+    });
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toMatchObject({
+      caseReference: createCase,
+      resolutionStatus: 'RESOLVED_NEW',
+      replayed: false,
+    });
+    expect(response.json().chsMedicalId).toMatch(/^CHS-[A-Z0-9]{4}(?:-[A-Z0-9]{4}){2}$/);
+
+    const created = await servicePool.query(
+      `SELECT person.display_name, person.acknowledgment_status, person.status,
+              identifier.identifier_value, source_link.person_id
+       FROM identity_review_cases AS review_case
+       JOIN persons AS person ON person.id = review_case.resolved_person_id
+       JOIN person_identifiers AS identifier
+         ON identifier.person_id = person.id AND identifier.is_primary = true
+       JOIN patient_source_links AS source_link
+         ON source_link.installation_id = review_case.installation_id
+        AND source_link.local_patient_id = review_case.local_patient_id
+       WHERE review_case.id = $1`,
+      [createCase],
+    );
+    expect(created.rows[0]).toMatchObject({
+      display_name: 'New Submitted Patient',
+      acknowledgment_status: 'ACKNOWLEDGED',
+      status: 'ACTIVE',
+      identifier_value: response.json().chsMedicalId,
+      person_id: response.json().resolvedPersonReference,
+    });
+  });
+
+  it('rejects incomplete evidence and audits the conflict without mutating the case', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/api/v1/operations/identity-reviews/resolve',
+      headers: { authorization: 'Bearer reviewer-token' },
+      payload: {
+        reasonCode: 'IDENTITY_RECONCILIATION',
+        resolutionRequestId: randomUUID(),
+        caseReference: pendingCase,
+        expectedUpdatedAt: now,
+        resolutionNote: 'Attempted resolution while the submitted evidence was incomplete.',
+        resolution: { kind: 'CREATE_NEW' },
+      },
+    });
+    expect(response.statusCode).toBe(409);
+    expect(response.json()).toMatchObject({
+      code: 'IDENTITY_REVIEW_EVIDENCE_INCOMPLETE',
+    });
+    const reviewCase = await servicePool.query(
+      `SELECT status, resolved_person_id FROM identity_review_cases WHERE id = $1`,
+      [pendingCase],
+    );
+    expect(reviewCase.rows[0]).toEqual({ status: 'OPEN', resolved_person_id: null });
+    const audit = await servicePool.query(
+      `SELECT outcome_code, metadata FROM audit_events WHERE request_id = $1`,
+      [response.headers['x-request-id']],
+    );
+    expect(audit.rows[0]).toMatchObject({
+      outcome_code: 'DENIED',
+      metadata: { resolutionCode: 'IDENTITY_REVIEW_EVIDENCE_INCOMPLETE' },
+    });
+  });
 });
 
 async function seedIdentityReviews(pool: pg.Pool) {
@@ -353,6 +618,7 @@ async function seedIdentityReviews(pool: pg.Pool) {
     [availableCase, installation1, '64000000-0000-4000-8000-000000000001'],
     [pendingCase, installation1, '64000000-0000-4000-8000-000000000002'],
     [hiddenCase, installation2, '64000000-0000-4000-8000-000000000003'],
+    [createCase, installation1, '64000000-0000-4000-8000-000000000004'],
   ]) {
     await pool.query(
       `INSERT INTO identity_review_cases (
@@ -377,6 +643,7 @@ async function seedIdentityReviews(pool: pg.Pool) {
   for (const [reviewCase, revision, name, claimedId] of [
     [availableCase, 2, 'Submitted Patient', 'CHS-1111-2222-3333'],
     [hiddenCase, 1, 'Hidden Patient', null],
+    [createCase, 1, 'New Submitted Patient', null],
   ]) {
     await pool.query(
       `INSERT INTO identity_review_evidence_snapshots (
@@ -384,11 +651,12 @@ async function seedIdentityReviews(pool: pg.Pool) {
          captured_at, payload_hash, local_patient_code, claimed_chs_medical_id,
          display_name, name_normalized, given_name, family_name, date_of_birth,
          sex, phone, phone_normalized, village, quarter, source_created_at,
-         source_updated_at, received_at
+         acknowledgment_status, patient_status, source_updated_at, received_at
        ) VALUES ($1, $2, $3, $4, '1.0', $5, $6, 'PT-000101', $7, $8,
          lower($8), split_part($8, ' ', 1), split_part($8, ' ', 2),
          '1991-02-03', 'FEMALE', '+237612345678', '+237612345678',
-         'Submitted Village', 'Submitted Quarter', $5, $5, $5)`,
+         'Submitted Village', 'Submitted Quarter', $5, 'ACKNOWLEDGED',
+         'ACTIVE', $5, $5)`,
       [randomUUID(), reviewCase, randomUUID(), revision, now, 'a'.repeat(64), claimedId, name],
     );
   }
@@ -396,6 +664,7 @@ async function seedIdentityReviews(pool: pg.Pool) {
   for (const [userId, subject, displayName] of [
     [reviewerUser, 'reviewer-user', 'Identity Reviewer'],
     [deniedUser, 'denied-user', 'Patient Viewer'],
+    [readOnlyReviewerUser, 'read-only-reviewer-user', 'Read-only Reviewer'],
   ]) {
     await pool.query(
       `INSERT INTO operations_users (
@@ -410,7 +679,19 @@ async function seedIdentityReviews(pool: pg.Pool) {
        granted_at, created_at, updated_at
      ) VALUES
        ($1, $2, 'IDENTITY_REVIEW', 'ORGANIZATION', $3, $4, $4, $4),
-       ($5, $6, 'PATIENT_READ', 'ORGANIZATION', $3, $4, $4, $4)`,
-    [randomUUID(), reviewerUser, org1, now, randomUUID(), deniedUser],
+       ($5, $2, 'IDENTITY_REVIEW_RESOLVE', 'ORGANIZATION', $3, $4, $4, $4),
+       ($6, $7, 'PATIENT_READ', 'ORGANIZATION', $3, $4, $4, $4),
+       ($8, $9, 'IDENTITY_REVIEW', 'ORGANIZATION', $3, $4, $4, $4)`,
+    [
+      randomUUID(),
+      reviewerUser,
+      org1,
+      now,
+      randomUUID(),
+      randomUUID(),
+      deniedUser,
+      randomUUID(),
+      readOnlyReviewerUser,
+    ],
   );
 }

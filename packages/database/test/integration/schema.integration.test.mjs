@@ -40,6 +40,7 @@ test(
         '0006_medical_id_recovery.sql',
         '0007_sync_operations_monitoring.sql',
         '0008_identity_review_evidence.sql',
+        '0009_identity_review_resolution.sql',
       ]);
       assert.deepEqual(secondRun.applied, []);
 
@@ -51,7 +52,7 @@ test(
         [schema],
       );
       const tableNames = tableResult.rows.map((row) => row.table_name);
-      assert.equal(tableNames.length, 29);
+      assert.equal(tableNames.length, 30);
       assert.ok(tableNames.includes('schema_migrations'));
       assert.ok(tableNames.includes('screening_encounters'));
       assert.ok(tableNames.includes('vital_readings'));
@@ -62,6 +63,7 @@ test(
       assert.ok(tableNames.includes('medical_id_recovery_cases'));
       assert.ok(tableNames.includes('medical_id_recovery_candidates'));
       assert.ok(tableNames.includes('identity_review_evidence_snapshots'));
+      assert.ok(tableNames.includes('identity_review_resolutions'));
 
       const evidenceColumns = await client.query(
         `SELECT column_name, data_type
@@ -75,6 +77,8 @@ test(
       assert.ok(evidenceColumnNames.includes('display_name'));
       assert.ok(evidenceColumnNames.includes('payload_hash'));
       assert.ok(evidenceColumnNames.includes('source_revision'));
+      assert.ok(evidenceColumnNames.includes('acknowledgment_status'));
+      assert.ok(evidenceColumnNames.includes('patient_status'));
       assert.ok(!evidenceColumnNames.includes('residence_notes'));
       assert.ok(!evidenceColumnNames.includes('alternate_contact_name'));
       assert.ok(!evidenceColumnNames.includes('alternate_contact_phone'));

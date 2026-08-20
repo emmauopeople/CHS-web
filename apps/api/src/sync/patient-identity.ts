@@ -564,10 +564,10 @@ async function openReviewCase(
        display_name, name_normalized, given_name, family_name, other_names,
        date_of_birth, approximate_age_years, age_as_of_date, sex, phone,
        phone_normalized, village, quarter, source_created_at, source_updated_at,
-       received_at
+       received_at, acknowledgment_status, patient_status
      ) VALUES (
        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14,
-       $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25
+       $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27
      )
      ON CONFLICT (review_case_id, source_revision) DO NOTHING`,
     [
@@ -596,6 +596,8 @@ async function openReviewCase(
       record.payload.createdAt,
       record.payload.updatedAt,
       receivedAt,
+      record.payload.acknowledgmentStatus,
+      record.payload.status,
     ],
   );
 

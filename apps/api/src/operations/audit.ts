@@ -20,6 +20,7 @@ export type PatientAuditAction =
   | 'MEDICAL_ID_RECOVERY_REVEAL'
   | 'IDENTITY_REVIEW_LIST_VIEW'
   | 'IDENTITY_REVIEW_DETAIL_VIEW'
+  | 'IDENTITY_REVIEW_RESOLVE'
   | 'SYNC_BATCH_LIST_VIEW'
   | 'SYNC_BATCH_DETAIL_VIEW';
 export type PatientAuditOutcome =

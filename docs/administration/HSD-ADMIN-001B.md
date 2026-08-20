@@ -22,14 +22,16 @@ Only permissions with implemented protected workflows can be provisioned:
 
 - `PATIENT_READ` — canonical patient search and clinical detail;
 - `MEDICAL_ID_RECOVER` — controlled Medical ID recovery;
-- `IDENTITY_REVIEW` — scoped, read-only identity-review investigation; and
+- `IDENTITY_REVIEW` — scoped, read-only identity-review investigation;
+- `IDENTITY_REVIEW_RESOLVE` — irreversible link-or-create identity decisions; and
 - `SYNC_MONITOR` — redacted synchronization monitoring.
 
 `AUDIT_READ` remains reserved in the database schema but cannot be provisioned
 until its protected workflow is implemented.
 
-Every permission is independently granted. For example, `PATIENT_READ` does not
-imply Medical ID recovery or sync monitoring.
+Every permission is independently granted. In particular, `IDENTITY_REVIEW`
+does not imply resolution authority, and `PATIENT_READ` does not imply Medical
+ID recovery or sync monitoring.
 
 ## Input
 

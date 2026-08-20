@@ -10,6 +10,7 @@
   },
   "packageManager": "pnpm@11.19.0",
   "scripts": {
+    "admin:installation:enroll": "pnpm --filter @chs/api admin:installation:enroll",
     "build": "pnpm --recursive build",
     "db:migrate": "pnpm --filter @chs/database migrate",
     "db:test": "pnpm --filter @chs/database test:integration && pnpm --filter @chs/api test:integration",

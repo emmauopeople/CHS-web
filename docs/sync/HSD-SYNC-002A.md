@@ -1,6 +1,6 @@
 # HSD-SYNC-002A: Sync batch intake foundation
 
-Status: Draft for implementation review
+Status: Implemented
 
 ## Purpose
 
@@ -26,12 +26,12 @@ installation and stores only:
 - issuance, optional expiry, revocation, and last-use timestamps.
 
 The expected token format is `chs_inst_v1_` followed by 43 base64url
-characters, representing 32 random bytes. The raw token is shown only when a
-future controlled enrollment process creates it. It is never stored, logged,
-placed in metrics, or included in errors.
+characters, representing 32 random bytes. The raw token is shown only when the
+controlled [HSD-SYNC-003A](HSD-SYNC-003A.md) enrollment command creates it. It
+is never stored, logged, placed in metrics, or included in errors.
 
-Token issuance, rotation commands, and hospital/provider OAuth2 are separate
-tasks. Installation bearer tokens authorize desktop synchronization only.
+Credential rotation/revocation and hospital/provider OAuth2 are separate tasks.
+Installation bearer tokens authorize desktop synchronization only.
 
 ## Authentication rules
 
@@ -98,6 +98,8 @@ HSD-SYNC-001 response and problem contracts.
 
 ## Out of scope
 
-This task does not issue tokens, register Fastify sync routes, validate raw HTTP
-bodies against JSON Schema, process patient or clinical records, assign medical
-IDs, implement medical-ID recovery, or implement the desktop sync worker.
+This task did not itself issue tokens, register Fastify sync routes, validate
+raw HTTP bodies against JSON Schema, process patient or clinical records,
+assign medical IDs, implement medical-ID recovery, or implement the desktop
+sync worker. Those web-side capabilities are delivered by later documented
+increments; the desktop worker remains in the desktop repository.

@@ -16,7 +16,7 @@ test('database package uses a cross-platform syntax checker', async () => {
 test('canonical migration is numbered, hashed, and contains the required model', async () => {
   const migrations = await discoverMigrations();
 
-  assert.equal(migrations.length, 7);
+  assert.equal(migrations.length, 8);
   assert.equal(migrations[0].version, '0001');
   assert.equal(
     migrations[0].filename,
@@ -72,6 +72,17 @@ test('canonical migration is numbered, hashed, and contains the required model',
   assert.match(migrations[6].sql, /'SYNC_MONITOR'/);
   assert.match(migrations[6].sql, /ix_sync_batches_operations_status_received/);
   assert.match(migrations[6].sql, /ix_sync_records_operations_outcomes/);
+  assert.equal(
+    migrations[7].filename,
+    '0008_identity_review_evidence.sql',
+  );
+  assert.match(migrations[7].checksum, /^[0-9a-f]{64}$/);
+  assert.match(
+    migrations[7].sql,
+    /CREATE TABLE identity_review_evidence_snapshots/,
+  );
+  assert.match(migrations[7].sql, /uq_identity_review_evidence_revision/);
+  assert.match(migrations[7].sql, /ix_identity_review_evidence_latest/);
   assert.match(migrations[0].checksum, /^[0-9a-f]{64}$/);
 
   const requiredTables = [

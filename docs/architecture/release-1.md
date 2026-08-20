@@ -61,6 +61,13 @@ ambiguous evidence becomes a non-revealable review case. The confirmation step
 reads the already active identifier and never inserts or replaces one. Both
 steps are durably audited.
 
+Identity review now has a persistence foundation for the future protected
+review workflow. Sync-created cases retain append-only, minimum-necessary
+demographic evidence and source provenance without storing raw request JSON.
+An open case remains review-required across later unlinked desktop revisions,
+preventing demographic edits from bypassing manual review and creating a second
+canonical person.
+
 Synchronization support now includes a separate operational monitoring
 boundary. A dedicated `SYNC_MONITOR` grant controls access independently of
 patient viewing and Medical ID recovery. Scoped API queries show batch state,

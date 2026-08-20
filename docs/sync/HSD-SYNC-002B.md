@@ -1,6 +1,6 @@
 # HSD-SYNC-002B: Patient identity ingestion and Medical ID assignment
 
-Status: Draft for implementation review
+Status: Implemented
 
 ## Purpose
 
@@ -9,9 +9,8 @@ batch intake. It creates or advances canonical people, assigns a CHS Medical ID
 to a new person, links an existing Medical ID only after identity verification,
 and sends ambiguous identities to review without disclosing candidate data.
 
-The Fastify sync route remains closed. Session, encounter, vitals, batch
-completion, stored response replay, and HTTP schema validation are still needed
-before the endpoint can return complete outcomes for every contract record.
+The complete Fastify sync route and dependency-ordered batch orchestration are
+delivered by HSD-SYNC-002F.
 
 ## Identity resolution order
 
@@ -88,6 +87,13 @@ lookup.
 - an unknown or conflicting known ID is rejected with a stable code;
 - errors contain only machine codes and JSON Pointers, never patient values;
 - raw patient payloads are not persisted in sync tables or logs.
+
+Migration `0008_identity_review_evidence.sql` adds the structured,
+minimum-necessary evidence needed by a future protected review workflow. The
+snapshot is stored outside sync tables, excludes raw JSON and nonessential
+fields, is append-only by source revision, and is created atomically with the
+review outcome. Once review is open, later unlinked revisions remain in review
+until an authorized resolution workflow acts.
 
 For a patient outcome, `canonicalResourceId` and `centralPersonId` both identify
 the canonical `persons.id` row.

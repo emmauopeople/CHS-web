@@ -31,7 +31,7 @@
     "lint": "tsc -p tsconfig.json --noEmit",
     "start": "node dist/main.js",
     "test": "vitest run",
-    "test:integration": "node --env-file-if-exists=../../.env ./node_modules/vitest/vitest.mjs run test/integration",
+    "test:integration": "node --env-file-if-exists=../../.env ./node_modules/vitest/vitest.mjs run test/integration --no-file-parallelism",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   }
 }

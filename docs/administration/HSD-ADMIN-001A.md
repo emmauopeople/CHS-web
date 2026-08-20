@@ -96,6 +96,11 @@ integration tests cover:
 - adding another location to an existing organization; and
 - organization and location conflict rollback.
 
+The repository integration command runs PostgreSQL test files serially. Each
+file creates and migrates an isolated schema; serial execution prevents local
+database contention from exhausting Vitest's setup-hook timeout while retaining
+complete test coverage.
+
 ## Out of scope
 
 Hospital/provider onboarding, OAuth2, organization or location editing,

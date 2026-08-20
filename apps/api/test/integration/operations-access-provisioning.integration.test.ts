@@ -9,6 +9,7 @@ import {
   provisionOperationsAccess,
 } from '../../src/administration/operations-access-provisioning.js';
 import {
+  authorizeIdentityReview,
   authorizeMedicalIdRecovery,
   authorizePatientRead,
   authorizeSyncMonitoring,
@@ -21,9 +22,10 @@ const organizationId = '10000000-0000-4000-8000-000000000101';
 const secondOrganizationId = '10000000-0000-4000-8000-000000000102';
 const inactiveOrganizationId = '10000000-0000-4000-8000-000000000103';
 const operationsUserId = '90000000-0000-4000-8000-000000000101';
-const recoveryGrantId = '91000000-0000-4000-8000-000000000101';
-const patientGrantId = '91000000-0000-4000-8000-000000000102';
-const monitoringGrantId = '91000000-0000-4000-8000-000000000103';
+const identityReviewGrantId = '91000000-0000-4000-8000-000000000101';
+const recoveryGrantId = '91000000-0000-4000-8000-000000000102';
+const patientGrantId = '91000000-0000-4000-8000-000000000103';
+const monitoringGrantId = '91000000-0000-4000-8000-000000000104';
 const identity = {
   issuer: 'https://identity.example.test/',
   subject: 'operations-user-101',
@@ -60,6 +62,7 @@ runIntegration('operations access provisioning with PostgreSQL', () => {
   it('atomically provisions a principal and immediately effective grants', async () => {
     const ids = [
       operationsUserId,
+      identityReviewGrantId,
       recoveryGrantId,
       patientGrantId,
       monitoringGrantId,
@@ -76,6 +79,14 @@ runIntegration('operations access provisioning with PostgreSQL', () => {
       operationsUserId,
       userCreated: true,
       grants: [
+        {
+          grantId: identityReviewGrantId,
+          permissionCode: 'IDENTITY_REVIEW',
+          scopeKind: 'ORGANIZATION',
+          organizationId,
+          expiresAt: null,
+          created: true,
+        },
         {
           grantId: recoveryGrantId,
           permissionCode: 'MEDICAL_ID_RECOVER',
@@ -114,6 +125,12 @@ runIntegration('operations access provisioning with PostgreSQL', () => {
       patientAccessScope: { kind: 'ORGANIZATIONS', organizationIds: [organizationId] },
     });
     await expect(
+      authorizeIdentityReview(servicePool, identity, now),
+    ).resolves.toMatchObject({
+      operationsUserId,
+      patientAccessScope: { kind: 'ORGANIZATIONS', organizationIds: [organizationId] },
+    });
+    await expect(
       authorizeSyncMonitoring(servicePool, identity, now),
     ).resolves.toMatchObject({
       operationsUserId,
@@ -137,7 +154,7 @@ runIntegration('operations access provisioning with PostgreSQL', () => {
       },
     });
     expect(audit.rows[0].metadata.principalFingerprint).toMatch(/^[0-9a-f]{64}$/);
-    expect(audit.rows[0].metadata.createdGrants).toHaveLength(3);
+    expect(audit.rows[0].metadata.createdGrants).toHaveLength(4);
     expect(JSON.stringify(audit.rows[0])).not.toContain(identity.subject);
     expect(JSON.stringify(audit.rows[0])).not.toContain(identity.issuer);
   });
@@ -155,12 +172,13 @@ runIntegration('operations access provisioning with PostgreSQL', () => {
       operationsUserId,
       userCreated: false,
       grants: [
+        { grantId: identityReviewGrantId, created: false },
         { grantId: recoveryGrantId, created: false },
         { grantId: patientGrantId, created: false },
         { grantId: monitoringGrantId, created: false },
       ],
     });
-    expect(await counts()).toEqual({ users: 1, grants: 3, audits: 1 });
+    expect(await counts()).toEqual({ users: 1, grants: 4, audits: 1 });
   });
 
   it('adds another organization grant to the exact existing principal', async () => {
@@ -198,7 +216,7 @@ runIntegration('operations access provisioning with PostgreSQL', () => {
         organizationIds: [organizationId, secondOrganizationId],
       },
     });
-    expect(await counts()).toEqual({ users: 1, grants: 4, audits: 2 });
+    expect(await counts()).toEqual({ users: 1, grants: 5, audits: 2 });
   });
 
   it('rejects principal changes, incompatible scopes, and inactive organizations', async () => {
@@ -264,6 +282,12 @@ runIntegration('operations access provisioning with PostgreSQL', () => {
       {
         ...basePrincipal(),
         grants: [
+          {
+            permissionCode: 'IDENTITY_REVIEW',
+            scopeKind: 'ORGANIZATION',
+            organizationId,
+            expiresAt: null,
+          },
           {
             permissionCode: 'PATIENT_READ',
             scopeKind: 'GLOBAL',

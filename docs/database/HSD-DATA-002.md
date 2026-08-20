@@ -38,9 +38,9 @@ and credentials. The sync record continues to store hashes and stable error
 codes rather than raw payloads.
 
 These snapshots contain protected identity data. They are not part of the
-general patient viewer or synchronization-monitoring responses. A future
-identity-review API must require the independent `IDENTITY_REVIEW` permission,
-server-derived organization scope, a reason for access, no-store responses,
+general patient viewer or synchronization-monitoring responses. HSD-OPS-004A
+protects review reads with the independent `IDENTITY_REVIEW` permission,
+server-derived organization scope, a controlled reason, no-store responses,
 and durable access auditing.
 
 ## Append-only revision model
@@ -103,8 +103,8 @@ Automated coverage verifies:
 - append-only snapshots across source revisions; and
 - prevention of automatic person creation while a review case remains open.
 
-## Next increment
+## Query increment
 
-HSD-OPS-004A can now add a read-only, organization-scoped identity-review queue
-and case-detail API over the newest evidence and candidate rows. Resolution
+HSD-OPS-004A adds a read-only, organization-scoped identity-review queue and
+case-detail API over the newest evidence and masked candidate rows. Resolution
 writes and the React review workspace remain separate tasks.

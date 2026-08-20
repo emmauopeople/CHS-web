@@ -10,13 +10,16 @@ export type PatientAccessReason =
   | 'CARE_COORDINATION'
   | 'PATIENT_REQUEST'
   | 'QUALITY_IMPROVEMENT'
-  | 'OPERATIONS_SUPPORT';
+  | 'OPERATIONS_SUPPORT'
+  | 'IDENTITY_RECONCILIATION';
 
 export type PatientAuditAction =
   | 'PATIENT_LIST_VIEW'
   | 'PATIENT_DETAIL_VIEW'
   | 'MEDICAL_ID_RECOVERY_SEARCH'
   | 'MEDICAL_ID_RECOVERY_REVEAL'
+  | 'IDENTITY_REVIEW_LIST_VIEW'
+  | 'IDENTITY_REVIEW_DETAIL_VIEW'
   | 'SYNC_BATCH_LIST_VIEW'
   | 'SYNC_BATCH_DETAIL_VIEW';
 export type PatientAuditOutcome =
@@ -77,6 +80,8 @@ export async function recordPatientAccessAudit(
       ? 'PERSON'
       : event.action === 'PATIENT_LIST_VIEW'
         ? 'PATIENT_SEARCH'
+        : event.action.startsWith('IDENTITY_REVIEW_')
+          ? 'IDENTITY_REVIEW_CASE'
         : event.action.startsWith('MEDICAL_ID_RECOVERY_')
           ? 'MEDICAL_ID_RECOVERY'
           : 'SYNC_BATCH';

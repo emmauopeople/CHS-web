@@ -14,6 +14,7 @@ import {
 } from './operations/authentication.js';
 import { registerOperationsRoutes } from './operations/routes.js';
 import { registerMedicalIdRecoveryRoutes } from './operations/medical-id-recovery-routes.js';
+import { registerIdentityReviewRoutes } from './operations/identity-review-routes.js';
 import { registerSyncMonitoringRoutes } from './operations/sync-monitoring-routes.js';
 import { registerSyncRoutes } from './sync/routes.js';
 
@@ -99,6 +100,10 @@ export async function buildApp(dependencies: BuildAppDependencies) {
     tokenVerifier: operationsTokenVerifier,
   });
   await registerMedicalIdRecoveryRoutes(app, {
+    database: dependencies.database.pool,
+    tokenVerifier: operationsTokenVerifier,
+  });
+  await registerIdentityReviewRoutes(app, {
     database: dependencies.database.pool,
     tokenVerifier: operationsTokenVerifier,
   });

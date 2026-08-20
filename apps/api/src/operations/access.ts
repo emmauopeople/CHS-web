@@ -26,11 +26,13 @@ export type OperationsAuthorizationErrorCode =
   | 'OPERATIONS_USER_SUSPENDED'
   | 'PATIENT_READ_NOT_PERMITTED'
   | 'MEDICAL_ID_RECOVERY_NOT_PERMITTED'
+  | 'IDENTITY_REVIEW_NOT_PERMITTED'
   | 'SYNC_MONITOR_NOT_PERMITTED';
 
 export type OperationsPermission =
   | 'PATIENT_READ'
   | 'MEDICAL_ID_RECOVER'
+  | 'IDENTITY_REVIEW'
   | 'SYNC_MONITOR';
 
 export class OperationsAuthorizationError extends Error {
@@ -43,6 +45,21 @@ export class OperationsAuthorizationError extends Error {
   ) {
     super('Operations authorization failed');
     this.name = 'OperationsAuthorizationError';
+  }
+}
+
+function permissionDeniedCode(
+  permission: OperationsPermission,
+): OperationsAuthorizationErrorCode {
+  switch (permission) {
+    case 'PATIENT_READ':
+      return 'PATIENT_READ_NOT_PERMITTED';
+    case 'MEDICAL_ID_RECOVER':
+      return 'MEDICAL_ID_RECOVERY_NOT_PERMITTED';
+    case 'IDENTITY_REVIEW':
+      return 'IDENTITY_REVIEW_NOT_PERMITTED';
+    case 'SYNC_MONITOR':
+      return 'SYNC_MONITOR_NOT_PERMITTED';
   }
 }
 
@@ -98,11 +115,7 @@ export async function authorizeOperationsPermission(
   }
   if (result.rows.every((row) => row.scope_kind === null)) {
     throw new OperationsAuthorizationError(
-      permission === 'PATIENT_READ'
-        ? 'PATIENT_READ_NOT_PERMITTED'
-        : permission === 'MEDICAL_ID_RECOVER'
-          ? 'MEDICAL_ID_RECOVERY_NOT_PERMITTED'
-          : 'SYNC_MONITOR_NOT_PERMITTED',
+      permissionDeniedCode(permission),
       user.operations_user_id,
       fingerprint,
     );
@@ -120,11 +133,7 @@ export async function authorizeOperationsPermission(
   ];
   if (!global && organizationIds.length === 0) {
     throw new OperationsAuthorizationError(
-      permission === 'PATIENT_READ'
-        ? 'PATIENT_READ_NOT_PERMITTED'
-        : permission === 'MEDICAL_ID_RECOVER'
-          ? 'MEDICAL_ID_RECOVERY_NOT_PERMITTED'
-          : 'SYNC_MONITOR_NOT_PERMITTED',
+      permissionDeniedCode(permission),
       user.operations_user_id,
       fingerprint,
     );
@@ -167,4 +176,12 @@ export function authorizeSyncMonitoring(
   now: Date = new Date(),
 ): Promise<OperationsPrincipal> {
   return authorizeOperationsPermission(database, identity, 'SYNC_MONITOR', now);
+}
+
+export function authorizeIdentityReview(
+  database: AccessDatabase,
+  identity: VerifiedOperationsIdentity,
+  now: Date = new Date(),
+): Promise<OperationsPrincipal> {
+  return authorizeOperationsPermission(database, identity, 'IDENTITY_REVIEW', now);
 }

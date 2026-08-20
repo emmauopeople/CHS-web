@@ -30,9 +30,10 @@ health. The React operations portal consumes it through a low-bandwidth,
 manually refreshed synchronization dashboard.
 Internal operations identities and their least-privilege portal grants can be
 created through a controlled operator command after the OIDC identity exists.
-Sync-created identity-review cases now retain append-only, minimum-necessary
-evidence snapshots so a later protected review workflow can compare submitted
-identity evidence without retaining raw payload JSON.
+Sync-created identity-review cases retain append-only, minimum-necessary
+evidence snapshots without raw payload JSON. A separately authorized,
+organization-scoped operations API now exposes a masked review queue and
+audited, read-only case detail for later reconciliation work.
 
 ## Prerequisites
 
@@ -128,14 +129,25 @@ The operations portal provides a Sync Monitoring workspace for filtering,
 paging, and inspecting these redacted results. Filters and batch references
 remain in non-cacheable POST bodies and are not stored in browser URLs.
 
+## Identity review endpoints
+
+- `POST /api/v1/operations/identity-reviews/search` — list scoped open review cases
+- `POST /api/v1/operations/identity-reviews/detail` — compare submitted evidence with masked candidates
+
+Both endpoints require the dedicated `IDENTITY_REVIEW` grant and the controlled
+`IDENTITY_RECONCILIATION` reason. Queue identity hints and all canonical
+candidates are masked, missing and out-of-scope case references are
+indistinguishable, and every query attempt is audited. This API is read-only;
+case resolution and its React workspace remain separate increments.
+
 ## Operations access provisioning
 
 After creating an internal account in the configured identity provider,
 infrastructure operators bind its exact issuer/subject and grant only the
 required portal permissions with
 `pnpm admin:operations-access:provision -- --input <access.json>`. The command
-supports `PATIENT_READ`, `MEDICAL_ID_RECOVER`, and `SYNC_MONITOR` at global or
-organization scope. See
+supports `PATIENT_READ`, `MEDICAL_ID_RECOVER`, `IDENTITY_REVIEW`, and
+`SYNC_MONITOR` at global or organization scope. See
 [HSD-ADMIN-001B](docs/administration/HSD-ADMIN-001B.md).
 
 ## Commands
@@ -177,6 +189,7 @@ pnpm lint          # run lint checks
 - [HSD-OPS-002B Medical ID recovery](docs/operations/HSD-OPS-002B.md)
 - [HSD-OPS-003A synchronization monitoring API](docs/operations/HSD-OPS-003A.md)
 - [HSD-OPS-003B React synchronization dashboard](docs/operations/HSD-OPS-003B.md)
+- [HSD-OPS-004A identity review query API](docs/operations/HSD-OPS-004A.md)
 - [HSD-DATA-001 canonical PostgreSQL schema](docs/database/HSD-DATA-001.md)
 - [HSD-DATA-002 identity review evidence foundation](docs/database/HSD-DATA-002.md)
 

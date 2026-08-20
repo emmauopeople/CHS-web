@@ -21,6 +21,7 @@ const grantFields = new Set([
 const supportedPermissions = new Set<OperationsPermission>([
   'PATIENT_READ',
   'MEDICAL_ID_RECOVER',
+  'IDENTITY_REVIEW',
   'SYNC_MONITOR',
 ]);
 const uuidPattern =
@@ -371,7 +372,7 @@ function parseGrant(
   const permissionCode = requiredCode(grant, 'permissionCode');
   if (!supportedPermissions.has(permissionCode as OperationsPermission)) {
     invalid(
-      'permissionCode must be PATIENT_READ, MEDICAL_ID_RECOVER, or SYNC_MONITOR',
+      'permissionCode must be PATIENT_READ, MEDICAL_ID_RECOVER, IDENTITY_REVIEW, or SYNC_MONITOR',
     );
   }
   const scopeKind = requiredCode(grant, 'scopeKind');

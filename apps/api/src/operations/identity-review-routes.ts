@@ -3,6 +3,7 @@ import type { Pool } from 'pg';
 
 import {
   authorizeIdentityReview,
+  authorizeIdentityReviewResolution,
   OperationsAuthorizationError,
   type OperationsPrincipal,
 } from './access.js';
@@ -12,6 +13,11 @@ import {
   type VerifiedOperationsIdentity,
 } from './authentication.js';
 import { recordPatientAccessAudit } from './audit.js';
+import {
+  IdentityReviewResolutionError,
+  resolveIdentityReviewCase,
+  type IdentityReviewResolutionInput,
+} from './identity-review-resolution.js';
 import {
   getIdentityReviewCaseDetail,
   IdentityReviewQueryError,
@@ -32,6 +38,9 @@ type DetailBody = Readonly<{
   reasonCode: 'IDENTITY_RECONCILIATION';
   caseReference: string;
 }>;
+
+type ResolveBody = IdentityReviewResolutionInput &
+  Readonly<{ reasonCode: 'IDENTITY_RECONCILIATION' }>;
 
 const uuidSchema = {
   type: 'string',
@@ -71,14 +80,63 @@ const detailSchema = {
   },
 } as const;
 
+const resolveSchema = {
+  body: {
+    type: 'object',
+    additionalProperties: false,
+    required: [
+      'reasonCode',
+      'resolutionRequestId',
+      'caseReference',
+      'expectedUpdatedAt',
+      'resolutionNote',
+      'resolution',
+    ],
+    properties: {
+      reasonCode: { type: 'string', const: 'IDENTITY_RECONCILIATION' },
+      resolutionRequestId: uuidSchema,
+      caseReference: uuidSchema,
+      expectedUpdatedAt: { type: 'string', minLength: 20, maxLength: 40 },
+      resolutionNote: { type: 'string', minLength: 10, maxLength: 1000 },
+      resolution: {
+        oneOf: [
+          {
+            type: 'object',
+            additionalProperties: false,
+            required: ['kind', 'candidatePersonReference'],
+            properties: {
+              kind: { type: 'string', const: 'LINK_EXISTING' },
+              candidatePersonReference: uuidSchema,
+            },
+          },
+          {
+            type: 'object',
+            additionalProperties: false,
+            required: ['kind'],
+            properties: {
+              kind: { type: 'string', const: 'CREATE_NEW' },
+            },
+          },
+        ],
+      },
+    },
+  },
+} as const;
+
 type IdentityReviewAction =
   | 'IDENTITY_REVIEW_LIST_VIEW'
-  | 'IDENTITY_REVIEW_DETAIL_VIEW';
+  | 'IDENTITY_REVIEW_DETAIL_VIEW'
+  | 'IDENTITY_REVIEW_RESOLVE';
 
 function routeFor(action: IdentityReviewAction): string {
-  return action === 'IDENTITY_REVIEW_LIST_VIEW'
-    ? '/api/v1/operations/identity-reviews/search'
-    : '/api/v1/operations/identity-reviews/detail';
+  switch (action) {
+    case 'IDENTITY_REVIEW_LIST_VIEW':
+      return '/api/v1/operations/identity-reviews/search';
+    case 'IDENTITY_REVIEW_DETAIL_VIEW':
+      return '/api/v1/operations/identity-reviews/detail';
+    case 'IDENTITY_REVIEW_RESOLVE':
+      return '/api/v1/operations/identity-reviews/resolve';
+  }
 }
 
 function requestContext(request: FastifyRequest) {
@@ -157,6 +215,24 @@ function handleKnownError(
         : 'Identity review query is invalid',
     );
   }
+  if (
+    error instanceof IdentityReviewResolutionError &&
+    error.statusCode !== 500
+  ) {
+    return sendProblem(
+      request,
+      reply,
+      error.statusCode,
+      error.statusCode === 400
+        ? 'INVALID_IDENTITY_REVIEW_RESOLUTION'
+        : error.code,
+      error.statusCode === 404
+        ? 'Identity review case was not found'
+        : error.statusCode === 409
+          ? 'Identity review resolution conflicts with current state'
+          : 'Identity review resolution is invalid',
+    );
+  }
   throw error;
 }
 
@@ -219,7 +295,9 @@ async function principalFor(
     request.headers.authorization,
   );
   try {
-    return await authorizeIdentityReview(dependencies.database, identity);
+    return await (action === 'IDENTITY_REVIEW_RESOLVE'
+      ? authorizeIdentityReviewResolution(dependencies.database, identity)
+      : authorizeIdentityReview(dependencies.database, identity));
   } catch (error) {
     if (error instanceof OperationsAuthorizationError) {
       await recordAuthorizationDenial(
@@ -348,6 +426,56 @@ export async function registerIdentityReviewRoutes(
                   : 'ERROR'
               : 'ERROR',
             caseReference,
+          );
+        }
+        return handleKnownError(error, request, reply);
+      }
+    },
+  );
+
+  app.post<{ Body: ResolveBody }>(
+    '/api/v1/operations/identity-reviews/resolve',
+    { schema: resolveSchema, onRequest: preventCaching },
+    async (request, reply) => {
+      let principal: OperationsPrincipal | null = null;
+      const { reasonCode: _reasonCode, ...input } = request.body;
+      try {
+        principal = await principalFor(
+          dependencies,
+          request,
+          'IDENTITY_REVIEW_RESOLVE',
+          input.caseReference,
+        );
+        const result = await resolveIdentityReviewCase(
+          dependencies.database,
+          principal.patientAccessScope,
+          principal.operationsUserId,
+          input,
+          {
+            ...requestContext(request),
+            sessionId: principal.identity.sessionId,
+            authorizedParty: principal.identity.authorizedParty,
+          },
+        );
+        return reply.code(200).send(result);
+      } catch (error) {
+        if (principal) {
+          await recordAudit(
+            dependencies,
+            principal,
+            request,
+            'IDENTITY_REVIEW_RESOLVE',
+            error instanceof IdentityReviewResolutionError
+              ? error.statusCode === 404
+                ? 'NOT_FOUND'
+                : error.statusCode === 500
+                  ? 'ERROR'
+                  : 'DENIED'
+              : 'ERROR',
+            input.caseReference,
+            error instanceof IdentityReviewResolutionError
+              ? { resolutionCode: error.code }
+              : {},
           );
         }
         return handleKnownError(error, request, reply);

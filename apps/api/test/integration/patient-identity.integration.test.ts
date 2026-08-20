@@ -321,6 +321,8 @@ runIntegration('patient identity processing with PostgreSQL', () => {
          snapshot.display_name,
          snapshot.name_normalized,
          snapshot.date_of_birth::text AS date_of_birth,
+         snapshot.acknowledgment_status,
+         snapshot.patient_status,
          snapshot.phone,
          snapshot.village,
          snapshot.quarter
@@ -342,6 +344,8 @@ runIntegration('patient identity processing with PostgreSQL', () => {
       display_name: 'Possible Duplicate',
       name_normalized: 'duplicate possible',
       date_of_birth: '1965-08-09',
+      acknowledgment_status: 'ACKNOWLEDGED',
+      patient_status: 'ACTIVE',
       phone: null,
       village: 'Synthetic Village',
       quarter: 'Synthetic Quarter',

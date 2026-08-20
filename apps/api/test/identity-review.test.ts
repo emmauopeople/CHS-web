@@ -169,6 +169,8 @@ describe('identity review query service', () => {
                 phone: '+237612345678',
                 village: 'Submitted Village',
                 quarter: 'Submitted Quarter',
+                acknowledgment_status: 'ACKNOWLEDGED',
+                patient_status: 'ACTIVE',
                 source_created_at: timestamp,
                 source_updated_at: timestamp,
                 received_at: timestamp,
@@ -211,6 +213,8 @@ describe('identity review query service', () => {
     expect(result.evidence).toMatchObject({
       displayName: 'Submitted Patient',
       dateOfBirth: '1991-02-03',
+      acknowledgmentStatus: 'ACKNOWLEDGED',
+      patientStatus: 'ACTIVE',
       maskedClaimedChsMedicalId: 'CHS-••••••••-9012',
     });
     expect(result.candidates[0]).toMatchObject({

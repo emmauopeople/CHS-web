@@ -61,15 +61,19 @@ ambiguous evidence becomes a non-revealable review case. The confirmation step
 reads the already active identifier and never inserts or replaces one. Both
 steps are durably audited.
 
-Identity review now has a persistence and read-only operations boundary.
+Identity review now has persistence, query, and controlled resolution boundaries.
 Sync-created cases retain append-only, minimum-necessary demographic evidence
 and source provenance without storing raw request JSON. Reviewers require an
 independent `IDENTITY_REVIEW` grant and controlled reason; queue hints and every
 canonical candidate are masked, organization scope is server-derived, and
 reads are audited. An open case remains review-required across later unlinked
 desktop revisions, preventing demographic edits from bypassing manual review
-and creating a second canonical person. Resolution writes remain a separate
-increment.
+and creating a second canonical person. A reviewer can link only a listed
+active candidate or atomically create a new person and Medical ID from complete
+evidence. Serializable locking, stale-state checks, idempotency keys, and
+transactional auditing protect this irreversible decision. Resolution uses an
+independent `IDENTITY_REVIEW_RESOLVE` grant, so read-only investigation cannot
+mutate identity state.
 
 Synchronization support now includes a separate operational monitoring
 boundary. A dedicated `SYNC_MONITOR` grant controls access independently of

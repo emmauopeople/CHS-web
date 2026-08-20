@@ -95,6 +95,12 @@ fields, is append-only by source revision, and is created atomically with the
 review outcome. Once review is open, later unlinked revisions remain in review
 until an authorized resolution workflow acts.
 
+HSD-OPS-004B implements that workflow. New evidence snapshots also retain the
+submitted acknowledgment and patient status needed for canonical person
+creation. After resolution creates the source link, a newer patient revision
+returns the confirmed Medical ID through this sync processor; immutable stored
+responses for older batches are not rewritten.
+
 For a patient outcome, `canonicalResourceId` and `centralPersonId` both identify
 the canonical `persons.id` row.
 
@@ -109,6 +115,6 @@ the canonical `persons.id` row.
 
 ## Out of scope
 
-This task does not resolve review cases, recover a lost Medical ID, process
+This sync task does not itself resolve review cases, recover a lost Medical ID, process
 session/encounter/vitals records, complete batches, expose sync HTTP routes,
 implement the desktop sync worker, or build the React patient viewer.

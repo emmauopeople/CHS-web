@@ -56,23 +56,26 @@ describe('operations access provisioning input', () => {
     });
   });
 
-  it('accepts the implemented identity-review permission', () => {
-    const result = parseOperationsAccessProvisioningInput(
-      {
-        ...validInput,
-        grants: [
-          {
-            permissionCode: 'IDENTITY_REVIEW',
-            scopeKind: 'ORGANIZATION',
-            organizationId,
-            expiresAt: null,
-          },
-        ],
-      },
-      now,
-    );
-    expect(result.grants[0]?.permissionCode).toBe('IDENTITY_REVIEW');
-  });
+  it.each(['IDENTITY_REVIEW', 'IDENTITY_REVIEW_RESOLVE'] as const)(
+    'accepts the implemented %s permission',
+    (permissionCode) => {
+      const result = parseOperationsAccessProvisioningInput(
+        {
+          ...validInput,
+          grants: [
+            {
+              permissionCode,
+              scopeKind: 'ORGANIZATION',
+              organizationId,
+              expiresAt: null,
+            },
+          ],
+        },
+        now,
+      );
+      expect(result.grants[0]?.permissionCode).toBe(permissionCode);
+    },
+  );
 
   it.each([
     [{ ...validInput, oidcIssuer: 'http://identity.example.test' }, 'absolute HTTPS'],

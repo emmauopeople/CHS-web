@@ -30,12 +30,16 @@ provenance:
 - submitted and normalized name components;
 - exact date of birth, or approximate age with its as-of date;
 - sex, phone and normalized phone; and
-- village and quarter.
+- village and quarter; and
+- for snapshots written after migration `0009`, acknowledgment and patient
+  status needed by controlled new-person resolution.
 
 The table deliberately excludes alternate contacts, residence notes,
-acknowledgment state, screening/clinical data, raw request JSON, access tokens,
-and credentials. The sync record continues to store hashes and stable error
-codes rather than raw payloads.
+screening/clinical data, raw request JSON, access tokens, and credentials. The
+later resolution migration adds only acknowledgment and patient status because
+both are mandatory when an authorized reviewer creates a canonical person. The
+sync record continues to store hashes and stable error codes rather than raw
+payloads.
 
 These snapshots contain protected identity data. They are not part of the
 general patient viewer or synchronization-monitoring responses. HSD-OPS-004A
@@ -107,4 +111,5 @@ Automated coverage verifies:
 
 HSD-OPS-004A adds a read-only, organization-scoped identity-review queue and
 case-detail API over the newest evidence and masked candidate rows. Resolution
-writes and the React review workspace remain separate tasks.
+writes are implemented by HSD-OPS-004B; the React review workspace remains a
+separate task.

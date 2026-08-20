@@ -9,9 +9,9 @@ Owners: CHS desktop and CHS web teams
 ## Purpose
 
 This contract defines the first production boundary between an approved CHS
-desktop installation and the Release 1 web platform. It covers the first
-vertical slice: patient demographics, screening sessions, screening
-encounters, and vitals. It also defines how a newly assigned CHS medical ID is
+desktop installation and the Release 1 web platform. It covers patient
+demographics, screening sessions, screening encounters, vitals, and completed
+Lifestyle snapshots. It also defines how a newly assigned CHS medical ID is
 returned to the desktop and how an authorized operator can recover a missing
 ID.
 
@@ -39,8 +39,10 @@ desktop stores the CHS medical ID in `patient_identifiers`; it never replaces
 the local UUID. Clients treat the CHS medical ID as an opaque, case-sensitive
 server value and do not parse meaning from its current display format.
 
-Lifestyle and food-questionnaire structures are still evolving and are not in
-contract version 1.0.
+Completed Lifestyle snapshots are included through the HSD-SYNC-005B additive
+machine-contract change. Lifestyle drafts and in-progress work remain local.
+Food and over-the-counter medication structures are still evolving and are not
+in contract version 1.0.
 
 ## HTTP operations
 
@@ -89,7 +91,8 @@ Version 1.0 accepts these snapshots:
 - `PATIENT` / `patient.v1`;
 - `SCREENING_SESSION` / `screening-session.v1`;
 - `SCREENING_ENCOUNTER` / `screening-encounter.v1`;
-- `VITALS` / `vitals.v1`.
+- `VITALS` / `vitals.v1`;
+- `LIFESTYLE` / `lifestyle.v1`.
 
 Only `UPSERT` is allowed in version 1.0. A voided encounter is represented by a
 new encounter snapshot with status `VOID`; records are not physically deleted.
@@ -102,7 +105,9 @@ attribution is carried separately in the resource payload:
 - a session has `openedByLocalActorId` and, when closed,
   `closedByLocalActorId`;
 - an encounter has `recordedByLocalActorId`;
-- a vital set has `performedByLocalActorId`.
+- a vital set has `performedByLocalActorId`;
+- a Lifestyle snapshot retains the actors recorded on its parent, baselines,
+  weekly sections, and child rows.
 
 Every non-null actor reference must resolve to exactly one entry in the batch
 `actors` array. Actor snapshots include only the local UUID, display name,
@@ -127,6 +132,10 @@ an explicit review or future provider-enrollment workflow.
 | Session `sourceRevision` | `screening_sessions.row_version` |
 | Encounter `sourceRevision` | `screening_encounters.record_version` |
 | Vitals `sourceRevision` | `screening_vitals_drafts.row_version` |
+| Lifestyle `localResourceId` | `lifestyle_drafts.id` |
+| Lifestyle `sourceRevision` | `lifestyle_drafts.row_version` |
+| Lifestyle `capturedAt` | `lifestyle_drafts.updated_at` |
+| Lifestyle `sourceActorLocalId` | `lifestyle_drafts.updated_by` |
 | `sourceActorLocalId` | Relevant local `created_by`, `updated_by`, or `recorded_by` UUID |
 | Session `openedByLocalActorId` | `screening_sessions.opened_by` |
 | Session `closedByLocalActorId` | `screening_sessions.closed_by`; null while open |
@@ -154,8 +163,8 @@ protocol UUID alone.
 
 Records may reference another local entity in the same batch or one accepted by
 an earlier batch from the same installation. The server processes dependencies
-in this order: patient, session, encounter, vitals. Array order has no semantic
-meaning.
+in this order: patient, session, encounter, vitals, Lifestyle. Array order has
+no semantic meaning. A Lifestyle snapshot depends on its accepted encounter.
 
 If a reference cannot be resolved, that record receives a retryable
 `DEPENDENCY_NOT_AVAILABLE` outcome. Independent records may still be accepted.
@@ -269,11 +278,12 @@ batch.
 
 ## Acceptance criteria
 
-- OpenAPI 3.1 documents all three operations and their security schemes.
+- OpenAPI 3.1 documents all five operations and their security schemes.
 - JSON Schema validates every version 1 request and response fixture.
 - Invalid fixtures prove rejection of missing provenance, unknown properties,
-  invalid enums, out-of-range vitals, unknown clinical actors, and invalid
-  session-closing attribution.
+  invalid enums, out-of-range vitals, unknown clinical actors, invalid
+  session-closing attribution, and invalid Lifestyle branch, baseline,
+  identity, sequence, subtotal, and actor semantics.
 - All local references, revisions, units, and time semantics are explicit.
 - Batch and record retry behavior is deterministic.
 - A patient outcome can return both central IDs without replacing desktop IDs.
@@ -282,6 +292,8 @@ batch.
 
 ## Out of scope
 
-This task does not implement Fastify handlers, PostgreSQL migrations, a desktop
-transport worker, token issuance, lifestyle/food records, FHIR mapping, a FHIR
-server, provider access, the React viewer, or LLM analysis.
+The Lifestyle contract addition does not implement Fastify ingestion handlers,
+PostgreSQL Lifestyle persistence, a desktop transport worker, Lifestyle
+operations viewing, or amendment/void behavior. Food and OTC records, FHIR
+mapping and server behavior, provider access, and LLM analysis also remain out
+of scope.

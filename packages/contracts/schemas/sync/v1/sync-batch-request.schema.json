@@ -47,7 +47,8 @@
           { "$ref": "#/$defs/patientRecord" },
           { "$ref": "#/$defs/sessionRecord" },
           { "$ref": "#/$defs/encounterRecord" },
-          { "$ref": "#/$defs/vitalsRecord" }
+          { "$ref": "#/$defs/vitalsRecord" },
+          { "$ref": "#/$defs/lifestyleRecord" }
         ]
       }
     }
@@ -81,7 +82,7 @@
       "properties": {
         "recordId": { "$ref": "common.schema.json#/$defs/uuid" },
         "resourceType": {
-          "enum": ["PATIENT", "SCREENING_SESSION", "SCREENING_ENCOUNTER", "VITALS"]
+          "enum": ["PATIENT", "SCREENING_SESSION", "SCREENING_ENCOUNTER", "VITALS", "LIFESTYLE"]
         },
         "localResourceId": { "$ref": "common.schema.json#/$defs/uuid" },
         "sourceRevision": { "type": "integer", "minimum": 1 },
@@ -143,6 +144,20 @@
             "resourceType": { "const": "VITALS" },
             "schemaVersion": { "const": "vitals.v1" },
             "payload": { "$ref": "#/$defs/vitalsPayload" }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "lifestyleRecord": {
+      "type": "object",
+      "allOf": [
+        { "$ref": "#/$defs/recordBase" },
+        {
+          "properties": {
+            "resourceType": { "const": "LIFESTYLE" },
+            "schemaVersion": { "const": "lifestyle.v1" },
+            "payload": { "$ref": "lifestyle.schema.json" }
           }
         }
       ],

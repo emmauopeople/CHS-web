@@ -1,0 +1,175 @@
+[
+  {
+    "name": "Lifestyle snapshot is not complete",
+    "operation": "replace",
+    "path": "/records/3/payload/status",
+    "value": "IN_PROGRESS"
+  },
+  {
+    "name": "Lifestyle snapshot is missing a referenced baseline",
+    "operation": "remove",
+    "path": "/records/3/payload/baselines/work"
+  },
+  {
+    "name": "Lifestyle location differs from the batch location",
+    "operation": "replace",
+    "path": "/records/3/payload/localLocationId",
+    "value": "32000000-0000-4000-8000-000000000099"
+  },
+  {
+    "name": "Lifestyle period is not seven calendar dates",
+    "operation": "replace",
+    "path": "/records/3/payload/periodStart",
+    "value": "2026-08-13"
+  },
+  {
+    "name": "Lifestyle nested actor is absent from the batch",
+    "operation": "replace",
+    "path": "/records/3/payload/physicalActivity/activities/0/updatedByLocalActorId",
+    "value": "62000000-0000-4000-8000-000000000099"
+  },
+  {
+    "name": "Lifestyle contains an unknown property",
+    "operation": "add",
+    "path": "/records/3/payload/unapprovedProperty",
+    "value": true
+  },
+  {
+    "name": "Alcohol baseline Other is missing its description",
+    "operation": "replace",
+    "path": "/records/3/payload/baselines/alcohol/commonBeverageTypes",
+    "value": ["OTHER"]
+  },
+  {
+    "name": "Tobacco baseline has an invalid approximate month",
+    "operation": "replace",
+    "path": "/records/3/payload/baselines/tobacco/formerUseApproximateStopDate",
+    "value": "2020-13"
+  },
+  {
+    "name": "Work baseline hours cannot be zero",
+    "operation": "replace",
+    "path": "/records/3/payload/baselines/work/typicalHoursPerWorkday",
+    "value": 0
+  },
+  {
+    "name": "Alcohol No response retains quantitative values",
+    "operation": "replace",
+    "path": "/records/3/payload/alcohol/weeklyResponse",
+    "value": "NO"
+  },
+  {
+    "name": "Alcohol weekly Other is missing its description",
+    "operation": "replace",
+    "path": "/records/3/payload/alcohol/commonBeverageTypes",
+    "value": ["OTHER"]
+  },
+  {
+    "name": "Alcohol largest amount exceeds the weekly total",
+    "operation": "replace",
+    "path": "/records/3/payload/alcohol/largestOneDayAmount",
+    "value": 4
+  },
+  {
+    "name": "Alcohol largest days exceed drinking days",
+    "operation": "replace",
+    "path": "/records/3/payload/alcohol/daysAtLargestAmount",
+    "value": 3
+  },
+  {
+    "name": "Alcohol additional drinking day has no additional drinks",
+    "operation": "replace",
+    "path": "/records/3/payload/alcohol/totalStandardizedDrinks",
+    "value": 2
+  },
+  {
+    "name": "Tobacco Yes response has no product row",
+    "operation": "replace",
+    "path": "/records/3/payload/tobacco/products",
+    "value": []
+  },
+  {
+    "name": "Tobacco product type is duplicated",
+    "operation": "replace",
+    "path": "/records/3/payload/tobacco/products/1/productType",
+    "value": "CIGARETTE"
+  },
+  {
+    "name": "Tobacco product row ID is duplicated",
+    "operation": "replace",
+    "path": "/records/3/payload/tobacco/products/1/localProductRowId",
+    "value": "e8000000-0000-4000-8000-000000000001"
+  },
+  {
+    "name": "Tobacco product sequence is duplicated",
+    "operation": "replace",
+    "path": "/records/3/payload/tobacco/products/1/sequenceNumber",
+    "value": 1
+  },
+  {
+    "name": "Tobacco product rows are not in sequence order",
+    "operation": "replace",
+    "path": "/records/3/payload/tobacco/products/0/sequenceNumber",
+    "value": 3
+  },
+  {
+    "name": "Other tobacco product is missing its description",
+    "operation": "replace",
+    "path": "/records/3/payload/tobacco/products/0/productType",
+    "value": "OTHER"
+  },
+  {
+    "name": "Other tobacco unit is missing its description",
+    "operation": "replace",
+    "path": "/records/3/payload/tobacco/products/0/unit",
+    "value": "OTHER"
+  },
+  {
+    "name": "Physical activity Yes response has no activity rows",
+    "operation": "replace",
+    "path": "/records/3/payload/physicalActivity/activities",
+    "value": []
+  },
+  {
+    "name": "Physical activity No response retains activity rows",
+    "operation": "replace",
+    "path": "/records/3/payload/physicalActivity/weeklyResponse",
+    "value": "NO"
+  },
+  {
+    "name": "Unknown sedentary response retains minutes",
+    "operation": "replace",
+    "path": "/records/3/payload/physicalActivity/sedentaryTimeResponse",
+    "value": "UNKNOWN"
+  },
+  {
+    "name": "Derived weekly minutes is submitted as source authority",
+    "operation": "add",
+    "path": "/records/3/payload/physicalActivity/activities/0/weeklyMinutes",
+    "value": 300
+  },
+  {
+    "name": "Physical activity row ID is duplicated",
+    "operation": "replace",
+    "path": "/records/3/payload/physicalActivity/activities/1/localActivityRowId",
+    "value": "eb000000-0000-4000-8000-000000000001"
+  },
+  {
+    "name": "Other activity Yes response has no rows",
+    "operation": "replace",
+    "path": "/records/3/payload/otherActivity/activities",
+    "value": []
+  },
+  {
+    "name": "Other activity No response retains rows",
+    "operation": "replace",
+    "path": "/records/3/payload/otherActivity/weeklyResponse",
+    "value": "NO"
+  },
+  {
+    "name": "Lifestyle child ID is reused by another child type",
+    "operation": "replace",
+    "path": "/records/3/payload/work/localWeeklyRecordId",
+    "value": "e6000000-0000-4000-8000-000000000001"
+  }
+]

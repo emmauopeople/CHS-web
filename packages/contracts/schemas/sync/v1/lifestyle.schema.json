@@ -1,0 +1,537 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chs.example/contracts/sync/v1/lifestyle.schema.json",
+  "title": "CHS completed Lifestyle snapshot v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "localPatientId",
+    "localEncounterId",
+    "localScreeningSessionId",
+    "localLocationId",
+    "status",
+    "periodStart",
+    "periodEnd",
+    "createdByLocalActorId",
+    "createdAt",
+    "updatedByLocalActorId",
+    "updatedAt",
+    "baselines",
+    "alcohol",
+    "tobacco",
+    "physicalActivity",
+    "work",
+    "otherActivity"
+  ],
+  "properties": {
+    "localPatientId": { "$ref": "common.schema.json#/$defs/uuid" },
+    "localEncounterId": { "$ref": "common.schema.json#/$defs/uuid" },
+    "localScreeningSessionId": { "$ref": "common.schema.json#/$defs/uuid" },
+    "localLocationId": { "$ref": "common.schema.json#/$defs/uuid" },
+    "status": { "const": "COMPLETE" },
+    "periodStart": { "$ref": "common.schema.json#/$defs/localDate" },
+    "periodEnd": { "$ref": "common.schema.json#/$defs/localDate" },
+    "createdByLocalActorId": { "$ref": "common.schema.json#/$defs/uuid" },
+    "createdAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" },
+    "updatedByLocalActorId": { "$ref": "common.schema.json#/$defs/uuid" },
+    "updatedAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" },
+    "baselines": { "$ref": "#/$defs/baselines" },
+    "alcohol": { "$ref": "#/$defs/alcoholWeekly" },
+    "tobacco": { "$ref": "#/$defs/tobaccoWeekly" },
+    "physicalActivity": { "$ref": "#/$defs/physicalActivityWeekly" },
+    "work": { "$ref": "#/$defs/workWeekly" },
+    "otherActivity": { "$ref": "#/$defs/otherActivityWeekly" }
+  },
+  "$defs": {
+    "nullableText": {
+      "type": ["string", "null"],
+      "maxLength": 500,
+      "pattern": "\\S"
+    },
+    "positiveSafeInteger": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991
+    },
+    "positiveQuantity": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 9007199254740991
+    },
+    "beverageType": {
+      "enum": ["BEER", "WINE", "SPIRITS", "COCKTAILS", "FORTIFIED_WINE", "OTHER"]
+    },
+    "tobaccoProductType": {
+      "enum": [
+        "CIGARETTE",
+        "ROLLED_TOBACCO",
+        "CIGAR_PIPE",
+        "SMOKELESS",
+        "SNUFF",
+        "HOOKAH",
+        "VAPE",
+        "OTHER"
+      ]
+    },
+    "intensity": { "enum": ["LIGHT", "MODERATE", "VIGOROUS"] },
+    "baselines": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["alcohol", "tobacco", "work"],
+      "properties": {
+        "alcohol": { "$ref": "#/$defs/alcoholBaseline" },
+        "tobacco": { "$ref": "#/$defs/tobaccoBaseline" },
+        "work": { "$ref": "#/$defs/workBaseline" }
+      }
+    },
+    "alcoholBaseline": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "localBaselineVersionId",
+        "version",
+        "status",
+        "everConsumed",
+        "consumedPast12Months",
+        "commonBeverageTypes",
+        "otherBeverageDescription",
+        "createdByLocalActorId",
+        "createdAt",
+        "updatedByLocalActorId",
+        "updatedAt"
+      ],
+      "properties": {
+        "localBaselineVersionId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "version": { "$ref": "#/$defs/positiveSafeInteger" },
+        "status": { "enum": ["CURRENT", "FORMER", "NEVER", "UNKNOWN", "DECLINED"] },
+        "everConsumed": { "enum": ["YES", "NO", "UNKNOWN", "DECLINED"] },
+        "consumedPast12Months": { "enum": ["YES", "NO", "UNKNOWN", "DECLINED"] },
+        "commonBeverageTypes": {
+          "type": "array",
+          "maxItems": 6,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/beverageType" }
+        },
+        "otherBeverageDescription": { "$ref": "#/$defs/nullableText" },
+        "createdByLocalActorId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "createdAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" },
+        "updatedByLocalActorId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "updatedAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "commonBeverageTypes": { "type": "array", "contains": { "const": "OTHER" } } },
+            "required": ["commonBeverageTypes"]
+          },
+          "then": {
+            "properties": {
+              "otherBeverageDescription": { "type": "string", "maxLength": 500, "pattern": "\\S" }
+            }
+          },
+          "else": { "properties": { "otherBeverageDescription": { "type": "null" } } }
+        }
+      ]
+    },
+    "tobaccoBaseline": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "localBaselineVersionId",
+        "version",
+        "status",
+        "everRegularlyUsed",
+        "formerUseApproximateStopDate",
+        "currentUseFrequency",
+        "productTypes",
+        "otherProductDescription",
+        "createdByLocalActorId",
+        "createdAt",
+        "updatedByLocalActorId",
+        "updatedAt"
+      ],
+      "properties": {
+        "localBaselineVersionId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "version": { "$ref": "#/$defs/positiveSafeInteger" },
+        "status": {
+          "enum": ["CURRENT_DAILY", "CURRENT_SOME_DAYS", "FORMER", "NEVER", "UNKNOWN", "DECLINED"]
+        },
+        "everRegularlyUsed": { "enum": ["YES", "NO", "UNKNOWN", "DECLINED"] },
+        "formerUseApproximateStopDate": {
+          "type": ["string", "null"],
+          "pattern": "^[0-9]{4}(?:-(?:0[1-9]|1[0-2]))?$"
+        },
+        "currentUseFrequency": {
+          "enum": ["EVERY_DAY", "SOME_DAYS", "NOT_AT_ALL", "UNKNOWN", "DECLINED"]
+        },
+        "productTypes": {
+          "type": "array",
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/tobaccoProductType" }
+        },
+        "otherProductDescription": { "$ref": "#/$defs/nullableText" },
+        "createdByLocalActorId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "createdAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" },
+        "updatedByLocalActorId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "updatedAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "productTypes": { "type": "array", "contains": { "const": "OTHER" } } },
+            "required": ["productTypes"]
+          },
+          "then": {
+            "properties": {
+              "otherProductDescription": { "type": "string", "maxLength": 500, "pattern": "\\S" }
+            }
+          },
+          "else": { "properties": { "otherProductDescription": { "type": "null" } } }
+        }
+      ]
+    },
+    "workBaseline": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "localBaselineVersionId",
+        "version",
+        "status",
+        "occupationJobTitle",
+        "usualPhysicalDemand",
+        "typicalWorkdaysPerWeek",
+        "typicalHoursPerWorkday",
+        "shiftPattern",
+        "description",
+        "createdByLocalActorId",
+        "createdAt",
+        "updatedByLocalActorId",
+        "updatedAt"
+      ],
+      "properties": {
+        "localBaselineVersionId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "version": { "$ref": "#/$defs/positiveSafeInteger" },
+        "status": {
+          "enum": [
+            "EMPLOYED",
+            "SELF_EMPLOYED",
+            "FARMING",
+            "STUDENT",
+            "HOMEMAKER_CAREGIVER",
+            "UNEMPLOYED",
+            "RETIRED",
+            "UNABLE_TO_WORK",
+            "OTHER",
+            "DECLINED"
+          ]
+        },
+        "occupationJobTitle": { "$ref": "#/$defs/nullableText" },
+        "usualPhysicalDemand": {
+          "type": ["string", "null"],
+          "enum": ["SITTING", "STANDING", "WALKING", "MODERATE_LABOR", "HEAVY_LABOR", "VARIES", null]
+        },
+        "typicalWorkdaysPerWeek": { "type": ["integer", "null"], "minimum": 0, "maximum": 7 },
+        "typicalHoursPerWorkday": {
+          "type": ["number", "null"],
+          "exclusiveMinimum": 0,
+          "maximum": 24
+        },
+        "shiftPattern": {
+          "type": ["string", "null"],
+          "enum": ["DAY", "EVENING", "NIGHT", "ROTATING", "IRREGULAR", "NOT_APPLICABLE", "UNKNOWN", "DECLINED", null]
+        },
+        "description": { "$ref": "#/$defs/nullableText" },
+        "createdByLocalActorId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "createdAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" },
+        "updatedByLocalActorId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "updatedAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" }
+      }
+    },
+    "alcoholWeekly": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "localWeeklyRecordId",
+        "weeklyResponse",
+        "drinkingDays",
+        "totalStandardizedDrinks",
+        "largestOneDayAmount",
+        "daysAtLargestAmount",
+        "commonBeverageTypes",
+        "otherBeverageDescription",
+        "createdByLocalActorId",
+        "createdAt",
+        "updatedByLocalActorId",
+        "updatedAt"
+      ],
+      "properties": {
+        "localWeeklyRecordId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "weeklyResponse": { "enum": ["YES", "NO", "UNKNOWN", "DECLINED", "NOT_APPLICABLE", "PREFER_NOT_TO_ANSWER"] },
+        "drinkingDays": { "type": ["integer", "null"], "minimum": 1, "maximum": 7 },
+        "totalStandardizedDrinks": {
+          "oneOf": [{ "$ref": "#/$defs/positiveQuantity" }, { "type": "null" }]
+        },
+        "largestOneDayAmount": {
+          "oneOf": [{ "$ref": "#/$defs/positiveQuantity" }, { "type": "null" }]
+        },
+        "daysAtLargestAmount": { "type": ["integer", "null"], "minimum": 1, "maximum": 7 },
+        "commonBeverageTypes": {
+          "type": "array",
+          "maxItems": 6,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/beverageType" }
+        },
+        "otherBeverageDescription": { "$ref": "#/$defs/nullableText" },
+        "createdByLocalActorId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "createdAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" },
+        "updatedByLocalActorId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "updatedAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "weeklyResponse": { "const": "YES" } }, "required": ["weeklyResponse"] },
+          "then": {
+            "properties": {
+              "drinkingDays": { "type": "integer", "minimum": 1, "maximum": 7 },
+              "totalStandardizedDrinks": { "$ref": "#/$defs/positiveQuantity" },
+              "largestOneDayAmount": { "$ref": "#/$defs/positiveQuantity" },
+              "daysAtLargestAmount": { "type": "integer", "minimum": 1, "maximum": 7 }
+            }
+          },
+          "else": {
+            "properties": {
+              "drinkingDays": { "type": "null" },
+              "totalStandardizedDrinks": { "type": "null" },
+              "largestOneDayAmount": { "type": "null" },
+              "daysAtLargestAmount": { "type": "null" },
+              "commonBeverageTypes": { "type": "array", "maxItems": 0 },
+              "otherBeverageDescription": { "type": "null" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "commonBeverageTypes": { "type": "array", "contains": { "const": "OTHER" } } },
+            "required": ["commonBeverageTypes"]
+          },
+          "then": {
+            "properties": {
+              "otherBeverageDescription": { "type": "string", "maxLength": 500, "pattern": "\\S" }
+            }
+          },
+          "else": { "properties": { "otherBeverageDescription": { "type": "null" } } }
+        }
+      ]
+    },
+    "tobaccoProduct": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "localProductRowId",
+        "sequenceNumber",
+        "productType",
+        "daysUsed",
+        "averageQuantityPerUseDay",
+        "unit",
+        "secondhandSmokeExposure",
+        "otherProductDescription",
+        "otherUnitDescription",
+        "createdByLocalActorId",
+        "createdAt",
+        "updatedByLocalActorId",
+        "updatedAt"
+      ],
+      "properties": {
+        "localProductRowId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "sequenceNumber": { "$ref": "#/$defs/positiveSafeInteger" },
+        "productType": { "$ref": "#/$defs/tobaccoProductType" },
+        "daysUsed": { "type": "integer", "minimum": 1, "maximum": 7 },
+        "averageQuantityPerUseDay": { "$ref": "#/$defs/positiveQuantity" },
+        "unit": { "enum": ["STICKS_CIGARETTES", "SESSIONS", "PORTIONS", "PINS", "PODS_CARTRIDGES", "OTHER"] },
+        "secondhandSmokeExposure": { "type": ["boolean", "null"] },
+        "otherProductDescription": { "$ref": "#/$defs/nullableText" },
+        "otherUnitDescription": { "$ref": "#/$defs/nullableText" },
+        "createdByLocalActorId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "createdAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" },
+        "updatedByLocalActorId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "updatedAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "productType": { "const": "OTHER" } }, "required": ["productType"] },
+          "then": { "properties": { "otherProductDescription": { "type": "string", "maxLength": 500, "pattern": "\\S" } } },
+          "else": { "properties": { "otherProductDescription": { "type": "null" } } }
+        },
+        {
+          "if": { "properties": { "unit": { "const": "OTHER" } }, "required": ["unit"] },
+          "then": { "properties": { "otherUnitDescription": { "type": "string", "maxLength": 500, "pattern": "\\S" } } },
+          "else": { "properties": { "otherUnitDescription": { "type": "null" } } }
+        }
+      ]
+    },
+    "tobaccoWeekly": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "localWeeklyRecordId",
+        "weeklyResponse",
+        "products",
+        "createdByLocalActorId",
+        "createdAt",
+        "updatedByLocalActorId",
+        "updatedAt"
+      ],
+      "properties": {
+        "localWeeklyRecordId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "weeklyResponse": { "enum": ["YES", "NO", "UNKNOWN", "DECLINED", "NOT_APPLICABLE", "PREFER_NOT_TO_ANSWER"] },
+        "products": { "type": "array", "maxItems": 20, "items": { "$ref": "#/$defs/tobaccoProduct" } },
+        "createdByLocalActorId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "createdAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" },
+        "updatedByLocalActorId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "updatedAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "weeklyResponse": { "const": "YES" } }, "required": ["weeklyResponse"] },
+          "then": { "properties": { "products": { "type": "array", "minItems": 1 } } },
+          "else": { "properties": { "products": { "type": "array", "maxItems": 0 } } }
+        }
+      ]
+    },
+    "activity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "localActivityRowId",
+        "sequenceNumber",
+        "activityDomain",
+        "description",
+        "intensity",
+        "daysInPastSevenDays",
+        "averageMinutesPerActiveDay",
+        "createdByLocalActorId",
+        "createdAt",
+        "updatedByLocalActorId",
+        "updatedAt"
+      ],
+      "properties": {
+        "localActivityRowId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "sequenceNumber": { "$ref": "#/$defs/positiveSafeInteger" },
+        "activityDomain": { "enum": ["WORK_OR_FARMING", "TRANSPORT", "HOUSEHOLD", "EXERCISE"] },
+        "description": { "$ref": "#/$defs/nullableText" },
+        "intensity": { "$ref": "#/$defs/intensity" },
+        "daysInPastSevenDays": { "type": "integer", "minimum": 1, "maximum": 7 },
+        "averageMinutesPerActiveDay": { "type": "integer", "minimum": 1, "maximum": 1440 },
+        "createdByLocalActorId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "createdAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" },
+        "updatedByLocalActorId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "updatedAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" }
+      }
+    },
+    "physicalActivityWeekly": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "localWeeklyRecordId",
+        "weeklyResponse",
+        "sedentaryTimeResponse",
+        "sedentaryMinutesPerDay",
+        "activities",
+        "createdByLocalActorId",
+        "createdAt",
+        "updatedByLocalActorId",
+        "updatedAt"
+      ],
+      "properties": {
+        "localWeeklyRecordId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "weeklyResponse": { "enum": ["YES", "NO", "UNKNOWN", "DECLINED", "NOT_APPLICABLE", "UNABLE_TO_ANSWER", "PREFER_NOT_TO_ANSWER"] },
+        "sedentaryTimeResponse": { "enum": ["RECORDED", "UNKNOWN", "UNABLE_TO_ANSWER", "DECLINED", "PREFER_NOT_TO_ANSWER"] },
+        "sedentaryMinutesPerDay": { "type": ["integer", "null"], "minimum": 0, "maximum": 1439 },
+        "activities": { "type": "array", "maxItems": 20, "items": { "$ref": "#/$defs/activity" } },
+        "createdByLocalActorId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "createdAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" },
+        "updatedByLocalActorId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "updatedAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "weeklyResponse": { "const": "YES" } }, "required": ["weeklyResponse"] },
+          "then": { "properties": { "activities": { "type": "array", "minItems": 1 } } },
+          "else": { "properties": { "activities": { "type": "array", "maxItems": 0 } } }
+        },
+        {
+          "if": { "properties": { "sedentaryTimeResponse": { "const": "RECORDED" } }, "required": ["sedentaryTimeResponse"] },
+          "then": { "properties": { "sedentaryMinutesPerDay": { "type": "integer", "minimum": 0, "maximum": 1439 } } },
+          "else": { "properties": { "sedentaryMinutesPerDay": { "type": "null" } } }
+        }
+      ]
+    },
+    "workWeekly": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "localWeeklyRecordId",
+        "weeklyResponse",
+        "createdByLocalActorId",
+        "createdAt",
+        "updatedByLocalActorId",
+        "updatedAt"
+      ],
+      "properties": {
+        "localWeeklyRecordId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "weeklyResponse": { "enum": ["USUAL", "LESS_THAN_USUAL", "MORE_THAN_USUAL", "NO_WORK", "NOT_APPLICABLE", "UNKNOWN", "DECLINED", "PREFER_NOT_TO_ANSWER"] },
+        "createdByLocalActorId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "createdAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" },
+        "updatedByLocalActorId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "updatedAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" }
+      }
+    },
+    "otherActivity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "localActivityRowId",
+        "sequenceNumber",
+        "category",
+        "description",
+        "daysInPastSevenDays",
+        "averageMinutesPerDay",
+        "intensity",
+        "createdByLocalActorId",
+        "createdAt",
+        "updatedByLocalActorId",
+        "updatedAt"
+      ],
+      "properties": {
+        "localActivityRowId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "sequenceNumber": { "$ref": "#/$defs/positiveSafeInteger" },
+        "category": { "enum": ["FARMING_GARDENING", "HOUSEHOLD", "CAREGIVING", "COMMUNITY", "COMMUTE", "SPORT", "OTHER"] },
+        "description": { "$ref": "#/$defs/nullableText" },
+        "daysInPastSevenDays": { "type": "integer", "minimum": 1, "maximum": 7 },
+        "averageMinutesPerDay": { "type": "integer", "minimum": 1, "maximum": 1440 },
+        "intensity": { "$ref": "#/$defs/intensity" },
+        "createdByLocalActorId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "createdAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" },
+        "updatedByLocalActorId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "updatedAt": { "$ref": "common.schema.json#/$defs/utcTimestamp" }
+      }
+    },
+    "otherActivityWeekly": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["weeklyResponse", "activities"],
+      "properties": {
+        "weeklyResponse": { "enum": ["YES", "NO", "UNKNOWN", "DECLINED", "PREFER_NOT_TO_ANSWER"] },
+        "activities": { "type": "array", "maxItems": 50, "items": { "$ref": "#/$defs/otherActivity" } }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "weeklyResponse": { "const": "YES" } }, "required": ["weeklyResponse"] },
+          "then": { "properties": { "activities": { "type": "array", "minItems": 1 } } },
+          "else": { "properties": { "activities": { "type": "array", "maxItems": 0 } } }
+        }
+      ]
+    }
+  }
+}

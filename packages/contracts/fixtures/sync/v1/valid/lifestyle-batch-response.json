@@ -1,0 +1,57 @@
+{
+  "contractVersion": "1.0",
+  "batchId": "12000000-0000-4000-8000-000000000001",
+  "batchStatus": "ACCEPTED",
+  "receivedAt": "2026-08-20T16:00:01.000Z",
+  "completedAt": "2026-08-20T16:00:02.000Z",
+  "outcomes": [
+    {
+      "recordId": "42000000-0000-4000-8000-000000000001",
+      "resourceType": "PATIENT",
+      "localResourceId": "52000000-0000-4000-8000-000000000001",
+      "sourceRevision": 3,
+      "status": "UNCHANGED",
+      "canonicalResourceId": "c2000000-0000-4000-8000-000000000001",
+      "centralPersonId": "d2000000-0000-4000-8000-000000000001",
+      "chsMedicalId": "CHS-SYNTHETIC51",
+      "medicalIdStatus": "CONFIRMED",
+      "errors": []
+    },
+    {
+      "recordId": "42000000-0000-4000-8000-000000000002",
+      "resourceType": "SCREENING_SESSION",
+      "localResourceId": "72000000-0000-4000-8000-000000000001",
+      "sourceRevision": 1,
+      "status": "ACCEPTED",
+      "canonicalResourceId": "c2000000-0000-4000-8000-000000000002",
+      "centralPersonId": null,
+      "chsMedicalId": null,
+      "medicalIdStatus": null,
+      "errors": []
+    },
+    {
+      "recordId": "42000000-0000-4000-8000-000000000003",
+      "resourceType": "SCREENING_ENCOUNTER",
+      "localResourceId": "92000000-0000-4000-8000-000000000001",
+      "sourceRevision": 2,
+      "status": "ACCEPTED",
+      "canonicalResourceId": "c2000000-0000-4000-8000-000000000003",
+      "centralPersonId": null,
+      "chsMedicalId": null,
+      "medicalIdStatus": null,
+      "errors": []
+    },
+    {
+      "recordId": "42000000-0000-4000-8000-000000000004",
+      "resourceType": "LIFESTYLE",
+      "localResourceId": "e2000000-0000-4000-8000-000000000001",
+      "sourceRevision": 7,
+      "status": "ACCEPTED",
+      "canonicalResourceId": "c2000000-0000-4000-8000-000000000004",
+      "centralPersonId": null,
+      "chsMedicalId": null,
+      "medicalIdStatus": null,
+      "errors": []
+    }
+  ]
+}

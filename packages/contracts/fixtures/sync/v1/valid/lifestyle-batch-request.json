@@ -1,0 +1,297 @@
+{
+  "contractVersion": "1.0",
+  "batchId": "12000000-0000-4000-8000-000000000001",
+  "installationId": "22000000-0000-4000-8000-000000000001",
+  "locationId": "32000000-0000-4000-8000-000000000001",
+  "installationTimezone": "Africa/Douala",
+  "desktopApplicationVersion": "0.15.0",
+  "desktopSchemaVersion": 15,
+  "createdAt": "2026-08-20T16:00:00.000Z",
+  "actors": [
+    {
+      "localActorId": "62000000-0000-4000-8000-000000000001",
+      "displayName": "Synthetic Nurse",
+      "role": "NURSE",
+      "active": true,
+      "updatedAt": "2026-08-20T14:00:00.000Z"
+    },
+    {
+      "localActorId": "62000000-0000-4000-8000-000000000002",
+      "displayName": "Synthetic Local Administrator",
+      "role": "LOCAL_ADMIN",
+      "active": true,
+      "updatedAt": "2026-08-20T14:05:00.000Z"
+    }
+  ],
+  "records": [
+    {
+      "recordId": "42000000-0000-4000-8000-000000000001",
+      "resourceType": "PATIENT",
+      "localResourceId": "52000000-0000-4000-8000-000000000001",
+      "sourceRevision": 3,
+      "schemaVersion": "patient.v1",
+      "operation": "UPSERT",
+      "capturedAt": "2026-08-20T14:10:00.000Z",
+      "sourceActorLocalId": "62000000-0000-4000-8000-000000000002",
+      "payload": {
+        "localPatientCode": "PT-000051",
+        "knownChsMedicalId": "CHS-SYNTHETIC51",
+        "displayName": "Synthetic Lifestyle Example",
+        "givenName": "Synthetic",
+        "familyName": "Lifestyle Example",
+        "otherNames": null,
+        "dateOfBirth": "1985-04-12",
+        "approximateAgeYears": null,
+        "ageAsOfDate": null,
+        "sex": "FEMALE",
+        "phone": null,
+        "alternateContactName": null,
+        "alternateContactPhone": null,
+        "village": "Synthetic Village",
+        "quarter": null,
+        "residenceNotes": null,
+        "status": "ACTIVE",
+        "acknowledgmentStatus": "ACKNOWLEDGED",
+        "createdAt": "2026-08-20T14:00:00.000Z",
+        "updatedAt": "2026-08-20T14:10:00.000Z"
+      }
+    },
+    {
+      "recordId": "42000000-0000-4000-8000-000000000002",
+      "resourceType": "SCREENING_SESSION",
+      "localResourceId": "72000000-0000-4000-8000-000000000001",
+      "sourceRevision": 1,
+      "schemaVersion": "screening-session.v1",
+      "operation": "UPSERT",
+      "capturedAt": "2026-08-20T14:15:00.000Z",
+      "sourceActorLocalId": "62000000-0000-4000-8000-000000000001",
+      "payload": {
+        "localLocationId": "32000000-0000-4000-8000-000000000001",
+        "localProtocolVersionId": "82000000-0000-4000-8000-000000000001",
+        "protocolKey": "community-screening",
+        "protocolVersionLabel": "2026.1",
+        "protocolChecksum": "sha256:synthetic-lifestyle-fixture-0000000000000000000000000000000000000000000000",
+        "sessionDate": "2026-08-20",
+        "status": "OPEN",
+        "notes": null,
+        "openedByLocalActorId": "62000000-0000-4000-8000-000000000001",
+        "closedByLocalActorId": null,
+        "openedAt": "2026-08-20T14:15:00.000Z",
+        "closedAt": null,
+        "createdAt": "2026-08-20T14:15:00.000Z",
+        "updatedAt": "2026-08-20T14:15:00.000Z"
+      }
+    },
+    {
+      "recordId": "42000000-0000-4000-8000-000000000003",
+      "resourceType": "SCREENING_ENCOUNTER",
+      "localResourceId": "92000000-0000-4000-8000-000000000001",
+      "sourceRevision": 2,
+      "schemaVersion": "screening-encounter.v1",
+      "operation": "UPSERT",
+      "capturedAt": "2026-08-20T15:40:00.000Z",
+      "sourceActorLocalId": "62000000-0000-4000-8000-000000000001",
+      "payload": {
+        "localPatientId": "52000000-0000-4000-8000-000000000001",
+        "localScreeningSessionId": "72000000-0000-4000-8000-000000000001",
+        "localLocationId": "32000000-0000-4000-8000-000000000001",
+        "localProtocolVersionId": "82000000-0000-4000-8000-000000000001",
+        "recordedByLocalActorId": "62000000-0000-4000-8000-000000000001",
+        "status": "COMPLETED",
+        "startedAt": "2026-08-20T14:20:00.000Z",
+        "completedAt": "2026-08-20T15:40:00.000Z",
+        "sourceType": "LOCAL",
+        "amendmentOfLocalEncounterId": null,
+        "amendmentReason": null,
+        "voidReason": null,
+        "createdAt": "2026-08-20T14:20:00.000Z",
+        "updatedAt": "2026-08-20T15:40:00.000Z"
+      }
+    },
+    {
+      "recordId": "42000000-0000-4000-8000-000000000004",
+      "resourceType": "LIFESTYLE",
+      "localResourceId": "e2000000-0000-4000-8000-000000000001",
+      "sourceRevision": 7,
+      "schemaVersion": "lifestyle.v1",
+      "operation": "UPSERT",
+      "capturedAt": "2026-08-20T15:30:00.000Z",
+      "sourceActorLocalId": "62000000-0000-4000-8000-000000000001",
+      "payload": {
+        "localPatientId": "52000000-0000-4000-8000-000000000001",
+        "localEncounterId": "92000000-0000-4000-8000-000000000001",
+        "localScreeningSessionId": "72000000-0000-4000-8000-000000000001",
+        "localLocationId": "32000000-0000-4000-8000-000000000001",
+        "status": "COMPLETE",
+        "periodStart": "2026-08-14",
+        "periodEnd": "2026-08-20",
+        "createdByLocalActorId": "62000000-0000-4000-8000-000000000002",
+        "createdAt": "2026-08-20T14:25:00.000Z",
+        "updatedByLocalActorId": "62000000-0000-4000-8000-000000000001",
+        "updatedAt": "2026-08-20T15:30:00.000Z",
+        "baselines": {
+          "alcohol": {
+            "localBaselineVersionId": "e3000000-0000-4000-8000-000000000001",
+            "version": 1,
+            "status": "CURRENT",
+            "everConsumed": "YES",
+            "consumedPast12Months": "YES",
+            "commonBeverageTypes": ["BEER"],
+            "otherBeverageDescription": null,
+            "createdByLocalActorId": "62000000-0000-4000-8000-000000000002",
+            "createdAt": "2026-08-20T14:25:00.000Z",
+            "updatedByLocalActorId": "62000000-0000-4000-8000-000000000002",
+            "updatedAt": "2026-08-20T14:25:00.000Z"
+          },
+          "tobacco": {
+            "localBaselineVersionId": "e4000000-0000-4000-8000-000000000001",
+            "version": 1,
+            "status": "CURRENT_SOME_DAYS",
+            "everRegularlyUsed": "YES",
+            "formerUseApproximateStopDate": null,
+            "currentUseFrequency": "SOME_DAYS",
+            "productTypes": ["CIGARETTE", "VAPE"],
+            "otherProductDescription": null,
+            "createdByLocalActorId": "62000000-0000-4000-8000-000000000002",
+            "createdAt": "2026-08-20T14:26:00.000Z",
+            "updatedByLocalActorId": "62000000-0000-4000-8000-000000000002",
+            "updatedAt": "2026-08-20T14:26:00.000Z"
+          },
+          "work": {
+            "localBaselineVersionId": "e5000000-0000-4000-8000-000000000001",
+            "version": 1,
+            "status": "FARMING",
+            "occupationJobTitle": "Synthetic crop farmer",
+            "usualPhysicalDemand": "MODERATE_LABOR",
+            "typicalWorkdaysPerWeek": 5,
+            "typicalHoursPerWorkday": 6,
+            "shiftPattern": "DAY",
+            "description": null,
+            "createdByLocalActorId": "62000000-0000-4000-8000-000000000002",
+            "createdAt": "2026-08-20T14:27:00.000Z",
+            "updatedByLocalActorId": "62000000-0000-4000-8000-000000000002",
+            "updatedAt": "2026-08-20T14:27:00.000Z"
+          }
+        },
+        "alcohol": {
+          "localWeeklyRecordId": "e6000000-0000-4000-8000-000000000001",
+          "weeklyResponse": "YES",
+          "drinkingDays": 2,
+          "totalStandardizedDrinks": 3,
+          "largestOneDayAmount": 2,
+          "daysAtLargestAmount": 1,
+          "commonBeverageTypes": ["BEER"],
+          "otherBeverageDescription": null,
+          "createdByLocalActorId": "62000000-0000-4000-8000-000000000001",
+          "createdAt": "2026-08-20T14:40:00.000Z",
+          "updatedByLocalActorId": "62000000-0000-4000-8000-000000000001",
+          "updatedAt": "2026-08-20T14:40:00.000Z"
+        },
+        "tobacco": {
+          "localWeeklyRecordId": "e7000000-0000-4000-8000-000000000001",
+          "weeklyResponse": "YES",
+          "products": [
+            {
+              "localProductRowId": "e8000000-0000-4000-8000-000000000001",
+              "sequenceNumber": 1,
+              "productType": "CIGARETTE",
+              "daysUsed": 2,
+              "averageQuantityPerUseDay": 3,
+              "unit": "STICKS_CIGARETTES",
+              "secondhandSmokeExposure": false,
+              "otherProductDescription": null,
+              "otherUnitDescription": null,
+              "createdByLocalActorId": "62000000-0000-4000-8000-000000000001",
+              "createdAt": "2026-08-20T14:45:00.000Z",
+              "updatedByLocalActorId": "62000000-0000-4000-8000-000000000001",
+              "updatedAt": "2026-08-20T14:45:00.000Z"
+            },
+            {
+              "localProductRowId": "e9000000-0000-4000-8000-000000000001",
+              "sequenceNumber": 2,
+              "productType": "VAPE",
+              "daysUsed": 1,
+              "averageQuantityPerUseDay": 1,
+              "unit": "SESSIONS",
+              "secondhandSmokeExposure": null,
+              "otherProductDescription": null,
+              "otherUnitDescription": null,
+              "createdByLocalActorId": "62000000-0000-4000-8000-000000000001",
+              "createdAt": "2026-08-20T14:46:00.000Z",
+              "updatedByLocalActorId": "62000000-0000-4000-8000-000000000001",
+              "updatedAt": "2026-08-20T14:46:00.000Z"
+            }
+          ],
+          "createdByLocalActorId": "62000000-0000-4000-8000-000000000001",
+          "createdAt": "2026-08-20T14:45:00.000Z",
+          "updatedByLocalActorId": "62000000-0000-4000-8000-000000000001",
+          "updatedAt": "2026-08-20T14:46:00.000Z"
+        },
+        "physicalActivity": {
+          "localWeeklyRecordId": "ea000000-0000-4000-8000-000000000001",
+          "weeklyResponse": "YES",
+          "sedentaryTimeResponse": "RECORDED",
+          "sedentaryMinutesPerDay": 240,
+          "activities": [
+            {
+              "localActivityRowId": "eb000000-0000-4000-8000-000000000001",
+              "sequenceNumber": 1,
+              "activityDomain": "WORK_OR_FARMING",
+              "description": null,
+              "intensity": "MODERATE",
+              "daysInPastSevenDays": 5,
+              "averageMinutesPerActiveDay": 60,
+              "createdByLocalActorId": "62000000-0000-4000-8000-000000000001",
+              "createdAt": "2026-08-20T14:50:00.000Z",
+              "updatedByLocalActorId": "62000000-0000-4000-8000-000000000001",
+              "updatedAt": "2026-08-20T14:50:00.000Z"
+            },
+            {
+              "localActivityRowId": "ec000000-0000-4000-8000-000000000001",
+              "sequenceNumber": 2,
+              "activityDomain": "TRANSPORT",
+              "description": "Synthetic walking example",
+              "intensity": "LIGHT",
+              "daysInPastSevenDays": 3,
+              "averageMinutesPerActiveDay": 20,
+              "createdByLocalActorId": "62000000-0000-4000-8000-000000000001",
+              "createdAt": "2026-08-20T14:51:00.000Z",
+              "updatedByLocalActorId": "62000000-0000-4000-8000-000000000001",
+              "updatedAt": "2026-08-20T14:51:00.000Z"
+            }
+          ],
+          "createdByLocalActorId": "62000000-0000-4000-8000-000000000001",
+          "createdAt": "2026-08-20T14:50:00.000Z",
+          "updatedByLocalActorId": "62000000-0000-4000-8000-000000000001",
+          "updatedAt": "2026-08-20T14:51:00.000Z"
+        },
+        "work": {
+          "localWeeklyRecordId": "ed000000-0000-4000-8000-000000000001",
+          "weeklyResponse": "USUAL",
+          "createdByLocalActorId": "62000000-0000-4000-8000-000000000001",
+          "createdAt": "2026-08-20T15:00:00.000Z",
+          "updatedByLocalActorId": "62000000-0000-4000-8000-000000000001",
+          "updatedAt": "2026-08-20T15:00:00.000Z"
+        },
+        "otherActivity": {
+          "weeklyResponse": "YES",
+          "activities": [
+            {
+              "localActivityRowId": "ee000000-0000-4000-8000-000000000001",
+              "sequenceNumber": 1,
+              "category": "OTHER",
+              "description": null,
+              "daysInPastSevenDays": 1,
+              "averageMinutesPerDay": 30,
+              "intensity": "LIGHT",
+              "createdByLocalActorId": "62000000-0000-4000-8000-000000000001",
+              "createdAt": "2026-08-20T15:05:00.000Z",
+              "updatedByLocalActorId": "62000000-0000-4000-8000-000000000001",
+              "updatedAt": "2026-08-20T15:05:00.000Z"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

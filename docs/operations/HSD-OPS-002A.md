@@ -124,7 +124,9 @@ non-cacheable.
 
 ## Out of scope
 
-This increment does not implement Medical ID recovery, identity-review queues,
-operations-user administration, hospital/provider OAuth2 access, FHIR mapping
-or publication, a FHIR server, lifestyle display before its canonical sync
-contract exists, or LLM analysis.
+Medical ID recovery is delivered by HSD-OPS-002B, and controlled initial
+operations-user provisioning is delivered by HSD-ADMIN-001B. This increment
+does not implement identity-review queues, browser-based operations-user
+administration, hospital/provider OAuth2 access, FHIR mapping or publication, a
+FHIR server, lifestyle display before its canonical sync contract exists, or
+LLM analysis.

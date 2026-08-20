@@ -53,6 +53,9 @@ OIDC token validity does not create an application account. A valid but unknown,
 suspended, expired, or ungranted principal is denied. This prevents identity
 provider membership from automatically granting access to patient data.
 
+Infrastructure operators create this binding and its initial grants through
+the controlled [HSD-ADMIN-001B](../administration/HSD-ADMIN-001B.md) command.
+
 The patient endpoints require an active `PATIENT_READ` grant. A global grant
 creates a global query scope; otherwise the API composes the caller's active
 organization grants. Global flags and organization identifiers are not accepted
@@ -114,7 +117,7 @@ audit insert fails, the patient response fails closed.
 
 ## Out of scope
 
-This increment does not build the React viewer, provision users through a UI,
-implement Medical ID recovery, expose identity-review queues, implement hospital
-or provider OAuth2 access, map FHIR resources, publish to a FHIR server, or add
-LLM analysis.
+The React viewer, Medical ID recovery, and sync monitoring are delivered by
+later Release 1 increments. This increment does not provision users through a
+UI, expose identity-review queues, implement hospital or provider OAuth2 access,
+map FHIR resources, publish to a FHIR server, or add LLM analysis.

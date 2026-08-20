@@ -22,6 +22,7 @@
     "vitest": "4.1.10"
   },
   "scripts": {
+    "admin:operations-access:provision": "node --env-file-if-exists=../../.env --import tsx src/commands/provision-operations-access.ts",
     "admin:screening-context:provision": "node --env-file-if-exists=../../.env --import tsx src/commands/provision-screening-context.ts",
     "admin:installation:enroll": "node --env-file-if-exists=../../.env --import tsx src/commands/enroll-installation.ts",
     "admin:installation:revoke": "node --env-file-if-exists=../../.env --import tsx src/commands/manage-installation-credential.ts revoke",

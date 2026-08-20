@@ -16,7 +16,9 @@ export type PatientAuditAction =
   | 'PATIENT_LIST_VIEW'
   | 'PATIENT_DETAIL_VIEW'
   | 'MEDICAL_ID_RECOVERY_SEARCH'
-  | 'MEDICAL_ID_RECOVERY_REVEAL';
+  | 'MEDICAL_ID_RECOVERY_REVEAL'
+  | 'SYNC_BATCH_LIST_VIEW'
+  | 'SYNC_BATCH_DETAIL_VIEW';
 export type PatientAuditOutcome =
   | 'SUCCESS'
   | 'DENIED'
@@ -75,7 +77,9 @@ export async function recordPatientAccessAudit(
       ? 'PERSON'
       : event.action === 'PATIENT_LIST_VIEW'
         ? 'PATIENT_SEARCH'
-        : 'MEDICAL_ID_RECOVERY';
+        : event.action.startsWith('MEDICAL_ID_RECOVERY_')
+          ? 'MEDICAL_ID_RECOVERY'
+          : 'SYNC_BATCH';
 
   await database.query(
     `INSERT INTO audit_events (

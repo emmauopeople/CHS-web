@@ -38,6 +38,7 @@ test(
         '0004_patient_viewer_query_indexes.sql',
         '0005_operations_access_and_audit.sql',
         '0006_medical_id_recovery.sql',
+        '0007_sync_operations_monitoring.sql',
       ]);
       assert.deepEqual(secondRun.applied, []);
 
@@ -59,6 +60,27 @@ test(
       assert.ok(tableNames.includes('operations_access_grants'));
       assert.ok(tableNames.includes('medical_id_recovery_cases'));
       assert.ok(tableNames.includes('medical_id_recovery_candidates'));
+
+      const monitoringIndexes = await client.query(
+        `SELECT indexname
+         FROM pg_indexes
+         WHERE schemaname = $1
+           AND indexname IN (
+             'ix_sync_batches_operations_status_received',
+             'ix_sync_batches_operations_installation_received',
+             'ix_sync_records_operations_outcomes'
+           )
+         ORDER BY indexname`,
+        [schema],
+      );
+      assert.deepEqual(
+        monitoringIndexes.rows.map((row) => row.indexname),
+        [
+          'ix_sync_batches_operations_installation_received',
+          'ix_sync_batches_operations_status_received',
+          'ix_sync_records_operations_outcomes',
+        ],
+      );
 
       const identityIndexes = await client.query(
         `SELECT indexname
@@ -132,6 +154,17 @@ test(
          ) VALUES ($1, $2, 'PATIENT_READ', 'GLOBAL', NULL, $3, $3, $3)`,
         [
           '91000000-0000-4000-8000-000000000001',
+          '90000000-0000-4000-8000-000000000001',
+          now,
+        ],
+      );
+      await client.query(
+        `INSERT INTO operations_access_grants (
+           id, operations_user_id, permission_code, scope_kind,
+           organization_id, granted_at, created_at, updated_at
+         ) VALUES ($1, $2, 'SYNC_MONITOR', 'GLOBAL', NULL, $3, $3, $3)`,
+        [
+          '91000000-0000-4000-8000-000000000004',
           '90000000-0000-4000-8000-000000000001',
           now,
         ],

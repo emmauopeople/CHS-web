@@ -25,9 +25,13 @@ export type OperationsAuthorizationErrorCode =
   | 'OPERATIONS_USER_NOT_ENROLLED'
   | 'OPERATIONS_USER_SUSPENDED'
   | 'PATIENT_READ_NOT_PERMITTED'
-  | 'MEDICAL_ID_RECOVERY_NOT_PERMITTED';
+  | 'MEDICAL_ID_RECOVERY_NOT_PERMITTED'
+  | 'SYNC_MONITOR_NOT_PERMITTED';
 
-export type OperationsPermission = 'PATIENT_READ' | 'MEDICAL_ID_RECOVER';
+export type OperationsPermission =
+  | 'PATIENT_READ'
+  | 'MEDICAL_ID_RECOVER'
+  | 'SYNC_MONITOR';
 
 export class OperationsAuthorizationError extends Error {
   readonly statusCode = 403;
@@ -96,7 +100,9 @@ export async function authorizeOperationsPermission(
     throw new OperationsAuthorizationError(
       permission === 'PATIENT_READ'
         ? 'PATIENT_READ_NOT_PERMITTED'
-        : 'MEDICAL_ID_RECOVERY_NOT_PERMITTED',
+        : permission === 'MEDICAL_ID_RECOVER'
+          ? 'MEDICAL_ID_RECOVERY_NOT_PERMITTED'
+          : 'SYNC_MONITOR_NOT_PERMITTED',
       user.operations_user_id,
       fingerprint,
     );
@@ -116,7 +122,9 @@ export async function authorizeOperationsPermission(
     throw new OperationsAuthorizationError(
       permission === 'PATIENT_READ'
         ? 'PATIENT_READ_NOT_PERMITTED'
-        : 'MEDICAL_ID_RECOVERY_NOT_PERMITTED',
+        : permission === 'MEDICAL_ID_RECOVER'
+          ? 'MEDICAL_ID_RECOVERY_NOT_PERMITTED'
+          : 'SYNC_MONITOR_NOT_PERMITTED',
       user.operations_user_id,
       fingerprint,
     );
@@ -151,4 +159,12 @@ export function authorizeMedicalIdRecovery(
     'MEDICAL_ID_RECOVER',
     now,
   );
+}
+
+export function authorizeSyncMonitoring(
+  database: AccessDatabase,
+  identity: VerifiedOperationsIdentity,
+  now: Date = new Date(),
+): Promise<OperationsPrincipal> {
+  return authorizeOperationsPermission(database, identity, 'SYNC_MONITOR', now);
 }

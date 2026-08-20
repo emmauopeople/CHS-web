@@ -72,6 +72,11 @@ API documentation is available at `GET /docs` outside production.
 Both routes require an enrolled installation bearer token. Batch responses
 return one outcome per submitted record in the original request order.
 
+Infrastructure operators enroll a desktop and issue its first one-time token
+with `pnpm admin:installation:enroll -- --input <enrollment.json>`. See
+[HSD-SYNC-003A](docs/sync/HSD-SYNC-003A.md) for the controlled procedure and
+security requirements.
+
 ## Operations patient endpoints
 
 - `POST /api/v1/operations/patients/search` — search canonical patients
@@ -113,6 +118,7 @@ remain in non-cacheable POST bodies and are not stored in browser URLs.
 ```bash
 pnpm dev:api       # run the API in watch mode
 pnpm dev:web       # run the React operations viewer
+pnpm admin:installation:enroll -- --input <file> # enroll one desktop installation
 pnpm db:migrate    # apply checksum-protected PostgreSQL migrations
 pnpm db:test       # test migrations and constraints against PostgreSQL
 pnpm build         # compile every workspace package
@@ -132,6 +138,7 @@ pnpm lint          # run lint checks
 - [HSD-SYNC-002D patient screening encounter ingestion](docs/sync/HSD-SYNC-002D.md)
 - [HSD-SYNC-002E vitals and blood-pressure reading ingestion](docs/sync/HSD-SYNC-002E.md)
 - [HSD-SYNC-002F batch orchestration and HTTP routes](docs/sync/HSD-SYNC-002F.md)
+- [HSD-SYNC-003A controlled desktop installation enrollment](docs/sync/HSD-SYNC-003A.md)
 - [HSD-OPS-001A canonical patient query service](docs/operations/HSD-OPS-001A.md)
 - [HSD-OPS-001B authenticated and audited patient access](docs/operations/HSD-OPS-001B.md)
 - [HSD-OPS-002A React operations patient viewer](docs/operations/HSD-OPS-002A.md)

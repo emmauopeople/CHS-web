@@ -90,4 +90,4 @@ integration tests run when `DATABASE_TEST_URL` is configured.
 
 This query increment does not itself resolve, merge, create, dismiss, or mutate
 identity cases. HSD-OPS-004B provides the separate guarded resolution endpoint.
-The React identity-review workspace remains a later increment.
+HSD-OPS-004C provides the React identity-review workspace.

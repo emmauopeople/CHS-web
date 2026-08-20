@@ -4,6 +4,9 @@ import type {
   PatientListPage,
   MedicalIdRecoveryRevealResult,
   MedicalIdRecoverySearchResult,
+  IdentityReviewCaseDetail,
+  IdentityReviewQueuePage,
+  IdentityReviewResolutionResult,
   PersonStatus,
   ProblemDetails,
   SyncBatchMonitoringDetail,
@@ -66,6 +69,35 @@ export type SyncBatchMonitoringDetailInput = Readonly<{
   batchReference: string;
 }>;
 
+export type IdentityReviewSearchInput = Readonly<{
+  reasonCode: 'IDENTITY_RECONCILIATION';
+  evidenceState?: 'AVAILABLE' | 'EVIDENCE_PENDING' | 'ALL';
+  installationId?: string;
+  openedFrom?: string;
+  openedTo?: string;
+  page?: number;
+  pageSize?: number;
+}>;
+
+export type IdentityReviewDetailInput = Readonly<{
+  reasonCode: 'IDENTITY_RECONCILIATION';
+  caseReference: string;
+}>;
+
+export type IdentityReviewResolutionInput = Readonly<{
+  reasonCode: 'IDENTITY_RECONCILIATION';
+  resolutionRequestId: string;
+  caseReference: string;
+  expectedUpdatedAt: string;
+  resolutionNote: string;
+  resolution:
+    | Readonly<{
+        kind: 'LINK_EXISTING';
+        candidatePersonReference: string;
+      }>
+    | Readonly<{ kind: 'CREATE_NEW' }>;
+}>;
+
 function object(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
@@ -84,6 +116,8 @@ const syncOutcomeStatuses = [
   'REJECTED',
   'RETRY',
 ];
+const identityEvidenceStates = ['AVAILABLE', 'EVIDENCE_PENDING'];
+const identitySexValues = ['FEMALE', 'MALE', 'OTHER', 'UNKNOWN'];
 
 function safeCount(value: unknown): value is number {
   return Number.isSafeInteger(value) && Number(value) >= 0;
@@ -96,6 +130,14 @@ function validInstant(value: unknown): value is string {
     /(?:Z|[+-]\d{2}:\d{2})$/i.test(value) &&
     Number.isFinite(Date.parse(value))
   );
+}
+
+function nullableString(value: unknown, maximum = 500): boolean {
+  return value === null || (typeof value === 'string' && value.length <= maximum);
+}
+
+function nullableLocalDate(value: unknown): boolean {
+  return value === null || (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value));
 }
 
 function listPage(value: unknown): value is PatientListPage {
@@ -238,6 +280,134 @@ function syncMonitoringDetail(value: unknown): value is SyncBatchMonitoringDetai
   );
 }
 
+function maskedBirthEvidence(value: unknown): boolean {
+  if (!object(value) || typeof value.kind !== 'string') return false;
+  if (value.kind === 'DATE_OF_BIRTH') {
+    return typeof value.maskedDate === 'string' && /^\*{4}-\*{2}-\d{2}$/.test(value.maskedDate);
+  }
+  return (
+    value.kind === 'APPROXIMATE_AGE' &&
+    Number.isSafeInteger(value.ageYears) && Number(value.ageYears) >= 0 && Number(value.ageYears) <= 120 &&
+    Number.isSafeInteger(value.asOfYear) && Number(value.asOfYear) >= 1900 && Number(value.asOfYear) <= 2200
+  );
+}
+
+function identityReviewQueueItem(value: unknown): boolean {
+  return (
+    object(value) &&
+    typeof value.caseReference === 'string' && uuidPattern.test(value.caseReference) &&
+    value.status === 'OPEN' &&
+    typeof value.evidenceState === 'string' && identityEvidenceStates.includes(value.evidenceState) &&
+    typeof value.organizationName === 'string' &&
+    typeof value.locationName === 'string' &&
+    typeof value.installationId === 'string' && uuidPattern.test(value.installationId) &&
+    typeof value.deploymentName === 'string' &&
+    validInstant(value.openedAt) &&
+    validInstant(value.updatedAt) &&
+    safeCount(value.candidateCount) &&
+    (value.latestSourceRevision === null ||
+      (Number.isSafeInteger(value.latestSourceRevision) && Number(value.latestSourceRevision) >= 1)) &&
+    (value.sourceCapturedAt === null || validInstant(value.sourceCapturedAt)) &&
+    nullableString(value.localPatientCode, 32) &&
+    nullableString(value.maskedSubmittedName, 200) &&
+    (value.submittedBirthEvidence === null || maskedBirthEvidence(value.submittedBirthEvidence))
+  );
+}
+
+function identityReviewQueuePage(value: unknown): value is IdentityReviewQueuePage {
+  return (
+    object(value) &&
+    Number.isSafeInteger(value.page) && Number(value.page) >= 1 &&
+    Number.isSafeInteger(value.pageSize) && Number(value.pageSize) >= 1 && Number(value.pageSize) <= 100 &&
+    safeCount(value.totalItems) &&
+    safeCount(value.totalPages) &&
+    Array.isArray(value.items) &&
+    value.items.every(identityReviewQueueItem)
+  );
+}
+
+function identityReviewEvidence(value: unknown): boolean {
+  if (!object(value)) return false;
+  const validBirth =
+    (nullableLocalDate(value.dateOfBirth) && value.dateOfBirth !== null &&
+      value.approximateAgeYears === null && value.ageAsOfDate === null) ||
+    (value.dateOfBirth === null && Number.isSafeInteger(value.approximateAgeYears) &&
+      Number(value.approximateAgeYears) >= 0 && Number(value.approximateAgeYears) <= 120 &&
+      nullableLocalDate(value.ageAsOfDate) && value.ageAsOfDate !== null);
+  return (
+    typeof value.sourceRecordReference === 'string' && uuidPattern.test(value.sourceRecordReference) &&
+    Number.isSafeInteger(value.sourceRevision) && Number(value.sourceRevision) >= 1 &&
+    typeof value.schemaVersion === 'string' && value.schemaVersion.length > 0 && value.schemaVersion.length <= 50 &&
+    validInstant(value.capturedAt) &&
+    typeof value.localPatientCode === 'string' && /^PT-\d{6}$/.test(value.localPatientCode) &&
+    nullableString(value.maskedClaimedChsMedicalId, 64) &&
+    typeof value.displayName === 'string' && value.displayName.length > 0 && value.displayName.length <= 200 &&
+    nullableString(value.givenName, 200) && nullableString(value.familyName, 200) &&
+    nullableString(value.otherNames, 200) && validBirth &&
+    typeof value.sex === 'string' && identitySexValues.includes(value.sex) &&
+    (value.acknowledgmentStatus === null ||
+      ['ACKNOWLEDGED', 'DECLINED', 'NOT_REQUESTED'].includes(String(value.acknowledgmentStatus))) &&
+    (value.patientStatus === null || ['ACTIVE', 'INACTIVE'].includes(String(value.patientStatus))) &&
+    nullableString(value.phone, 100) && nullableString(value.village, 200) && nullableString(value.quarter, 200) &&
+    validInstant(value.sourceCreatedAt) && validInstant(value.sourceUpdatedAt) && validInstant(value.receivedAt)
+  );
+}
+
+function identityReviewCandidate(value: unknown): boolean {
+  return (
+    object(value) &&
+    typeof value.personReference === 'string' && uuidPattern.test(value.personReference) &&
+    Number.isSafeInteger(value.score) && Number(value.score) >= 1 && Number(value.score) <= 100 &&
+    Array.isArray(value.matchedOn) &&
+    value.matchedOn.every((item) => typeof item === 'string' && /^[A-Z][A-Z0-9_]{0,49}$/.test(item)) &&
+    nullableString(value.maskedChsMedicalId, 64) &&
+    typeof value.maskedName === 'string' && value.maskedName.length > 0 && value.maskedName.length <= 200 &&
+    maskedBirthEvidence(value.birthEvidence) &&
+    typeof value.sex === 'string' && identitySexValues.includes(value.sex) &&
+    nullableString(value.maskedPhone, 100) && nullableString(value.maskedResidence, 300)
+  );
+}
+
+function identityReviewDetail(value: unknown): value is IdentityReviewCaseDetail {
+  if (!object(value) || !object(value.organization) || !object(value.location) || !object(value.installation)) {
+    return false;
+  }
+  const stateValid =
+    (value.evidenceState === 'AVAILABLE' && identityReviewEvidence(value.evidence)) ||
+    (value.evidenceState === 'EVIDENCE_PENDING' && value.evidence === null);
+  return (
+    typeof value.caseReference === 'string' && uuidPattern.test(value.caseReference) &&
+    value.status === 'OPEN' && stateValid &&
+    typeof value.organization.id === 'string' && uuidPattern.test(value.organization.id) &&
+    typeof value.organization.name === 'string' &&
+    typeof value.location.id === 'string' && uuidPattern.test(value.location.id) &&
+    typeof value.location.name === 'string' &&
+    typeof value.installation.id === 'string' && uuidPattern.test(value.installation.id) &&
+    typeof value.installation.deploymentName === 'string' &&
+    typeof value.localPatientReference === 'string' && uuidPattern.test(value.localPatientReference) &&
+    validInstant(value.openedAt) && validInstant(value.updatedAt) &&
+    Array.isArray(value.candidates) && value.candidates.every(identityReviewCandidate)
+  );
+}
+
+function identityReviewResolution(
+  value: unknown,
+): value is IdentityReviewResolutionResult {
+  return (
+    object(value) &&
+    typeof value.resolutionRequestId === 'string' && uuidPattern.test(value.resolutionRequestId) &&
+    typeof value.caseReference === 'string' && uuidPattern.test(value.caseReference) &&
+    ['RESOLVED_EXISTING', 'RESOLVED_NEW'].includes(String(value.resolutionStatus)) &&
+    typeof value.resolvedPersonReference === 'string' && uuidPattern.test(value.resolvedPersonReference) &&
+    typeof value.chsMedicalId === 'string' && medicalIdPattern.test(value.chsMedicalId) &&
+    typeof value.installationId === 'string' && uuidPattern.test(value.installationId) &&
+    typeof value.localPatientReference === 'string' && uuidPattern.test(value.localPatientReference) &&
+    typeof value.localPatientCode === 'string' && /^PT-\d{6}$/.test(value.localPatientCode) &&
+    Number.isSafeInteger(value.sourceRevision) && Number(value.sourceRevision) >= 1 &&
+    validInstant(value.resolvedAt) && typeof value.replayed === 'boolean'
+  );
+}
+
 async function post<T>(
   apiBaseUrl: string,
   path: string,
@@ -333,6 +503,36 @@ export function createOperationsApi(
         accessToken,
         input,
         syncMonitoringDetail,
+        fetchImplementation,
+      );
+    },
+    searchIdentityReviews(input: IdentityReviewSearchInput) {
+      return post(
+        apiBaseUrl,
+        '/api/v1/operations/identity-reviews/search',
+        accessToken,
+        input,
+        identityReviewQueuePage,
+        fetchImplementation,
+      );
+    },
+    getIdentityReviewDetail(input: IdentityReviewDetailInput) {
+      return post(
+        apiBaseUrl,
+        '/api/v1/operations/identity-reviews/detail',
+        accessToken,
+        input,
+        identityReviewDetail,
+        fetchImplementation,
+      );
+    },
+    resolveIdentityReview(input: IdentityReviewResolutionInput) {
+      return post(
+        apiBaseUrl,
+        '/api/v1/operations/identity-reviews/resolve',
+        accessToken,
+        input,
+        identityReviewResolution,
         fetchImplementation,
       );
     },

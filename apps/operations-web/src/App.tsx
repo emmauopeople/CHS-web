@@ -13,6 +13,7 @@ import {
 } from './auth';
 import type { OperationsWebConfig } from './config';
 import { displayValue, formatDate, formatInstant, humanize } from './format';
+import { IdentityReview } from './IdentityReview';
 import { MedicalIdRecovery } from './MedicalIdRecovery';
 import { SyncMonitoring } from './SyncMonitoring';
 import type {
@@ -382,7 +383,7 @@ export default function App({ config }: AppProps) {
   const [authBusy, setAuthBusy] = useState(() => hasAuthorizationResponse());
   const [authError, setAuthError] = useState<string | null>(null);
   const [reason, setReason] = useState<PatientAccessReason | ''>('');
-  const [workspaceView, setWorkspaceView] = useState<'PATIENTS' | 'RECOVERY' | 'SYNC'>('PATIENTS');
+  const [workspaceView, setWorkspaceView] = useState<'PATIENTS' | 'RECOVERY' | 'SYNC' | 'IDENTITY'>('PATIENTS');
   const [form, setForm] = useState<SearchForm>(initialSearch);
   const [submittedForm, setSubmittedForm] = useState<SearchForm | null>(null);
   const [results, setResults] = useState<PatientListPage | null>(null);
@@ -536,6 +537,16 @@ export default function App({ config }: AppProps) {
           >
             Sync Monitoring
           </button>
+          <button
+            className={workspaceView === 'IDENTITY' ? 'active' : ''}
+            type="button"
+            onClick={() => {
+              clearPatientData();
+              setWorkspaceView('IDENTITY');
+            }}
+          >
+            Identity Review
+          </button>
         </nav>
         <div className="topbar-actions">
           <span className="secure-indicator"><i aria-hidden="true" /> Secure session</span>
@@ -548,28 +559,36 @@ export default function App({ config }: AppProps) {
             <p className="eyebrow">
               {workspaceView === 'SYNC'
                 ? 'Central PostgreSQL · synchronization operations'
-                : 'Central PostgreSQL · canonical records'}
+                : workspaceView === 'IDENTITY'
+                  ? 'Central PostgreSQL · identity reconciliation'
+                  : 'Central PostgreSQL · canonical records'}
             </p>
             <h1>
               {workspaceView === 'PATIENTS'
                 ? 'Patient Viewer'
                 : workspaceView === 'RECOVERY'
                   ? 'Medical ID Recovery'
-                  : 'Sync Monitoring'}
+                  : workspaceView === 'SYNC'
+                    ? 'Sync Monitoring'
+                    : 'Identity Review'}
             </h1>
             <p>
               {workspaceView === 'PATIENTS'
                 ? 'Search deduplicated patient records and review accepted screening history.'
                 : workspaceView === 'RECOVERY'
                   ? 'Safely recover an existing CHS Medical ID without creating a replacement.'
-                  : 'Inspect scoped batch health and redacted synchronization outcomes.'}
+                  : workspaceView === 'SYNC'
+                    ? 'Inspect scoped batch health and redacted synchronization outcomes.'
+                    : 'Compare submitted identity evidence with masked candidates and resolve duplicate-risk cases.'}
             </p>
           </div>
-          {workspaceView === 'SYNC' ? (
+          {workspaceView === 'SYNC' || workspaceView === 'IDENTITY' ? (
             <div className="reason-field">
               <span className="reason-label">Reason for access</span>
-              <div className="fixed-reason">Operations support</div>
-              <small>Fixed by the monitoring contract and recorded in the audit.</small>
+              <div className="fixed-reason">
+                {workspaceView === 'SYNC' ? 'Operations support' : 'Identity reconciliation'}
+              </div>
+              <small>Fixed by the workspace contract and recorded in the audit.</small>
             </div>
           ) : (
             <div className="reason-field">
@@ -647,8 +666,16 @@ export default function App({ config }: AppProps) {
               setSession(null);
             }}
           />
-        ) : api ? (
+        ) : workspaceView === 'SYNC' && api ? (
           <SyncMonitoring
+            api={api}
+            onUnauthorized={() => {
+              clearAuthSession();
+              setSession(null);
+            }}
+          />
+        ) : workspaceView === 'IDENTITY' && api ? (
+          <IdentityReview
             api={api}
             onUnauthorized={() => {
               clearAuthSession();

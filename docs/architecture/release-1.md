@@ -73,7 +73,11 @@ active candidate or atomically create a new person and Medical ID from complete
 evidence. Serializable locking, stale-state checks, idempotency keys, and
 transactional auditing protect this irreversible decision. Resolution uses an
 independent `IDENTITY_REVIEW_RESOLVE` grant, so read-only investigation cannot
-mutate identity state.
+mutate identity state. The React portal exposes this boundary through a manual,
+low-bandwidth queue and review panel. It displays masked queue and candidate
+data, requests exact submitted evidence only for an opened case, and requires a
+reviewer note plus explicit confirmation before sending a version-guarded,
+idempotent resolution command.
 
 Synchronization support now includes a separate operational monitoring
 boundary. A dedicated `SYNC_MONITOR` grant controls access independently of

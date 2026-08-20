@@ -640,10 +640,10 @@ async function seedIdentityReviews(pool: pg.Pool) {
     );
   }
 
-  for (const [reviewCase, revision, name, claimedId] of [
-    [availableCase, 2, 'Submitted Patient', 'CHS-1111-2222-3333'],
-    [hiddenCase, 1, 'Hidden Patient', null],
-    [createCase, 1, 'New Submitted Patient', null],
+  for (const [reviewCase, revision, name, claimedId, localPatientCode] of [
+    [availableCase, 2, 'Submitted Patient', 'CHS-1111-2222-3333', 'PT-000101'],
+    [hiddenCase, 1, 'Hidden Patient', null, 'PT-000103'],
+    [createCase, 1, 'New Submitted Patient', null, 'PT-000104'],
   ]) {
     await pool.query(
       `INSERT INTO identity_review_evidence_snapshots (
@@ -652,12 +652,22 @@ async function seedIdentityReviews(pool: pg.Pool) {
          display_name, name_normalized, given_name, family_name, date_of_birth,
          sex, phone, phone_normalized, village, quarter, source_created_at,
          acknowledgment_status, patient_status, source_updated_at, received_at
-       ) VALUES ($1, $2, $3, $4, '1.0', $5, $6, 'PT-000101', $7, $8,
+       ) VALUES ($1, $2, $3, $4, '1.0', $5, $6, $9, $7, $8,
          lower($8), split_part($8, ' ', 1), split_part($8, ' ', 2),
          '1991-02-03', 'FEMALE', '+237612345678', '+237612345678',
          'Submitted Village', 'Submitted Quarter', $5, 'ACKNOWLEDGED',
          'ACTIVE', $5, $5)`,
-      [randomUUID(), reviewCase, randomUUID(), revision, now, 'a'.repeat(64), claimedId, name],
+      [
+        randomUUID(),
+        reviewCase,
+        randomUUID(),
+        revision,
+        now,
+        'a'.repeat(64),
+        claimedId,
+        name,
+        localPatientCode,
+      ],
     );
   }
 

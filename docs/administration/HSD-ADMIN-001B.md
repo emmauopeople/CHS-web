@@ -21,11 +21,12 @@ patient information remains deferred to a later release.
 Only permissions with implemented protected workflows can be provisioned:
 
 - `PATIENT_READ` — canonical patient search and clinical detail;
-- `MEDICAL_ID_RECOVER` — controlled Medical ID recovery; and
+- `MEDICAL_ID_RECOVER` — controlled Medical ID recovery;
+- `IDENTITY_REVIEW` — scoped, read-only identity-review investigation; and
 - `SYNC_MONITOR` — redacted synchronization monitoring.
 
-`IDENTITY_REVIEW` and `AUDIT_READ` remain reserved in the database schema but
-cannot be provisioned until their protected workflows are implemented.
+`AUDIT_READ` remains reserved in the database schema but cannot be provisioned
+until its protected workflow is implemented.
 
 Every permission is independently granted. For example, `PATIENT_READ` does not
 imply Medical ID recovery or sync monitoring.
@@ -124,7 +125,7 @@ data, supported permissions, scope consistency, duplicate detection, UUIDs,
 and future expiries. PostgreSQL integration tests cover:
 
 - atomic user, grant, and audit creation;
-- immediate authorization through all three implemented permission paths;
+- immediate authorization through the implemented permission paths;
 - exact retry without duplicate state;
 - adding another organization scope;
 - rejection of changed principals, incompatible scopes, and inactive

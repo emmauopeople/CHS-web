@@ -56,6 +56,24 @@ describe('operations access provisioning input', () => {
     });
   });
 
+  it('accepts the implemented identity-review permission', () => {
+    const result = parseOperationsAccessProvisioningInput(
+      {
+        ...validInput,
+        grants: [
+          {
+            permissionCode: 'IDENTITY_REVIEW',
+            scopeKind: 'ORGANIZATION',
+            organizationId,
+            expiresAt: null,
+          },
+        ],
+      },
+      now,
+    );
+    expect(result.grants[0]?.permissionCode).toBe('IDENTITY_REVIEW');
+  });
+
   it.each([
     [{ ...validInput, oidcIssuer: 'http://identity.example.test' }, 'absolute HTTPS'],
     [{ ...validInput, email: 'not-an-email' }, 'valid bounded address'],

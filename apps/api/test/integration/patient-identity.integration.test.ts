@@ -308,6 +308,91 @@ runIntegration('patient identity processing with PostgreSQL', () => {
     expect(reviews.rows.every((row) => row.person_id === accepted.centralPersonId)).toBe(
       true,
     );
+
+    const evidence = await servicePool.query(
+      `SELECT
+         review.local_patient_id,
+         snapshot.source_record_id,
+         snapshot.source_revision,
+         snapshot.schema_version,
+         snapshot.payload_hash,
+         snapshot.local_patient_code,
+         snapshot.claimed_chs_medical_id,
+         snapshot.display_name,
+         snapshot.name_normalized,
+         snapshot.date_of_birth::text AS date_of_birth,
+         snapshot.phone,
+         snapshot.village,
+         snapshot.quarter
+       FROM identity_review_cases AS review
+       JOIN identity_review_evidence_snapshots AS snapshot
+         ON snapshot.review_case_id = review.id
+       WHERE review.local_patient_id IN ($1, $2)
+       ORDER BY review.local_patient_id, snapshot.source_revision`,
+      [possibleDuplicate.localResourceId, failedEvidence.localResourceId],
+    );
+    expect(evidence.rows).toHaveLength(2);
+    expect(evidence.rows[0]).toMatchObject({
+      local_patient_id: possibleDuplicate.localResourceId,
+      source_record_id: possibleDuplicate.recordId,
+      source_revision: 1,
+      schema_version: 'patient.v1',
+      local_patient_code: 'PT-000108',
+      claimed_chs_medical_id: null,
+      display_name: 'Possible Duplicate',
+      name_normalized: 'duplicate possible',
+      date_of_birth: '1965-08-09',
+      phone: null,
+      village: 'Synthetic Village',
+      quarter: 'Synthetic Quarter',
+    });
+    expect(evidence.rows[0].payload_hash).toMatch(/^[0-9a-f]{64}$/);
+    expect(evidence.rows[1]).toMatchObject({
+      local_patient_id: failedEvidence.localResourceId,
+      source_record_id: failedEvidence.recordId,
+      source_revision: 1,
+      local_patient_code: 'PT-000109',
+      claimed_chs_medical_id: accepted.chsMedicalId,
+      display_name: 'Different Identity',
+      date_of_birth: '1990-01-01',
+    });
+
+    const personsBeforeRevision = await servicePool.query(
+      'SELECT count(*)::integer AS count FROM persons',
+    );
+    const revisedEvidence = patientRecord({
+      localResourceId: possibleDuplicate.localResourceId,
+      recordId: '40000000-0000-4000-8000-000000000118',
+      sourceRevision: 2,
+      localPatientCode: possibleDuplicate.payload.localPatientCode,
+      displayName: 'Corrected Unmatched Identity',
+      dateOfBirth: '1970-01-01',
+    });
+    const revisedBatch = await startBatch(servicePool, revisedEvidence);
+    await expect(
+      processPatientRecord(servicePool, context, revisedBatch, revisedEvidence, now),
+    ).resolves.toMatchObject({
+      status: 'REVIEW_REQUIRED',
+      centralPersonId: null,
+      chsMedicalId: null,
+    });
+    const evidenceRevisions = await servicePool.query(
+      `SELECT snapshot.source_revision, snapshot.display_name
+       FROM identity_review_cases AS review
+       JOIN identity_review_evidence_snapshots AS snapshot
+         ON snapshot.review_case_id = review.id
+       WHERE review.installation_id = $1 AND review.local_patient_id = $2
+       ORDER BY snapshot.source_revision`,
+      [installationId, possibleDuplicate.localResourceId],
+    );
+    expect(evidenceRevisions.rows).toEqual([
+      { source_revision: 1, display_name: 'Possible Duplicate' },
+      { source_revision: 2, display_name: 'Corrected Unmatched Identity' },
+    ]);
+    const personsAfterRevision = await servicePool.query(
+      'SELECT count(*)::integer AS count FROM persons',
+    );
+    expect(personsAfterRevision.rows[0]).toEqual(personsBeforeRevision.rows[0]);
   });
 
   it('rejects unknown and conflicting medical IDs without changing the linked person', async () => {

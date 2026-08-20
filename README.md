@@ -30,6 +30,9 @@ health. The React operations portal consumes it through a low-bandwidth,
 manually refreshed synchronization dashboard.
 Internal operations identities and their least-privilege portal grants can be
 created through a controlled operator command after the OIDC identity exists.
+Sync-created identity-review cases now retain append-only, minimum-necessary
+evidence snapshots so a later protected review workflow can compare submitted
+identity evidence without retaining raw payload JSON.
 
 ## Prerequisites
 
@@ -175,6 +178,7 @@ pnpm lint          # run lint checks
 - [HSD-OPS-003A synchronization monitoring API](docs/operations/HSD-OPS-003A.md)
 - [HSD-OPS-003B React synchronization dashboard](docs/operations/HSD-OPS-003B.md)
 - [HSD-DATA-001 canonical PostgreSQL schema](docs/database/HSD-DATA-001.md)
+- [HSD-DATA-002 identity review evidence foundation](docs/database/HSD-DATA-002.md)
 
 ## Security note
 

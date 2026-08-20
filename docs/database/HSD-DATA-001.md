@@ -1,6 +1,6 @@
 # HSD-DATA-001: Canonical PostgreSQL schema foundation
 
-Status: Draft for implementation review
+Status: Implemented
 
 ## Purpose
 
@@ -96,6 +96,7 @@ this contract clarification does not require a new PostgreSQL migration.
 - `patient_source_links`
 - `identity_review_cases`
 - `identity_review_candidates`
+- `identity_review_evidence_snapshots`
 
 ### Screening
 
@@ -166,6 +167,8 @@ conversion.
 - Person creation and CHS medical-ID insertion occur in one transaction.
 - Recovery reads an existing identifier and never inserts a replacement.
 - Ambiguous matches create an identity review case rather than merging persons.
+- Review evidence is stored as structured, append-only, minimum-necessary
+  snapshots; raw request JSON is not retained.
 
 ## Sync persistence rules
 

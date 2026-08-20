@@ -526,6 +526,7 @@ async function openReviewCase(
   context: InstallationContext,
   record: PatientSyncRecord,
   candidates: readonly ReviewCandidate[],
+  payloadHash: string,
   receivedAt: string,
 ): Promise<string> {
   const existing = await client.query<{ id: string }>(
@@ -555,6 +556,48 @@ async function openReviewCase(
       [reviewCaseId, context.installationId, record.localResourceId, receivedAt],
     );
   }
+
+  await client.query(
+    `INSERT INTO identity_review_evidence_snapshots (
+       id, review_case_id, source_record_id, source_revision, schema_version,
+       captured_at, payload_hash, local_patient_code, claimed_chs_medical_id,
+       display_name, name_normalized, given_name, family_name, other_names,
+       date_of_birth, approximate_age_years, age_as_of_date, sex, phone,
+       phone_normalized, village, quarter, source_created_at, source_updated_at,
+       received_at
+     ) VALUES (
+       $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14,
+       $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25
+     )
+     ON CONFLICT (review_case_id, source_revision) DO NOTHING`,
+    [
+      randomUUID(),
+      reviewCaseId,
+      record.recordId,
+      record.sourceRevision,
+      record.schemaVersion,
+      record.capturedAt,
+      payloadHash,
+      record.payload.localPatientCode,
+      record.payload.knownChsMedicalId,
+      record.payload.displayName,
+      normalizeIdentityName(record.payload.displayName),
+      record.payload.givenName,
+      record.payload.familyName,
+      record.payload.otherNames,
+      record.payload.dateOfBirth,
+      record.payload.approximateAgeYears,
+      record.payload.ageAsOfDate,
+      record.payload.sex,
+      record.payload.phone,
+      normalizePhone(record.payload.phone),
+      record.payload.village,
+      record.payload.quarter,
+      record.payload.createdAt,
+      record.payload.updatedAt,
+      receivedAt,
+    ],
+  );
 
   for (const candidate of candidates) {
     await client.query(
@@ -858,6 +901,57 @@ export async function processPatientRecord(
       return outcome;
     }
 
+    const openReviewResult = await client.query<{ id: string }>(
+      `SELECT id
+       FROM identity_review_cases
+       WHERE installation_id = $1
+         AND local_patient_id = $2
+         AND status = 'OPEN'
+       FOR UPDATE`,
+      [context.installationId, record.localResourceId],
+    );
+    if (openReviewResult.rows[0]) {
+      const knownPerson = record.payload.knownChsMedicalId
+        ? await findKnownMedicalId(client, record.payload.knownChsMedicalId)
+        : undefined;
+      const candidates = knownPerson
+        ? [
+            {
+              personId: knownPerson.person_id,
+              score: 100,
+              matchedOn: ['KNOWN_CHS_MEDICAL_ID'],
+            },
+          ]
+        : await findCandidates(client, record.payload);
+      const reviewCaseId = await openReviewCase(
+        client,
+        context,
+        record,
+        candidates,
+        contentHash,
+        processedAt,
+      );
+      const outcome = reviewOutcome(
+        record,
+        record.payload.knownChsMedicalId
+          ? 'IDENTITY_VERIFICATION_REQUIRED'
+          : 'POSSIBLE_DUPLICATE',
+      );
+      await persistTerminalOutcome(
+        client,
+        context,
+        batchInternalId,
+        batchActorId,
+        record,
+        recordHash,
+        outcome,
+        reviewCaseId,
+        processedAt,
+      );
+      await client.query('COMMIT');
+      return outcome;
+    }
+
     if (record.payload.knownChsMedicalId !== null) {
       const knownPerson = await findKnownMedicalId(
         client,
@@ -896,6 +990,7 @@ export async function processPatientRecord(
               matchedOn: ['KNOWN_CHS_MEDICAL_ID'],
             },
           ],
+          contentHash,
           processedAt,
         );
         const outcome = reviewOutcome(record, 'IDENTITY_VERIFICATION_REQUIRED');
@@ -952,6 +1047,7 @@ export async function processPatientRecord(
         context,
         record,
         candidates,
+        contentHash,
         processedAt,
       );
       const outcome = reviewOutcome(record, 'POSSIBLE_DUPLICATE');

@@ -10,6 +10,10 @@ import {
   OperationsAuthenticationError,
   type OperationsTokenVerifier,
 } from '../../src/operations/authentication.js';
+import {
+  installationTokenHash,
+  installationTokenPrefix,
+} from '../../src/sync/installation-auth.js';
 
 const connectionString = process.env.DATABASE_TEST_URL;
 const runIntegration = connectionString ? describe : describe.skip;
@@ -30,6 +34,8 @@ const candidate2 = '54000000-0000-4000-8000-000000000002';
 const reviewerUser = '94000000-0000-4000-8000-000000000001';
 const deniedUser = '94000000-0000-4000-8000-000000000002';
 const readOnlyReviewerUser = '94000000-0000-4000-8000-000000000003';
+const installationToken1 = `chs_inst_v1_${'R'.repeat(43)}`;
+const installationToken2 = `chs_inst_v1_${'S'.repeat(43)}`;
 
 const config: AppConfig = {
   nodeEnv: 'test',
@@ -129,6 +135,28 @@ runIntegration('audited identity-review query routes', () => {
       url: '/api/v1/operations/identity-reviews/search',
     });
     expect(getAttempt.statusCode).toBe(404);
+  });
+
+  it('protects identity resolution delivery with the installation credential', async () => {
+    const missingToken = await app.inject({
+      method: 'POST',
+      url: '/api/v1/sync/identity-resolutions/pull',
+      payload: { contractVersion: '1.0' },
+    });
+    expect(missingToken.statusCode).toBe(401);
+    expect(missingToken.headers['www-authenticate']).toBe('Bearer');
+    expect(missingToken.json()).toMatchObject({
+      code: 'INVALID_INSTALLATION_TOKEN',
+    });
+
+    const invalidContract = await app.inject({
+      method: 'POST',
+      url: '/api/v1/sync/identity-resolutions/pull',
+      headers: { authorization: `Bearer ${installationToken1}` },
+      payload: { contractVersion: '2.0' },
+    });
+    expect(invalidContract.statusCode).toBe(400);
+    expect(invalidContract.headers['cache-control']).toBe('no-store');
   });
 
   it('requires the dedicated grant and durably audits denial', async () => {
@@ -473,13 +501,14 @@ runIntegration('audited identity-review query routes', () => {
   });
 
   it('creates one canonical person and medical ID from complete review evidence', async () => {
+    const resolutionRequestId = randomUUID();
     const response = await app.inject({
       method: 'POST',
       url: '/api/v1/operations/identity-reviews/resolve',
       headers: { authorization: 'Bearer reviewer-token' },
       payload: {
         reasonCode: 'IDENTITY_RECONCILIATION',
-        resolutionRequestId: randomUUID(),
+        resolutionRequestId,
         caseReference: createCase,
         expectedUpdatedAt: now,
         resolutionNote: 'Reviewed the evidence and confirmed this is a new individual.',
@@ -514,6 +543,111 @@ runIntegration('audited identity-review query routes', () => {
       identifier_value: response.json().chsMedicalId,
       person_id: response.json().resolvedPersonReference,
     });
+
+    const pull = await app.inject({
+      method: 'POST',
+      url: '/api/v1/sync/identity-resolutions/pull',
+      headers: { authorization: `Bearer ${installationToken1}` },
+      payload: { contractVersion: '1.0', limit: 25 },
+    });
+    expect(pull.statusCode).toBe(200);
+    expect(pull.headers['cache-control']).toBe('no-store');
+    expect(pull.headers.pragma).toBe('no-cache');
+    expect(pull.json()).toMatchObject({
+      contractVersion: '1.0',
+      hasMore: false,
+      deliveries: expect.arrayContaining([
+        {
+          resolutionReference: resolutionRequestId,
+          localPatientReference: '64000000-0000-4000-8000-000000000004',
+          localPatientCode: 'PT-000104',
+          sourceRevision: 1,
+          centralPersonId: response.json().resolvedPersonReference,
+          chsMedicalId: response.json().chsMedicalId,
+          resolvedAt: response.json().resolvedAt,
+        },
+      ]),
+    });
+    expect(pull.body).not.toContain('Reviewed the evidence');
+    expect(pull.body).not.toContain('New Submitted Patient');
+
+    const hidden = await app.inject({
+      method: 'POST',
+      url: '/api/v1/sync/identity-resolutions/pull',
+      headers: { authorization: `Bearer ${installationToken2}` },
+      payload: { contractVersion: '1.0' },
+    });
+    expect(hidden.statusCode).toBe(200);
+    expect(hidden.json().deliveries).toEqual([]);
+
+    const acknowledgmentId = randomUUID();
+    const acknowledgmentPayload = {
+      contractVersion: '1.0',
+      acknowledgmentId,
+      resolutionReference: resolutionRequestId,
+      appliedAt: '2026-08-20T12:15:00.000Z',
+    };
+    const acknowledgment = await app.inject({
+      method: 'POST',
+      url: '/api/v1/sync/identity-resolutions/acknowledge',
+      headers: { authorization: `Bearer ${installationToken1}` },
+      payload: acknowledgmentPayload,
+    });
+    expect(acknowledgment.statusCode).toBe(200);
+    expect(acknowledgment.json()).toMatchObject({
+      contractVersion: '1.0',
+      acknowledgmentId,
+      resolutionReference: resolutionRequestId,
+      status: 'ACKNOWLEDGED',
+      replayed: false,
+    });
+
+    const replay = await app.inject({
+      method: 'POST',
+      url: '/api/v1/sync/identity-resolutions/acknowledge',
+      headers: { authorization: `Bearer ${installationToken1}` },
+      payload: acknowledgmentPayload,
+    });
+    expect(replay.statusCode).toBe(200);
+    expect(replay.json()).toMatchObject({ replayed: true });
+
+    const conflict = await app.inject({
+      method: 'POST',
+      url: '/api/v1/sync/identity-resolutions/acknowledge',
+      headers: { authorization: `Bearer ${installationToken1}` },
+      payload: { ...acknowledgmentPayload, acknowledgmentId: randomUUID() },
+    });
+    expect(conflict.statusCode).toBe(409);
+    expect(conflict.json()).toMatchObject({
+      code: 'IDENTITY_RESOLUTION_ACKNOWLEDGMENT_CONFLICT',
+    });
+
+    const outOfScope = await app.inject({
+      method: 'POST',
+      url: '/api/v1/sync/identity-resolutions/acknowledge',
+      headers: { authorization: `Bearer ${installationToken2}` },
+      payload: { ...acknowledgmentPayload, acknowledgmentId: randomUUID() },
+    });
+    expect(outOfScope.statusCode).toBe(404);
+    expect(outOfScope.json()).toMatchObject({
+      code: 'IDENTITY_RESOLUTION_DELIVERY_NOT_FOUND',
+    });
+
+    const afterAcknowledgment = await app.inject({
+      method: 'POST',
+      url: '/api/v1/sync/identity-resolutions/pull',
+      headers: { authorization: `Bearer ${installationToken1}` },
+      payload: { contractVersion: '1.0' },
+    });
+    expect(afterAcknowledgment.statusCode).toBe(200);
+    expect(
+      afterAcknowledgment
+        .json()
+        .deliveries.some(
+          (item: { resolutionReference: string }) =>
+            item.resolutionReference === resolutionRequestId,
+        ),
+    ).toBe(false);
   });
 
   it('rejects incomplete evidence and audits the conflict without mutating the case', async () => {
@@ -587,6 +721,25 @@ async function seedIdentityReviews(pool: pg.Pool) {
          status, enrolled_at, created_at, updated_at
        ) VALUES ($1, $2, $3, $4, 'Africa/Douala', 'ACTIVE', $5, $5, $5)`,
       [installationId, organizationId, locationId, `Desktop ${suffix}`, now],
+    );
+  }
+
+  for (const [installationId, credentialToken] of [
+    [installation1, installationToken1],
+    [installation2, installationToken2],
+  ] as const) {
+    await pool.query(
+      `INSERT INTO desktop_installation_credentials (
+         id, installation_id, token_prefix, token_hash, label, status,
+         issued_at, created_at, updated_at
+       ) VALUES ($1, $2, $3, $4, 'Identity delivery test', 'ACTIVE', $5, $5, $5)`,
+      [
+        randomUUID(),
+        installationId,
+        installationTokenPrefix(credentialToken),
+        installationTokenHash(credentialToken),
+        now,
+      ],
     );
   }
 

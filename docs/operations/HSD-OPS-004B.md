@@ -85,8 +85,8 @@ patient revision therefore receives the confirmed canonical person and CHS
 Medical ID through the existing sync path. Previously stored batch responses
 remain immutable and continue to replay exactly.
 
-A dedicated desktop polling/recovery endpoint for delivering a resolution
-without a newer patient revision is intentionally a separate sync increment.
+HSD-SYNC-004A provides the dedicated durable pull and acknowledgment boundary
+for delivering a resolution without a newer patient revision.
 
 ## Verification
 

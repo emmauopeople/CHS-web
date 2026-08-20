@@ -78,6 +78,12 @@ low-bandwidth queue and review panel. It displays masked queue and candidate
 data, requests exact submitted evidence only for an opened case, and requires a
 reviewer note plus explicit confirmation before sending a version-guarded,
 idempotent resolution command.
+Each successful resolution also creates a durable desktop delivery in the same
+transaction. An installation-authenticated pull/acknowledgment boundary repeats
+the confirmed canonical person and Medical ID until the originating desktop
+reports that its SQLite update committed. This closes the review round trip
+without mutating historical batch responses or requiring a newer patient
+snapshot.
 
 Synchronization support now includes a separate operational monitoring
 boundary. A dedicated `SYNC_MONITOR` grant controls access independently of

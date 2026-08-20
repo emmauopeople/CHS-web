@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chs.example/contracts/sync/v1/identity-resolution-pull-response.schema.json",
+  "title": "CHS identity resolution pull response v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contractVersion", "deliveries", "hasMore", "serverTime"],
+  "properties": {
+    "contractVersion": { "const": "1.0" },
+    "deliveries": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "resolutionReference",
+          "localPatientReference",
+          "localPatientCode",
+          "sourceRevision",
+          "centralPersonId",
+          "chsMedicalId",
+          "resolvedAt"
+        ],
+        "properties": {
+          "resolutionReference": { "type": "string", "format": "uuid" },
+          "localPatientReference": { "type": "string", "format": "uuid" },
+          "localPatientCode": {
+            "type": "string",
+            "pattern": "^PT-[0-9]{6}$"
+          },
+          "sourceRevision": { "type": "integer", "minimum": 1 },
+          "centralPersonId": { "type": "string", "format": "uuid" },
+          "chsMedicalId": {
+            "type": "string",
+            "pattern": "^CHS-[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{4}-[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{4}-[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{4}$"
+          },
+          "resolvedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "Z$"
+          }
+        }
+      }
+    },
+    "hasMore": { "type": "boolean" },
+    "serverTime": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    }
+  }
+}

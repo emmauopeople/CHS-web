@@ -15,6 +15,10 @@ const schemaLocations = Object.freeze({
   common: 'schemas/sync/v1/common.schema.json',
   syncRequest: 'schemas/sync/v1/sync-batch-request.schema.json',
   syncResponse: 'schemas/sync/v1/sync-batch-response.schema.json',
+  resolutionPullRequest: 'schemas/sync/v1/identity-resolution-pull-request.schema.json',
+  resolutionPullResponse: 'schemas/sync/v1/identity-resolution-pull-response.schema.json',
+  resolutionAckRequest: 'schemas/sync/v1/identity-resolution-acknowledgment-request.schema.json',
+  resolutionAckResponse: 'schemas/sync/v1/identity-resolution-acknowledgment-response.schema.json',
   problem: 'schemas/sync/v1/problem-details.schema.json',
   recoveryRequest: 'schemas/identity/v1/medical-id-recovery-request.schema.json',
   recoveryResponse: 'schemas/identity/v1/medical-id-recovery-response.schema.json'
@@ -24,6 +28,10 @@ const validFixtureCases = Object.freeze([
   ['syncRequest', 'fixtures/sync/v1/valid/batch-request.json'],
   ['syncRequest', 'fixtures/sync/v1/valid/closed-session-request.json'],
   ['syncResponse', 'fixtures/sync/v1/valid/batch-response.json'],
+  ['resolutionPullRequest', 'fixtures/sync/v1/valid/identity-resolution-pull-request.json'],
+  ['resolutionPullResponse', 'fixtures/sync/v1/valid/identity-resolution-pull-response.json'],
+  ['resolutionAckRequest', 'fixtures/sync/v1/valid/identity-resolution-acknowledgment-request.json'],
+  ['resolutionAckResponse', 'fixtures/sync/v1/valid/identity-resolution-acknowledgment-response.json'],
   ['recoveryRequest', 'fixtures/identity/v1/valid/recovery-request.json'],
   ['recoveryResponse', 'fixtures/identity/v1/valid/recovery-response-match.json'],
   ['recoveryResponse', 'fixtures/identity/v1/valid/recovery-response-no-match.json'],
@@ -165,6 +173,14 @@ function assertOpenApi() {
     ['/api/v1/sync/batches:post', ['submitSyncBatchV1', 'installationBearer']],
     ['/api/v1/sync/batches/{batchId}:get', ['getSyncBatchV1', 'installationBearer']],
     [
+      '/api/v1/sync/identity-resolutions/pull:post',
+      ['pullIdentityResolutionsV1', 'installationBearer']
+    ],
+    [
+      '/api/v1/sync/identity-resolutions/acknowledge:post',
+      ['acknowledgeIdentityResolutionV1', 'installationBearer']
+    ],
+    [
       '/api/v1/identity/medical-id-recovery:post',
       ['recoverMedicalIdV1', 'operationsBearer']
     ]
@@ -253,7 +269,7 @@ export function validateContracts() {
     schemas: Object.keys(schemaLocations).length,
     validFixtures: validFixtureCases.length,
     invalidFixtures: invalidCases.length,
-    openApiOperations: 3
+    openApiOperations: 5
   })
 }
 

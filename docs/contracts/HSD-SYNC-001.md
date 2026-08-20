@@ -1,6 +1,6 @@
 # HSD-SYNC-001: Desktop-to-Web synchronization contract
 
-Status: Draft for implementation review
+Status: Implemented and under compatibility control
 
 Contract version: `1.0`
 
@@ -48,6 +48,8 @@ contract version 1.0.
 | --- | --- | --- |
 | `POST /api/v1/sync/batches` | Submit one retry-safe batch | Installation bearer token |
 | `GET /api/v1/sync/batches/{batchId}` | Recover a previously stored response | Same installation bearer token |
+| `POST /api/v1/sync/identity-resolutions/pull` | Pull pending reviewer-resolved identity assignments | Installation bearer token |
+| `POST /api/v1/sync/identity-resolutions/acknowledge` | Confirm one assignment committed locally | Same installation bearer token |
 | `POST /api/v1/identity/medical-id-recovery` | Find an existing ID without creating one | Authorized operations bearer token |
 
 Token issuance, installation registration, and operations-user authentication
@@ -223,6 +225,12 @@ known CHS medical ID, the server verifies it against the resolved person.
 
 Possible duplicates are never merged automatically. They return
 `REVIEW_REQUIRED`; no new medical ID is issued until review resolves the case.
+
+After review, the resolution is stored in a durable installation-scoped
+delivery queue. The desktop pulls pending assignments and acknowledges one only
+after the canonical person reference and CHS Medical ID commit locally. Pulls
+repeat unacknowledged assignments, and exact acknowledgment retries replay the
+stored success. Historical batch responses remain immutable.
 
 ## Medical-ID recovery
 

@@ -6,6 +6,7 @@ import {
   CHS_MEDICAL_ID_TYPE,
   generateChsMedicalId,
 } from '../sync/medical-id.js';
+import { enqueueIdentityResolutionDelivery } from '../sync/identity-resolution-delivery.js';
 import { recordPatientAccessAudit } from './audit.js';
 import type { PatientAccessScope } from './patient-query.js';
 
@@ -570,6 +571,16 @@ export async function resolveIdentityReviewCase(
         );
       }
       const replay = resultFromRow(existing, true);
+      await enqueueIdentityResolutionDelivery(client, {
+        resolutionReference: replay.resolutionRequestId,
+        installationId: replay.installationId,
+        localPatientReference: replay.localPatientReference,
+        localPatientCode: replay.localPatientCode,
+        sourceRevision: replay.sourceRevision,
+        centralPersonId: replay.resolvedPersonReference,
+        chsMedicalId: replay.chsMedicalId,
+        resolvedAt: replay.resolvedAt,
+      });
       await recordSuccessAudit(
         client,
         accessScope,
@@ -710,6 +721,16 @@ export async function resolveIdentityReviewCase(
       resolvedAt: now.toISOString(),
       replayed: false,
     };
+    await enqueueIdentityResolutionDelivery(client, {
+      resolutionReference: result.resolutionRequestId,
+      installationId: result.installationId,
+      localPatientReference: result.localPatientReference,
+      localPatientCode: result.localPatientCode,
+      sourceRevision: result.sourceRevision,
+      centralPersonId: result.resolvedPersonReference,
+      chsMedicalId: result.chsMedicalId,
+      resolvedAt: result.resolvedAt,
+    });
     await recordSuccessAudit(
       client,
       accessScope,

@@ -45,6 +45,7 @@ Discovery will produce versioned JSON Schemas and OpenAPI definitions for:
 - screening encounter and measurements;
 - per-record acceptance, rejection, or review outcome;
 - CHS medical-ID assignment acknowledgement;
+- durable reviewer-resolution pull and local-commit acknowledgment;
 - medical-ID recovery request and response;
 - compatibility/error responses.
 
@@ -66,3 +67,6 @@ the API and desktop application.
 - Version 1 covers patient demographics, sessions, encounters, and vitals.
   Lifestyle and food payloads remain deferred until their desktop persistence
   models stabilize.
+- Reviewer-resolved identity assignments remain pending on the web until the
+  originating desktop commits the canonical identifiers locally and sends an
+  idempotent acknowledgment.

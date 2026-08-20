@@ -37,6 +37,9 @@ audited case detail. Authorized reviewers can now resolve a case by linking a
 listed candidate or atomically creating a new canonical person and CHS Medical
 ID. The React portal provides the corresponding masked queue, protected
 evidence comparison, and confirmation-gated resolution workspace.
+Reviewer-resolved identities are now placed in an installation-scoped durable
+delivery queue so the originating desktop can pull, apply, and acknowledge the
+confirmed CHS Medical ID without submitting a newer patient revision.
 
 ## Prerequisites
 
@@ -77,9 +80,13 @@ API documentation is available at `GET /docs` outside production.
 
 - `POST /api/v1/sync/batches` — validate, authenticate, and process a batch
 - `GET /api/v1/sync/batches/{batchId}` — recover its stored response
+- `POST /api/v1/sync/identity-resolutions/pull` — pull pending resolved identity assignments
+- `POST /api/v1/sync/identity-resolutions/acknowledge` — acknowledge one assignment after local commit
 
-Both routes require an enrolled installation bearer token. Batch responses
+All four routes require an enrolled installation bearer token. Batch responses
 return one outcome per submitted record in the original request order.
+Identity assignments remain pending and repeat safely until the same
+installation acknowledges that its local SQLite update committed.
 
 Infrastructure operators enroll a desktop and issue its first one-time token
 with `pnpm admin:installation:enroll -- --input <enrollment.json>`. See
@@ -189,6 +196,7 @@ pnpm lint          # run lint checks
 - [HSD-SYNC-002F batch orchestration and HTTP routes](docs/sync/HSD-SYNC-002F.md)
 - [HSD-SYNC-003A controlled desktop installation enrollment](docs/sync/HSD-SYNC-003A.md)
 - [HSD-SYNC-003B desktop credential rotation and revocation](docs/sync/HSD-SYNC-003B.md)
+- [HSD-SYNC-004A identity resolution delivery](docs/sync/HSD-SYNC-004A.md)
 - [HSD-ADMIN-001A canonical screening context provisioning](docs/administration/HSD-ADMIN-001A.md)
 - [HSD-ADMIN-001B operations access provisioning](docs/administration/HSD-ADMIN-001B.md)
 - [HSD-OPS-001A canonical patient query service](docs/operations/HSD-OPS-001A.md)

@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chs.example/contracts/sync/v1/identity-resolution-pull-request.schema.json",
+  "title": "CHS identity resolution pull request v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contractVersion"],
+  "properties": {
+    "contractVersion": { "const": "1.0" },
+    "limit": { "type": "integer", "minimum": 1, "maximum": 100 }
+  }
+}

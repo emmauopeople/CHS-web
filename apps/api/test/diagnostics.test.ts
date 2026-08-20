@@ -95,7 +95,13 @@ describe('diagnostic routes', () => {
     expect(response.headers['content-type']).toContain('text/plain');
     expect(response.body).toContain('chs_api_process_cpu_user_seconds_total');
     expect(response.body).toContain('chs_api_http_requests_total');
+    expect(response.body).toContain('chs_api_identity_resolution_pulls_total');
+    expect(response.body).toContain(
+      'chs_api_identity_resolution_acknowledgments_total',
+    );
     expect(response.body).toContain('route="/health/live"');
+    expect(response.body).not.toContain('patient_id');
+    expect(response.body).not.toContain('medical_id');
   });
 
   it('exposes version provenance', async () => {

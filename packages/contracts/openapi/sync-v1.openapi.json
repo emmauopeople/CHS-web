@@ -86,6 +86,78 @@
         }
       }
     },
+    "/api/v1/sync/identity-resolutions/pull": {
+      "post": {
+        "tags": ["Synchronization", "Identity"],
+        "operationId": "pullIdentityResolutionsV1",
+        "summary": "Pull pending reviewer-resolved identity assignments",
+        "security": [{ "installationBearer": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "../schemas/sync/v1/identity-resolution-pull-request.schema.json"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Pending identity assignments for this installation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../schemas/sync/v1/identity-resolution-pull-response.schema.json"
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Problem" },
+          "401": { "$ref": "#/components/responses/Problem" },
+          "429": { "$ref": "#/components/responses/Problem" },
+          "500": { "$ref": "#/components/responses/Problem" },
+          "503": { "$ref": "#/components/responses/Problem" }
+        }
+      }
+    },
+    "/api/v1/sync/identity-resolutions/acknowledge": {
+      "post": {
+        "tags": ["Synchronization", "Identity"],
+        "operationId": "acknowledgeIdentityResolutionV1",
+        "summary": "Acknowledge one identity assignment after local commit",
+        "security": [{ "installationBearer": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "../schemas/sync/v1/identity-resolution-acknowledgment-request.schema.json"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Stored replay-safe acknowledgment",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../schemas/sync/v1/identity-resolution-acknowledgment-response.schema.json"
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Problem" },
+          "401": { "$ref": "#/components/responses/Problem" },
+          "404": { "$ref": "#/components/responses/Problem" },
+          "409": { "$ref": "#/components/responses/Problem" },
+          "429": { "$ref": "#/components/responses/Problem" },
+          "500": { "$ref": "#/components/responses/Problem" },
+          "503": { "$ref": "#/components/responses/Problem" }
+        }
+      }
+    },
     "/api/v1/identity/medical-id-recovery": {
       "post": {
         "tags": ["Identity"],

@@ -16,6 +16,7 @@ import { registerOperationsRoutes } from './operations/routes.js';
 import { registerMedicalIdRecoveryRoutes } from './operations/medical-id-recovery-routes.js';
 import { registerIdentityReviewRoutes } from './operations/identity-review-routes.js';
 import { registerSyncMonitoringRoutes } from './operations/sync-monitoring-routes.js';
+import { registerIdentityResolutionDeliveryRoutes } from './sync/identity-resolution-delivery-routes.js';
 import { registerSyncRoutes } from './sync/routes.js';
 
 export type BuildAppDependencies = Readonly<{
@@ -113,6 +114,10 @@ export async function buildApp(dependencies: BuildAppDependencies) {
   });
 
   await registerSyncRoutes(app, {
+    database: dependencies.database.pool,
+    metrics: syncMetrics,
+  });
+  await registerIdentityResolutionDeliveryRoutes(app, {
     database: dependencies.database.pool,
     metrics: syncMetrics,
   });

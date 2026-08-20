@@ -75,5 +75,5 @@ idempotency, and audit behavior.
 ## Out of scope
 
 This workspace does not merge canonical persons, dismiss cases, edit submitted
-or canonical demographics, choose arbitrary persons, or poll resolved IDs from
-the desktop. Those require separate contracts and increments.
+or canonical demographics, or choose arbitrary persons. HSD-SYNC-004A provides
+the separate desktop resolution-delivery contract and endpoints.

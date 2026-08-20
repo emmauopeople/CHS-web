@@ -41,6 +41,7 @@ test(
         '0007_sync_operations_monitoring.sql',
         '0008_identity_review_evidence.sql',
         '0009_identity_review_resolution.sql',
+        '0010_identity_resolution_delivery.sql',
       ]);
       assert.deepEqual(secondRun.applied, []);
 
@@ -52,7 +53,7 @@ test(
         [schema],
       );
       const tableNames = tableResult.rows.map((row) => row.table_name);
-      assert.equal(tableNames.length, 30);
+      assert.equal(tableNames.length, 31);
       assert.ok(tableNames.includes('schema_migrations'));
       assert.ok(tableNames.includes('screening_encounters'));
       assert.ok(tableNames.includes('vital_readings'));
@@ -64,6 +65,7 @@ test(
       assert.ok(tableNames.includes('medical_id_recovery_candidates'));
       assert.ok(tableNames.includes('identity_review_evidence_snapshots'));
       assert.ok(tableNames.includes('identity_review_resolutions'));
+      assert.ok(tableNames.includes('identity_resolution_deliveries'));
 
       const evidenceColumns = await client.query(
         `SELECT column_name, data_type

@@ -1,0 +1,16 @@
+{
+  "contractVersion": "1.0",
+  "deliveries": [
+    {
+      "resolutionReference": "81000000-0000-4000-8000-000000000001",
+      "localPatientReference": "51000000-0000-4000-8000-000000000001",
+      "localPatientCode": "PT-000001",
+      "sourceRevision": 2,
+      "centralPersonId": "41000000-0000-4000-8000-000000000001",
+      "chsMedicalId": "CHS-AAAA-BBBB-CCCC",
+      "resolvedAt": "2026-08-20T12:10:00.000Z"
+    }
+  ],
+  "hasMore": false,
+  "serverTime": "2026-08-20T12:11:00.000Z"
+}

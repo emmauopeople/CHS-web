@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chs.example/contracts/sync/v1/identity-resolution-acknowledgment-request.schema.json",
+  "title": "CHS identity resolution acknowledgment request v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractVersion",
+    "acknowledgmentId",
+    "resolutionReference",
+    "appliedAt"
+  ],
+  "properties": {
+    "contractVersion": { "const": "1.0" },
+    "acknowledgmentId": { "type": "string", "format": "uuid" },
+    "resolutionReference": { "type": "string", "format": "uuid" },
+    "appliedAt": { "type": "string", "format": "date-time" }
+  }
+}

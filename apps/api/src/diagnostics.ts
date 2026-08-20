@@ -14,6 +14,8 @@ export type SyncMetrics = Readonly<{
     replayed: boolean,
   ) => void;
   recordOutcome: (resourceType: string, status: string) => void;
+  recordIdentityResolutionPull: (deliveryCount: number, hasMore: boolean) => void;
+  recordIdentityResolutionAcknowledgment: (replayed: boolean) => void;
 }>;
 
 const healthResponseSchema = {
@@ -58,6 +60,18 @@ export async function registerDiagnostics(
     name: 'chs_api_sync_record_outcomes_total',
     help: 'Total desktop synchronization record outcomes',
     labelNames: ['resource_type', 'status'] as const,
+    registers: [registry],
+  });
+  const identityResolutionPulls = new Counter({
+    name: 'chs_api_identity_resolution_pulls_total',
+    help: 'Total successful desktop identity resolution pulls',
+    labelNames: ['result', 'has_more'] as const,
+    registers: [registry],
+  });
+  const identityResolutionAcknowledgments = new Counter({
+    name: 'chs_api_identity_resolution_acknowledgments_total',
+    help: 'Total successful or replayed desktop identity resolution acknowledgments',
+    labelNames: ['replayed'] as const,
     registers: [registry],
   });
   const requestStartTimes = new WeakMap<object, bigint>();
@@ -154,6 +168,17 @@ export async function registerDiagnostics(
     },
     recordOutcome(resourceType, status) {
       syncOutcomes.inc({ resource_type: resourceType, status });
+    },
+    recordIdentityResolutionPull(deliveryCount, hasMore) {
+      identityResolutionPulls.inc({
+        result: deliveryCount === 0 ? 'empty' : 'deliveries',
+        has_more: hasMore ? 'true' : 'false',
+      });
+    },
+    recordIdentityResolutionAcknowledgment(replayed) {
+      identityResolutionAcknowledgments.inc({
+        replayed: replayed ? 'true' : 'false',
+      });
     },
   };
 }

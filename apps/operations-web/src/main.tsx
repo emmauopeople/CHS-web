@@ -10,7 +10,7 @@ function ConfigurationError() {
     <main className="sign-in-page">
       <section className="sign-in-card">
         <p className="eyebrow">Configuration required</p>
-        <h1>Patient Viewer unavailable</h1>
+        <h1>Operations portal unavailable</h1>
         <p>The operations web configuration is incomplete. Contact the system administrator.</p>
       </section>
     </main>

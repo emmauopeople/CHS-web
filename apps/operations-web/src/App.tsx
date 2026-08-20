@@ -14,6 +14,7 @@ import {
 import type { OperationsWebConfig } from './config';
 import { displayValue, formatDate, formatInstant, humanize } from './format';
 import { MedicalIdRecovery } from './MedicalIdRecovery';
+import { SyncMonitoring } from './SyncMonitoring';
 import type {
   PatientAccessReason,
   PatientDetail,
@@ -83,10 +84,10 @@ function SignInView({
         <Brand />
         <div className="sign-in-copy">
           <p className="eyebrow">Authorized personnel only</p>
-          <h1>Patient Viewer</h1>
+          <h1>Clinical Operations</h1>
           <p>
-            Search clean, deduplicated screening records stored in the central
-            CHS database.
+            Review clean patient records, recover existing Medical IDs, and
+            monitor desktop synchronization.
           </p>
         </div>
         {error ? <div className="alert alert-error" role="alert">{error}</div> : null}
@@ -381,7 +382,7 @@ export default function App({ config }: AppProps) {
   const [authBusy, setAuthBusy] = useState(() => hasAuthorizationResponse());
   const [authError, setAuthError] = useState<string | null>(null);
   const [reason, setReason] = useState<PatientAccessReason | ''>('');
-  const [workspaceView, setWorkspaceView] = useState<'PATIENTS' | 'RECOVERY'>('PATIENTS');
+  const [workspaceView, setWorkspaceView] = useState<'PATIENTS' | 'RECOVERY' | 'SYNC'>('PATIENTS');
   const [form, setForm] = useState<SearchForm>(initialSearch);
   const [submittedForm, setSubmittedForm] = useState<SearchForm | null>(null);
   const [results, setResults] = useState<PatientListPage | null>(null);
@@ -507,7 +508,7 @@ export default function App({ config }: AppProps) {
     <div className="app-shell">
       <header className="topbar">
         <Brand />
-        <nav className="workspace-nav" aria-label="Clinical operations">
+        <nav className="workspace-nav" aria-label="Operations workspaces">
           <button
             className={workspaceView === 'PATIENTS' ? 'active' : ''}
             type="button"
@@ -525,6 +526,16 @@ export default function App({ config }: AppProps) {
           >
             Recover Medical ID
           </button>
+          <button
+            className={workspaceView === 'SYNC' ? 'active' : ''}
+            type="button"
+            onClick={() => {
+              clearPatientData();
+              setWorkspaceView('SYNC');
+            }}
+          >
+            Sync Monitoring
+          </button>
         </nav>
         <div className="topbar-actions">
           <span className="secure-indicator"><i aria-hidden="true" /> Secure session</span>
@@ -534,29 +545,49 @@ export default function App({ config }: AppProps) {
       <main className="workspace">
         <section className="page-heading">
           <div>
-            <p className="eyebrow">Central PostgreSQL · canonical records</p>
-            <h1>{workspaceView === 'PATIENTS' ? 'Patient Viewer' : 'Medical ID Recovery'}</h1>
+            <p className="eyebrow">
+              {workspaceView === 'SYNC'
+                ? 'Central PostgreSQL · synchronization operations'
+                : 'Central PostgreSQL · canonical records'}
+            </p>
+            <h1>
+              {workspaceView === 'PATIENTS'
+                ? 'Patient Viewer'
+                : workspaceView === 'RECOVERY'
+                  ? 'Medical ID Recovery'
+                  : 'Sync Monitoring'}
+            </h1>
             <p>
               {workspaceView === 'PATIENTS'
                 ? 'Search deduplicated patient records and review accepted screening history.'
-                : 'Safely recover an existing CHS Medical ID without creating a replacement.'}
+                : workspaceView === 'RECOVERY'
+                  ? 'Safely recover an existing CHS Medical ID without creating a replacement.'
+                  : 'Inspect scoped batch health and redacted synchronization outcomes.'}
             </p>
           </div>
-          <div className="reason-field">
-            <label htmlFor="reason-code">Reason for access <span aria-hidden="true">*</span></label>
-            <select
-              id="reason-code"
-              value={reason}
-              onChange={(event) => {
-                setReason(event.target.value as PatientAccessReason | '');
-                clearPatientData();
-              }}
-            >
-              <option value="">Select reason</option>
-              {reasons.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
-            </select>
-            <small>Required and recorded in the access audit.</small>
-          </div>
+          {workspaceView === 'SYNC' ? (
+            <div className="reason-field">
+              <span className="reason-label">Reason for access</span>
+              <div className="fixed-reason">Operations support</div>
+              <small>Fixed by the monitoring contract and recorded in the audit.</small>
+            </div>
+          ) : (
+            <div className="reason-field">
+              <label htmlFor="reason-code">Reason for access <span aria-hidden="true">*</span></label>
+              <select
+                id="reason-code"
+                value={reason}
+                onChange={(event) => {
+                  setReason(event.target.value as PatientAccessReason | '');
+                  clearPatientData();
+                }}
+              >
+                <option value="">Select reason</option>
+                {reasons.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+              </select>
+              <small>Required and recorded in the access audit.</small>
+            </div>
+          )}
         </section>
         {workspaceView === 'PATIENTS' ? (
           <>
@@ -607,10 +638,18 @@ export default function App({ config }: AppProps) {
               </section>
             )}
           </>
-        ) : api ? (
+        ) : workspaceView === 'RECOVERY' && api ? (
           <MedicalIdRecovery
             api={api}
             reason={reason}
+            onUnauthorized={() => {
+              clearAuthSession();
+              setSession(null);
+            }}
+          />
+        ) : api ? (
+          <SyncMonitoring
+            api={api}
             onUnauthorized={() => {
               clearAuthSession();
               setSession(null);

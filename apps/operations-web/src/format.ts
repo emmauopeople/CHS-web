@@ -19,6 +19,21 @@ export function formatInstant(value: string | null): string {
   }).format(date);
 }
 
+export function formatDuration(value: number | null): string {
+  if (value === null || !Number.isSafeInteger(value) || value < 0) return '—';
+  if (value < 1_000) return `${value} ms`;
+  const seconds = Math.floor(value / 1_000);
+  if (seconds < 60) return `${seconds} sec`;
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  if (minutes < 60) {
+    return remainingSeconds === 0 ? `${minutes} min` : `${minutes} min ${remainingSeconds} sec`;
+  }
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  return remainingMinutes === 0 ? `${hours} hr` : `${hours} hr ${remainingMinutes} min`;
+}
+
 export function humanize(value: string | null): string {
   if (!value) return '—';
   return value

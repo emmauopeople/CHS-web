@@ -6,6 +6,9 @@ import type {
   MedicalIdRecoverySearchResult,
   PersonStatus,
   ProblemDetails,
+  SyncBatchMonitoringDetail,
+  SyncBatchMonitoringPage,
+  SyncBatchStatus,
 } from './types';
 
 export class ApiError extends Error {
@@ -48,12 +51,52 @@ export type MedicalIdRecoveryRevealInput = Readonly<{
   confirmed: true;
 }>;
 
+export type SyncBatchMonitoringSearchInput = Readonly<{
+  reasonCode: 'OPERATIONS_SUPPORT';
+  status?: SyncBatchStatus | 'ALL';
+  installationId?: string;
+  receivedFrom?: string;
+  receivedTo?: string;
+  page?: number;
+  pageSize?: number;
+}>;
+
+export type SyncBatchMonitoringDetailInput = Readonly<{
+  reasonCode: 'OPERATIONS_SUPPORT';
+  batchReference: string;
+}>;
+
 function object(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const medicalIdPattern = /^CHS-[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{4}-[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{4}-[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{4}$/;
+const safeErrorCodePattern = /^[A-Z][A-Z0-9_]{0,99}$/;
+const syncBatchStatuses = ['PROCESSING', 'ACCEPTED', 'PARTIAL', 'REJECTED', 'FAILED'];
+const syncAttentionStates = ['HEALTHY', 'ATTENTION', 'STALLED'];
+const syncResourceTypes = ['PATIENT', 'SCREENING_SESSION', 'SCREENING_ENCOUNTER', 'VITALS'];
+const syncOutcomeStatuses = [
+  'PROCESSING',
+  'ACCEPTED',
+  'UNCHANGED',
+  'REVIEW_REQUIRED',
+  'REJECTED',
+  'RETRY',
+];
+
+function safeCount(value: unknown): value is number {
+  return Number.isSafeInteger(value) && Number(value) >= 0;
+}
+
+function validInstant(value: unknown): value is string {
+  return (
+    typeof value === 'string' &&
+    value.length <= 40 &&
+    /(?:Z|[+-]\d{2}:\d{2})$/i.test(value) &&
+    Number.isFinite(Date.parse(value))
+  );
+}
 
 function listPage(value: unknown): value is PatientListPage {
   return (
@@ -134,6 +177,67 @@ function recoveryRevealResult(
   );
 }
 
+function syncMonitoringItem(value: unknown): boolean {
+  if (!object(value) || !object(value.counts)) return false;
+  return (
+    typeof value.batchReference === 'string' && uuidPattern.test(value.batchReference) &&
+    typeof value.sourceBatchId === 'string' && uuidPattern.test(value.sourceBatchId) &&
+    typeof value.installationId === 'string' && uuidPattern.test(value.installationId) &&
+    typeof value.deploymentName === 'string' &&
+    typeof value.organizationName === 'string' &&
+    typeof value.locationName === 'string' &&
+    typeof value.status === 'string' && syncBatchStatuses.includes(value.status) &&
+    typeof value.attentionState === 'string' && syncAttentionStates.includes(value.attentionState) &&
+    typeof value.contractVersion === 'string' &&
+    typeof value.desktopApplicationVersion === 'string' &&
+    Number.isSafeInteger(value.desktopSchemaVersion) && Number(value.desktopSchemaVersion) >= 1 &&
+    validInstant(value.sourceCreatedAt) &&
+    validInstant(value.receivedAt) &&
+    (value.completedAt === null || validInstant(value.completedAt)) &&
+    (value.durationMs === null || safeCount(value.durationMs)) &&
+    safeCount(value.counts.accepted) &&
+    safeCount(value.counts.unchanged) &&
+    safeCount(value.counts.reviewRequired) &&
+    safeCount(value.counts.rejected) &&
+    safeCount(value.counts.retry)
+  );
+}
+
+function syncMonitoringPage(value: unknown): value is SyncBatchMonitoringPage {
+  return (
+    object(value) &&
+    Number.isSafeInteger(value.page) && Number(value.page) >= 1 &&
+    Number.isSafeInteger(value.pageSize) && Number(value.pageSize) >= 1 && Number(value.pageSize) <= 100 &&
+    safeCount(value.totalItems) &&
+    safeCount(value.totalPages) &&
+    Array.isArray(value.items) &&
+    value.items.every(syncMonitoringItem)
+  );
+}
+
+function syncMonitoringDetail(value: unknown): value is SyncBatchMonitoringDetail {
+  return (
+    syncMonitoringItem(value) &&
+    object(value) &&
+    Array.isArray(value.outcomeCounts) &&
+    value.outcomeCounts.every(
+      (item) =>
+        object(item) &&
+        typeof item.resourceType === 'string' && syncResourceTypes.includes(item.resourceType) &&
+        typeof item.status === 'string' && syncOutcomeStatuses.includes(item.status) &&
+        safeCount(item.count),
+    ) &&
+    Array.isArray(value.errorCodeCounts) &&
+    value.errorCodeCounts.every(
+      (item) =>
+        object(item) &&
+        typeof item.code === 'string' && safeErrorCodePattern.test(item.code) &&
+        typeof item.retryable === 'boolean' &&
+        safeCount(item.count),
+    )
+  );
+}
+
 async function post<T>(
   apiBaseUrl: string,
   path: string,
@@ -209,6 +313,26 @@ export function createOperationsApi(
         accessToken,
         input,
         recoveryRevealResult,
+        fetchImplementation,
+      );
+    },
+    searchSyncBatches(input: SyncBatchMonitoringSearchInput) {
+      return post(
+        apiBaseUrl,
+        '/api/v1/operations/sync/batches/search',
+        accessToken,
+        input,
+        syncMonitoringPage,
+        fetchImplementation,
+      );
+    },
+    getSyncBatchDetail(input: SyncBatchMonitoringDetailInput) {
+      return post(
+        apiBaseUrl,
+        '/api/v1/operations/sync/batches/detail',
+        accessToken,
+        input,
+        syncMonitoringDetail,
         fetchImplementation,
       );
     },

@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { displayValue, formatDate, formatInstant, humanize } from '../src/format';
+import {
+  displayValue,
+  formatDate,
+  formatDuration,
+  formatInstant,
+  humanize,
+} from '../src/format';
 
 describe('patient display formatting', () => {
   it('formats local dates without changing their calendar day', () => {
@@ -19,5 +25,14 @@ describe('patient display formatting', () => {
   it('does not display an invalid clinical instant', () => {
     expect(formatInstant('invalid')).toBe('—');
     expect(formatInstant(null)).toBe('—');
+  });
+
+  it('formats synchronization durations without inventing precision', () => {
+    expect(formatDuration(850)).toBe('850 ms');
+    expect(formatDuration(42_900)).toBe('42 sec');
+    expect(formatDuration(125_000)).toBe('2 min 5 sec');
+    expect(formatDuration(7_500_000)).toBe('2 hr 5 min');
+    expect(formatDuration(-1)).toBe('—');
+    expect(formatDuration(null)).toBe('—');
   });
 });

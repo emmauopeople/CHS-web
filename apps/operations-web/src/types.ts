@@ -131,3 +131,69 @@ export type MedicalIdRecoveryRevealResult = Readonly<{
   status: 'REVEALED';
   chsMedicalId: string;
 }>;
+
+export type SyncBatchStatus =
+  | 'PROCESSING'
+  | 'ACCEPTED'
+  | 'PARTIAL'
+  | 'REJECTED'
+  | 'FAILED';
+
+export type SyncBatchAttentionState = 'HEALTHY' | 'ATTENTION' | 'STALLED';
+
+export type SyncBatchMonitoringItem = Readonly<{
+  batchReference: string;
+  sourceBatchId: string;
+  installationId: string;
+  deploymentName: string;
+  organizationName: string;
+  locationName: string;
+  status: SyncBatchStatus;
+  attentionState: SyncBatchAttentionState;
+  contractVersion: string;
+  desktopApplicationVersion: string;
+  desktopSchemaVersion: number;
+  sourceCreatedAt: string;
+  receivedAt: string;
+  completedAt: string | null;
+  durationMs: number | null;
+  counts: Readonly<{
+    accepted: number;
+    unchanged: number;
+    reviewRequired: number;
+    rejected: number;
+    retry: number;
+  }>;
+}>;
+
+export type SyncBatchMonitoringPage = Readonly<{
+  page: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+  items: readonly SyncBatchMonitoringItem[];
+}>;
+
+export type SyncBatchOutcomeCount = Readonly<{
+  resourceType: 'PATIENT' | 'SCREENING_SESSION' | 'SCREENING_ENCOUNTER' | 'VITALS';
+  status:
+    | 'PROCESSING'
+    | 'ACCEPTED'
+    | 'UNCHANGED'
+    | 'REVIEW_REQUIRED'
+    | 'REJECTED'
+    | 'RETRY';
+  count: number;
+}>;
+
+export type SyncBatchErrorCodeCount = Readonly<{
+  code: string;
+  retryable: boolean;
+  count: number;
+}>;
+
+export type SyncBatchMonitoringDetail = SyncBatchMonitoringItem &
+  Readonly<{
+    outcomeCounts: readonly SyncBatchOutcomeCount[];
+    errorCodeCounts: readonly SyncBatchErrorCodeCount[];
+  }>;

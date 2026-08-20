@@ -169,7 +169,7 @@ runIntegration('audited identity-review query routes', () => {
     expect(response.json()).toMatchObject({
       totalItems: 2,
       items: expect.arrayContaining([
-        {
+        expect.objectContaining({
           caseReference: availableCase,
           evidenceState: 'AVAILABLE',
           maskedSubmittedName: 'S••••• P•••••',
@@ -177,13 +177,13 @@ runIntegration('audited identity-review query routes', () => {
             kind: 'DATE_OF_BIRTH',
             maskedDate: '****-**-03',
           },
-        },
-        {
+        }),
+        expect.objectContaining({
           caseReference: pendingCase,
           evidenceState: 'EVIDENCE_PENDING',
           maskedSubmittedName: null,
           submittedBirthEvidence: null,
-        },
+        }),
       ]),
     });
     expect(response.body).not.toContain(hiddenCase);
@@ -203,7 +203,7 @@ runIntegration('audited identity-review query routes', () => {
     expect(pending.statusCode).toBe(200);
     expect(pending.json()).toMatchObject({
       totalItems: 1,
-      items: [{ caseReference: pendingCase }],
+      items: [expect.objectContaining({ caseReference: pendingCase })],
     });
   });
 

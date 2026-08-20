@@ -183,7 +183,7 @@ runIntegration('operations access provisioning with PostgreSQL', () => {
 
   it('adds another organization grant to the exact existing principal', async () => {
     const ids = [
-      '91000000-0000-4000-8000-000000000104',
+      '91000000-0000-4000-8000-000000000105',
       '81000000-0000-4000-8000-000000000102',
       '82000000-0000-4000-8000-000000000102',
     ];

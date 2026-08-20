@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { ApiError, createOperationsApi } from '../src/api';
 
-describe('operations patient API client', () => {
+describe('operations API client', () => {
   it('keeps search values out of the URL and sends the bearer token only in a header', async () => {
     const fetchImplementation = vi.fn<typeof fetch>().mockResolvedValue(
       new Response(
@@ -183,6 +183,102 @@ describe('operations patient API client', () => {
         recoveryToken: 'r'.repeat(43),
         candidateReference: '21000000-0000-4000-8000-000000000001',
         confirmed: true,
+      }),
+    ).rejects.toMatchObject({ status: 502, code: 'INVALID_API_RESPONSE' });
+  });
+
+  it('keeps synchronization filters and batch references out of URLs', async () => {
+    const batch = {
+      batchReference: '11000000-0000-4000-8000-000000000001',
+      sourceBatchId: '21000000-0000-4000-8000-000000000001',
+      installationId: '31000000-0000-4000-8000-000000000001',
+      deploymentName: 'Desktop One',
+      organizationName: 'Program One',
+      locationName: 'Site One',
+      status: 'PARTIAL',
+      attentionState: 'ATTENTION',
+      contractVersion: '1.0',
+      desktopApplicationVersion: '0.1.0',
+      desktopSchemaVersion: 14,
+      sourceCreatedAt: '2026-08-20T12:00:00.000Z',
+      receivedAt: '2026-08-20T12:00:01.000Z',
+      completedAt: '2026-08-20T12:00:02.000Z',
+      durationMs: 1000,
+      counts: { accepted: 1, unchanged: 0, reviewRequired: 0, rejected: 1, retry: 0 },
+    };
+    const fetchImplementation = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({
+          page: 1,
+          pageSize: 25,
+          totalItems: 1,
+          totalPages: 1,
+          items: [batch],
+        }), { status: 200 }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({
+          ...batch,
+          outcomeCounts: [{ resourceType: 'VITALS', status: 'RETRY', count: 1 }],
+          errorCodeCounts: [{ code: 'DEPENDENCY_NOT_AVAILABLE', retryable: true, count: 1 }],
+        }), { status: 200 }),
+      );
+    const api = createOperationsApi('/internal', 'access-token', fetchImplementation);
+
+    await api.searchSyncBatches({
+      reasonCode: 'OPERATIONS_SUPPORT',
+      status: 'PARTIAL',
+      installationId: batch.installationId,
+      receivedFrom: '2026-08-20T00:00:00.000Z',
+    });
+    await api.getSyncBatchDetail({
+      reasonCode: 'OPERATIONS_SUPPORT',
+      batchReference: batch.batchReference,
+    });
+
+    const [searchUrl, searchInit] = fetchImplementation.mock.calls[0]!;
+    const [detailUrl, detailInit] = fetchImplementation.mock.calls[1]!;
+    expect(searchUrl).toBe('/internal/api/v1/operations/sync/batches/search');
+    expect(String(searchUrl)).not.toContain(batch.installationId);
+    expect(JSON.parse(String(searchInit?.body))).toMatchObject({
+      reasonCode: 'OPERATIONS_SUPPORT',
+      installationId: batch.installationId,
+    });
+    expect(detailUrl).toBe('/internal/api/v1/operations/sync/batches/detail');
+    expect(String(detailUrl)).not.toContain(batch.batchReference);
+    expect(JSON.parse(String(detailInit?.body))).toMatchObject({
+      batchReference: batch.batchReference,
+    });
+    expect(detailInit?.cache).toBe('no-store');
+  });
+
+  it('fails closed for malformed synchronization monitoring responses', async () => {
+    const malformedPage = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(JSON.stringify({
+        page: 1,
+        pageSize: 25,
+        totalItems: 1,
+        totalPages: 1,
+        items: [{ batchReference: 'not-a-uuid', response_body: { patient: 'leak' } }],
+      }), { status: 200 }),
+    );
+    await expect(
+      createOperationsApi('', 'token', malformedPage).searchSyncBatches({
+        reasonCode: 'OPERATIONS_SUPPORT',
+      }),
+    ).rejects.toMatchObject({ status: 502, code: 'INVALID_API_RESPONSE' });
+
+    const malformedDetail = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(JSON.stringify({
+        batchReference: '11000000-0000-4000-8000-000000000001',
+        errorCodeCounts: [{ code: 'patient name leaked', retryable: false, count: 1 }],
+      }), { status: 200 }),
+    );
+    await expect(
+      createOperationsApi('', 'token', malformedDetail).getSyncBatchDetail({
+        reasonCode: 'OPERATIONS_SUPPORT',
+        batchReference: '11000000-0000-4000-8000-000000000001',
       }),
     ).rejects.toMatchObject({ status: 502, code: 'INVALID_API_RESPONSE' });
   });

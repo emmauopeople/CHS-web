@@ -26,7 +26,8 @@ viewer consumes this boundary with PKCE sign-in, reason-gated patient search,
 canonical screening and vitals detail views, and a permission-controlled
 one-time workflow for recovering an existing CHS Medical ID.
 The operations API also exposes a scoped, redacted view of desktop sync batch
-health for operational troubleshooting.
+health. The React operations portal consumes it through a low-bandwidth,
+manually refreshed synchronization dashboard.
 
 ## Prerequisites
 
@@ -103,6 +104,10 @@ Both endpoints require the dedicated `SYNC_MONITOR` grant and the controlled
 codes only. Raw payloads, stored response bodies, payload hashes, record IDs,
 patient identifiers, error paths, and error messages are excluded.
 
+The operations portal provides a Sync Monitoring workspace for filtering,
+paging, and inspecting these redacted results. Filters and batch references
+remain in non-cacheable POST bodies and are not stored in browser URLs.
+
 ## Commands
 
 ```bash
@@ -132,6 +137,7 @@ pnpm lint          # run lint checks
 - [HSD-OPS-002A React operations patient viewer](docs/operations/HSD-OPS-002A.md)
 - [HSD-OPS-002B Medical ID recovery](docs/operations/HSD-OPS-002B.md)
 - [HSD-OPS-003A synchronization monitoring API](docs/operations/HSD-OPS-003A.md)
+- [HSD-OPS-003B React synchronization dashboard](docs/operations/HSD-OPS-003B.md)
 - [HSD-DATA-001 canonical PostgreSQL schema](docs/database/HSD-DATA-001.md)
 
 ## Security note

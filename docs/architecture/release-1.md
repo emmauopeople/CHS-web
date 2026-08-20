@@ -66,8 +66,11 @@ boundary. A dedicated `SYNC_MONITOR` grant controls access independently of
 patient viewing and Medical ID recovery. Scoped API queries show batch state,
 desktop/version context, outcome counts, stalled processing, and grouped stable
 error codes. They deliberately exclude clinical payloads, response bodies,
-payload hashes, record identifiers, error paths, and error messages. A React
-dashboard will consume this boundary in HSD-OPS-003B.
+payload hashes, record identifiers, error paths, and error messages. The React
+operations portal consumes this boundary through a manually refreshed,
+responsive dashboard with explicit loading, empty, error, and scoped-not-found
+states. Page summary cards are clearly limited to either all matching batches
+or the current page so the UI does not overstate aggregate health.
 
 ## Non-negotiable data rules
 

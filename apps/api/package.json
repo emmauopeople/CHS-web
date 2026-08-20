@@ -23,6 +23,8 @@
   },
   "scripts": {
     "admin:installation:enroll": "node --env-file-if-exists=../../.env --import tsx src/commands/enroll-installation.ts",
+    "admin:installation:revoke": "node --env-file-if-exists=../../.env --import tsx src/commands/manage-installation-credential.ts revoke",
+    "admin:installation:rotate": "node --env-file-if-exists=../../.env --import tsx src/commands/manage-installation-credential.ts rotate",
     "build": "tsc -p tsconfig.build.json",
     "dev": "node --env-file-if-exists=../../.env --watch --import tsx src/main.ts",
     "lint": "tsc -p tsconfig.json --noEmit",

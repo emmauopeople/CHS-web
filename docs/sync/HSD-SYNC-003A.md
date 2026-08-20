@@ -74,7 +74,7 @@ cross-organization canonical records.
 Reusing an installation UUID never creates a second credential implicitly. An
 exact retry returns `INSTALLATION_ALREADY_ENROLLED`; a changed binding returns
 `INSTALLATION_CONFLICT`. If the one-time token is lost, use the explicit
-credential-rotation process delivered by the next increment rather than
+[HSD-SYNC-003B](HSD-SYNC-003B.md) credential-rotation process rather than
 re-running enrollment.
 
 ## Security boundary
@@ -94,6 +94,7 @@ auditing, exact-retry refusal, conflict rejection, and transaction rollback.
 
 ## Out of scope
 
-Credential rotation/revocation, installation suspension, organization/location
-onboarding, a browser-based administration console, hospital/provider OAuth2,
-FHIR access, and cloud secret-manager delivery remain separate increments.
+Credential rotation/revocation is delivered by HSD-SYNC-003B. Installation
+suspension, organization/location onboarding, a browser-based administration
+console, hospital/provider OAuth2, FHIR access, and cloud secret-manager
+delivery remain separate increments.

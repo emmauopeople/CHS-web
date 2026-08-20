@@ -85,6 +85,14 @@ reports that its SQLite update committed. This closes the review round trip
 without mutating historical batch responses or requiring a newer patient
 snapshot.
 
+Lifestyle synchronization contract discovery is now frozen against desktop
+schema version 15. The next contract slice is one completed `LIFESTYLE` /
+`lifestyle.v1` full snapshot, dependent on its accepted encounter and carrying
+the exact referenced alcohol, tobacco, and work baseline versions. Desktop
+drafts and in-progress work remain local. Machine-readable schemas, PostgreSQL
+storage, ingestion, operations viewing, desktop transport, and amendment/void
+semantics are not implemented by the discovery task.
+
 Synchronization support now includes a separate operational monitoring
 boundary. A dedicated `SYNC_MONITOR` grant controls access independently of
 patient viewing and Medical ID recovery. Scoped API queries show batch state,
@@ -106,6 +114,10 @@ or the current page so the UI does not overstate aggregate health.
   desktop copy was lost.
 - Ambiguous identity matches enter a review workflow rather than being merged
   automatically.
+- A completed Lifestyle week retains the exact immutable baseline versions
+  used for interpretation; a later active baseline never rewrites history.
+- Lifestyle drafts and in-progress weekly work are not central canonical
+  records and must not be synchronized as `lifestyle.v1`.
 - Raw payload retention, if approved, is separated from canonical data and has
   an explicit retention policy.
 - Patient data and credentials never appear in application logs or metric

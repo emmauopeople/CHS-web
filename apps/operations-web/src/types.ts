@@ -197,3 +197,104 @@ export type SyncBatchMonitoringDetail = SyncBatchMonitoringItem &
     outcomeCounts: readonly SyncBatchOutcomeCount[];
     errorCodeCounts: readonly SyncBatchErrorCodeCount[];
   }>;
+
+export type IdentityReviewEvidenceState = 'AVAILABLE' | 'EVIDENCE_PENDING';
+
+export type MaskedBirthEvidence =
+  | Readonly<{ kind: 'DATE_OF_BIRTH'; maskedDate: string }>
+  | Readonly<{
+      kind: 'APPROXIMATE_AGE';
+      ageYears: number;
+      asOfYear: number;
+    }>;
+
+export type IdentityReviewQueueItem = Readonly<{
+  caseReference: string;
+  status: 'OPEN';
+  evidenceState: IdentityReviewEvidenceState;
+  organizationName: string;
+  locationName: string;
+  installationId: string;
+  deploymentName: string;
+  openedAt: string;
+  updatedAt: string;
+  candidateCount: number;
+  latestSourceRevision: number | null;
+  sourceCapturedAt: string | null;
+  localPatientCode: string | null;
+  maskedSubmittedName: string | null;
+  submittedBirthEvidence: MaskedBirthEvidence | null;
+}>;
+
+export type IdentityReviewQueuePage = Readonly<{
+  page: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+  items: readonly IdentityReviewQueueItem[];
+}>;
+
+export type IdentityReviewEvidenceDetail = Readonly<{
+  sourceRecordReference: string;
+  sourceRevision: number;
+  schemaVersion: string;
+  capturedAt: string;
+  localPatientCode: string;
+  maskedClaimedChsMedicalId: string | null;
+  displayName: string;
+  givenName: string | null;
+  familyName: string | null;
+  otherNames: string | null;
+  dateOfBirth: string | null;
+  approximateAgeYears: number | null;
+  ageAsOfDate: string | null;
+  sex: 'FEMALE' | 'MALE' | 'OTHER' | 'UNKNOWN';
+  acknowledgmentStatus: 'ACKNOWLEDGED' | 'DECLINED' | 'NOT_REQUESTED' | null;
+  patientStatus: 'ACTIVE' | 'INACTIVE' | null;
+  phone: string | null;
+  village: string | null;
+  quarter: string | null;
+  sourceCreatedAt: string;
+  sourceUpdatedAt: string;
+  receivedAt: string;
+}>;
+
+export type IdentityReviewCandidate = Readonly<{
+  personReference: string;
+  score: number;
+  matchedOn: readonly string[];
+  maskedChsMedicalId: string | null;
+  maskedName: string;
+  birthEvidence: MaskedBirthEvidence;
+  sex: 'FEMALE' | 'MALE' | 'OTHER' | 'UNKNOWN';
+  maskedPhone: string | null;
+  maskedResidence: string | null;
+}>;
+
+export type IdentityReviewCaseDetail = Readonly<{
+  caseReference: string;
+  status: 'OPEN';
+  evidenceState: IdentityReviewEvidenceState;
+  organization: Readonly<{ id: string; name: string }>;
+  location: Readonly<{ id: string; name: string }>;
+  installation: Readonly<{ id: string; deploymentName: string }>;
+  localPatientReference: string;
+  openedAt: string;
+  updatedAt: string;
+  evidence: IdentityReviewEvidenceDetail | null;
+  candidates: readonly IdentityReviewCandidate[];
+}>;
+
+export type IdentityReviewResolutionResult = Readonly<{
+  resolutionRequestId: string;
+  caseReference: string;
+  resolutionStatus: 'RESOLVED_EXISTING' | 'RESOLVED_NEW';
+  resolvedPersonReference: string;
+  chsMedicalId: string;
+  installationId: string;
+  localPatientReference: string;
+  localPatientCode: string;
+  sourceRevision: number;
+  resolvedAt: string;
+  replayed: boolean;
+}>;

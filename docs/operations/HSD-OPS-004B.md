@@ -99,5 +99,5 @@ integration coverage runs when `DATABASE_TEST_URL` is configured.
 ## Out of scope
 
 This increment does not merge two canonical persons, dismiss cases, allow
-free-form candidate selection, edit candidate demographics, build the React
-review workspace, or rewrite historical sync responses.
+free-form candidate selection, edit candidate demographics, or rewrite
+historical sync responses. HSD-OPS-004C provides the React review workspace.

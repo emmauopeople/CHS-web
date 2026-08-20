@@ -35,7 +35,8 @@ evidence snapshots without raw payload JSON. A separately authorized,
 organization-scoped operations API now exposes a masked review queue and
 audited case detail. Authorized reviewers can now resolve a case by linking a
 listed candidate or atomically creating a new canonical person and CHS Medical
-ID.
+ID. The React portal provides the corresponding masked queue, protected
+evidence comparison, and confirmation-gated resolution workspace.
 
 ## Prerequisites
 
@@ -143,7 +144,9 @@ Search and detail require `IDENTITY_REVIEW`; resolution separately requires
 candidates are masked, missing and out-of-scope case references are
 indistinguishable, and every query or resolution attempt is audited. Resolution
 requires a stale-state guard, an idempotency key, a reviewer note, and complete
-evidence. The React review workspace remains a separate increment.
+evidence. The React Identity Review workspace keeps protected values out of
+URLs, discloses exact evidence only after a case is opened, and requires an
+explicit confirmation before resolution.
 
 ## Operations access provisioning
 
@@ -196,6 +199,7 @@ pnpm lint          # run lint checks
 - [HSD-OPS-003B React synchronization dashboard](docs/operations/HSD-OPS-003B.md)
 - [HSD-OPS-004A identity review query API](docs/operations/HSD-OPS-004A.md)
 - [HSD-OPS-004B identity review resolution API](docs/operations/HSD-OPS-004B.md)
+- [HSD-OPS-004C React identity review workspace](docs/operations/HSD-OPS-004C.md)
 - [HSD-DATA-001 canonical PostgreSQL schema](docs/database/HSD-DATA-001.md)
 - [HSD-DATA-002 identity review evidence foundation](docs/database/HSD-DATA-002.md)
 

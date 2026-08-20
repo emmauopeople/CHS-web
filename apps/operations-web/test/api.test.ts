@@ -282,4 +282,185 @@ describe('operations API client', () => {
       }),
     ).rejects.toMatchObject({ status: 502, code: 'INVALID_API_RESPONSE' });
   });
+
+  it('keeps identity evidence, case references, and resolution decisions out of URLs', async () => {
+    const ids = {
+      review: '11000000-0000-4000-8000-000000000001',
+      installation: '21000000-0000-4000-8000-000000000001',
+      organization: '31000000-0000-4000-8000-000000000001',
+      location: '41000000-0000-4000-8000-000000000001',
+      patient: '51000000-0000-4000-8000-000000000001',
+      source: '61000000-0000-4000-8000-000000000001',
+      candidate: '71000000-0000-4000-8000-000000000001',
+      resolution: '81000000-0000-4000-8000-000000000001',
+    };
+    const queueItem = {
+      caseReference: ids.review,
+      status: 'OPEN',
+      evidenceState: 'AVAILABLE',
+      organizationName: 'Program One',
+      locationName: 'Site One',
+      installationId: ids.installation,
+      deploymentName: 'Desktop One',
+      openedAt: '2026-08-20T12:00:00.000Z',
+      updatedAt: '2026-08-20T12:01:00.000Z',
+      candidateCount: 1,
+      latestSourceRevision: 2,
+      sourceCapturedAt: '2026-08-20T11:59:00.000Z',
+      localPatientCode: 'PT-000001',
+      maskedSubmittedName: 'A•••• E••••',
+      submittedBirthEvidence: { kind: 'DATE_OF_BIRTH', maskedDate: '****-**-01' },
+    };
+    const detail = {
+      caseReference: ids.review,
+      status: 'OPEN',
+      evidenceState: 'AVAILABLE',
+      organization: { id: ids.organization, name: 'Program One' },
+      location: { id: ids.location, name: 'Site One' },
+      installation: { id: ids.installation, deploymentName: 'Desktop One' },
+      localPatientReference: ids.patient,
+      openedAt: queueItem.openedAt,
+      updatedAt: queueItem.updatedAt,
+      evidence: {
+        sourceRecordReference: ids.source,
+        sourceRevision: 2,
+        schemaVersion: '1.0',
+        capturedAt: '2026-08-20T11:59:00.000Z',
+        localPatientCode: 'PT-000001',
+        maskedClaimedChsMedicalId: null,
+        displayName: 'Alpha Example',
+        givenName: 'Alpha',
+        familyName: 'Example',
+        otherNames: null,
+        dateOfBirth: '1980-01-01',
+        approximateAgeYears: null,
+        ageAsOfDate: null,
+        sex: 'FEMALE',
+        acknowledgmentStatus: 'ACKNOWLEDGED',
+        patientStatus: 'ACTIVE',
+        phone: '+237600000000',
+        village: 'Village One',
+        quarter: 'Quarter One',
+        sourceCreatedAt: '2026-08-20T11:58:00.000Z',
+        sourceUpdatedAt: '2026-08-20T11:59:00.000Z',
+        receivedAt: '2026-08-20T12:00:00.000Z',
+      },
+      candidates: [{
+        personReference: ids.candidate,
+        score: 85,
+        matchedOn: ['NAME', 'DATE_OF_BIRTH'],
+        maskedChsMedicalId: 'CHS-****-****-CCCC',
+        maskedName: 'A•••• E••••',
+        birthEvidence: { kind: 'DATE_OF_BIRTH', maskedDate: '****-**-01' },
+        sex: 'FEMALE',
+        maskedPhone: '+237*******00',
+        maskedResidence: 'Q••••, V••••',
+      }],
+    };
+    const resolution = {
+      resolutionRequestId: ids.resolution,
+      caseReference: ids.review,
+      resolutionStatus: 'RESOLVED_EXISTING',
+      resolvedPersonReference: ids.candidate,
+      chsMedicalId: 'CHS-AAAA-BBBB-CCCC',
+      installationId: ids.installation,
+      localPatientReference: ids.patient,
+      localPatientCode: 'PT-000001',
+      sourceRevision: 2,
+      resolvedAt: '2026-08-20T12:10:00.000Z',
+      replayed: false,
+    };
+    const fetchImplementation = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        page: 1, pageSize: 25, totalItems: 1, totalPages: 1, items: [queueItem],
+      }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify(detail), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify(resolution), { status: 200 }));
+    const api = createOperationsApi('/internal', 'access-token', fetchImplementation);
+
+    await api.searchIdentityReviews({
+      reasonCode: 'IDENTITY_RECONCILIATION',
+      evidenceState: 'AVAILABLE',
+      installationId: ids.installation,
+    });
+    await api.getIdentityReviewDetail({
+      reasonCode: 'IDENTITY_RECONCILIATION',
+      caseReference: ids.review,
+    });
+    await api.resolveIdentityReview({
+      reasonCode: 'IDENTITY_RECONCILIATION',
+      resolutionRequestId: ids.resolution,
+      caseReference: ids.review,
+      expectedUpdatedAt: queueItem.updatedAt,
+      resolutionNote: 'Evidence confirms the selected existing person.',
+      resolution: { kind: 'LINK_EXISTING', candidatePersonReference: ids.candidate },
+    });
+
+    const [searchUrl, searchInit] = fetchImplementation.mock.calls[0]!;
+    const [detailUrl, detailInit] = fetchImplementation.mock.calls[1]!;
+    const [resolveUrl, resolveInit] = fetchImplementation.mock.calls[2]!;
+    expect(searchUrl).toBe('/internal/api/v1/operations/identity-reviews/search');
+    expect(detailUrl).toBe('/internal/api/v1/operations/identity-reviews/detail');
+    expect(resolveUrl).toBe('/internal/api/v1/operations/identity-reviews/resolve');
+    expect([searchUrl, detailUrl, resolveUrl].join('')).not.toContain(ids.review);
+    expect(JSON.parse(String(searchInit?.body))).toMatchObject({ installationId: ids.installation });
+    expect(JSON.parse(String(detailInit?.body))).toMatchObject({ caseReference: ids.review });
+    expect(JSON.parse(String(resolveInit?.body))).toMatchObject({
+      resolutionRequestId: ids.resolution,
+      caseReference: ids.review,
+      resolution: { kind: 'LINK_EXISTING', candidatePersonReference: ids.candidate },
+    });
+    expect(resolveInit?.cache).toBe('no-store');
+  });
+
+  it('fails closed for malformed identity review responses', async () => {
+    const malformedPage = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(JSON.stringify({
+        page: 1,
+        pageSize: 25,
+        totalItems: 1,
+        totalPages: 1,
+        items: [{ caseReference: 'not-a-uuid', displayName: 'patient leak' }],
+      }), { status: 200 }),
+    );
+    await expect(
+      createOperationsApi('', 'token', malformedPage).searchIdentityReviews({
+        reasonCode: 'IDENTITY_RECONCILIATION',
+      }),
+    ).rejects.toMatchObject({ status: 502, code: 'INVALID_API_RESPONSE' });
+
+    const malformedDetail = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(JSON.stringify({
+        caseReference: '11000000-0000-4000-8000-000000000001',
+        status: 'OPEN',
+        evidenceState: 'AVAILABLE',
+        evidence: { displayName: 'incomplete protected evidence' },
+        candidates: [],
+      }), { status: 200 }),
+    );
+    await expect(
+      createOperationsApi('', 'token', malformedDetail).getIdentityReviewDetail({
+        reasonCode: 'IDENTITY_RECONCILIATION',
+        caseReference: '11000000-0000-4000-8000-000000000001',
+      }),
+    ).rejects.toMatchObject({ status: 502, code: 'INVALID_API_RESPONSE' });
+
+    const malformedResolution = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(JSON.stringify({
+        resolutionStatus: 'RESOLVED_NEW',
+        chsMedicalId: 'not-a-medical-id',
+      }), { status: 200 }),
+    );
+    await expect(
+      createOperationsApi('', 'token', malformedResolution).resolveIdentityReview({
+        reasonCode: 'IDENTITY_RECONCILIATION',
+        resolutionRequestId: '81000000-0000-4000-8000-000000000001',
+        caseReference: '11000000-0000-4000-8000-000000000001',
+        expectedUpdatedAt: '2026-08-20T12:01:00.000Z',
+        resolutionNote: 'Create a new identity after evidence comparison.',
+        resolution: { kind: 'CREATE_NEW' },
+      }),
+    ).rejects.toMatchObject({ status: 502, code: 'INVALID_API_RESPONSE' });
+  });
 });

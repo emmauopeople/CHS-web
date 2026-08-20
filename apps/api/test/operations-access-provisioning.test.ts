@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { parseOperationsAccessProvisioningInput } from '../src/administration/operations-access-provisioning.js';
+import {
+  parseOperationsAccessProvisioningInput,
+  provisionOperationsAccess,
+} from '../src/administration/operations-access-provisioning.js';
 
 const now = new Date('2026-08-20T12:00:00.000Z');
 const organizationId = '10000000-0000-4000-8000-000000000101';
@@ -111,5 +114,37 @@ describe('operations access provisioning input', () => {
     expect(() => parseOperationsAccessProvisioningInput(input, now)).toThrow(
       message,
     );
+  });
+
+  it('uses a PostgreSQL-safe fingerprint for the principal advisory lock', async () => {
+    const lockParameters: unknown[][] = [];
+    const stopAfterLock = new Error('stop after advisory lock');
+    const client = {
+      async query(sql: string, parameters?: unknown[]) {
+        if (sql === 'BEGIN' || sql === 'ROLLBACK') return;
+        if (sql.includes('pg_advisory_xact_lock')) {
+          lockParameters.push(parameters ?? []);
+          throw stopAfterLock;
+        }
+      },
+      release() {},
+    };
+    const database = {
+      async connect() {
+        return client;
+      },
+    } as unknown as Parameters<typeof provisionOperationsAccess>[0];
+
+    await expect(
+      provisionOperationsAccess(
+        database,
+        parseOperationsAccessProvisioningInput(validInput, now),
+        { now },
+      ),
+    ).rejects.toBe(stopAfterLock);
+
+    expect(lockParameters).toHaveLength(1);
+    expect(lockParameters[0]?.[0]).toMatch(/^[0-9a-f]{64}$/);
+    expect(lockParameters[0]?.[0]).not.toContain('\u0000');
   });
 });

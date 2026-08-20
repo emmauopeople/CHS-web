@@ -149,7 +149,7 @@ export async function provisionOperationsAccess(
   try {
     await client.query('BEGIN');
     await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1, 0))', [
-      `${input.oidcIssuer}\u0000${input.oidcSubject}`,
+      principalFingerprint(input.oidcIssuer, input.oidcSubject),
     ]);
 
     const userResult = await client.query<OperationsUserRow>(

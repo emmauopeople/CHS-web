@@ -15,7 +15,8 @@ export type SyncResourceType =
   | 'PATIENT'
   | 'SCREENING_SESSION'
   | 'SCREENING_ENCOUNTER'
-  | 'VITALS';
+  | 'VITALS'
+  | 'LIFESTYLE';
 
 export type SyncRecordSnapshot = Readonly<{
   recordId: string;
@@ -204,6 +205,264 @@ export type VitalsRecordOutcome = Readonly<{
   errors: readonly SyncRecordError[];
 }>;
 
+export type LifestyleBeverageType =
+  | 'BEER'
+  | 'WINE'
+  | 'SPIRITS'
+  | 'COCKTAILS'
+  | 'FORTIFIED_WINE'
+  | 'OTHER';
+
+export type LifestyleTobaccoProductType =
+  | 'CIGARETTE'
+  | 'ROLLED_TOBACCO'
+  | 'CIGAR_PIPE'
+  | 'SMOKELESS'
+  | 'SNUFF'
+  | 'HOOKAH'
+  | 'VAPE'
+  | 'OTHER';
+
+export type LifestyleProvenance = Readonly<{
+  createdByLocalActorId: string;
+  createdAt: string;
+  updatedByLocalActorId: string;
+  updatedAt: string;
+}>;
+
+export type LifestyleAlcoholBaseline = LifestyleProvenance &
+  Readonly<{
+    localBaselineVersionId: string;
+    version: number;
+    status: 'CURRENT' | 'FORMER' | 'NEVER' | 'UNKNOWN' | 'DECLINED';
+    everConsumed: 'YES' | 'NO' | 'UNKNOWN' | 'DECLINED';
+    consumedPast12Months: 'YES' | 'NO' | 'UNKNOWN' | 'DECLINED';
+    commonBeverageTypes: readonly LifestyleBeverageType[];
+    otherBeverageDescription: string | null;
+  }>;
+
+export type LifestyleTobaccoBaseline = LifestyleProvenance &
+  Readonly<{
+    localBaselineVersionId: string;
+    version: number;
+    status:
+      | 'CURRENT_DAILY'
+      | 'CURRENT_SOME_DAYS'
+      | 'FORMER'
+      | 'NEVER'
+      | 'UNKNOWN'
+      | 'DECLINED';
+    everRegularlyUsed: 'YES' | 'NO' | 'UNKNOWN' | 'DECLINED';
+    formerUseApproximateStopDate: string | null;
+    currentUseFrequency:
+      | 'EVERY_DAY'
+      | 'SOME_DAYS'
+      | 'NOT_AT_ALL'
+      | 'UNKNOWN'
+      | 'DECLINED';
+    productTypes: readonly LifestyleTobaccoProductType[];
+    otherProductDescription: string | null;
+  }>;
+
+export type LifestyleWorkBaseline = LifestyleProvenance &
+  Readonly<{
+    localBaselineVersionId: string;
+    version: number;
+    status:
+      | 'EMPLOYED'
+      | 'SELF_EMPLOYED'
+      | 'FARMING'
+      | 'STUDENT'
+      | 'HOMEMAKER_CAREGIVER'
+      | 'UNEMPLOYED'
+      | 'RETIRED'
+      | 'UNABLE_TO_WORK'
+      | 'OTHER'
+      | 'DECLINED';
+    occupationJobTitle: string | null;
+    usualPhysicalDemand:
+      | 'SITTING'
+      | 'STANDING'
+      | 'WALKING'
+      | 'MODERATE_LABOR'
+      | 'HEAVY_LABOR'
+      | 'VARIES'
+      | null;
+    typicalWorkdaysPerWeek: number | null;
+    typicalHoursPerWorkday: number | null;
+    shiftPattern:
+      | 'DAY'
+      | 'EVENING'
+      | 'NIGHT'
+      | 'ROTATING'
+      | 'IRREGULAR'
+      | 'NOT_APPLICABLE'
+      | 'UNKNOWN'
+      | 'DECLINED'
+      | null;
+    description: string | null;
+  }>;
+
+export type LifestyleAlcoholWeekly = LifestyleProvenance &
+  Readonly<{
+    localWeeklyRecordId: string;
+    weeklyResponse:
+      | 'YES'
+      | 'NO'
+      | 'UNKNOWN'
+      | 'DECLINED'
+      | 'NOT_APPLICABLE'
+      | 'PREFER_NOT_TO_ANSWER';
+    drinkingDays: number | null;
+    totalStandardizedDrinks: number | null;
+    largestOneDayAmount: number | null;
+    daysAtLargestAmount: number | null;
+    commonBeverageTypes: readonly LifestyleBeverageType[];
+    otherBeverageDescription: string | null;
+  }>;
+
+export type LifestyleTobaccoProduct = LifestyleProvenance &
+  Readonly<{
+    localProductRowId: string;
+    sequenceNumber: number;
+    productType: LifestyleTobaccoProductType;
+    daysUsed: number;
+    averageQuantityPerUseDay: number;
+    unit:
+      | 'STICKS_CIGARETTES'
+      | 'SESSIONS'
+      | 'PORTIONS'
+      | 'PINS'
+      | 'PODS_CARTRIDGES'
+      | 'OTHER';
+    secondhandSmokeExposure: boolean | null;
+    otherProductDescription: string | null;
+    otherUnitDescription: string | null;
+  }>;
+
+export type LifestyleTobaccoWeekly = LifestyleProvenance &
+  Readonly<{
+    localWeeklyRecordId: string;
+    weeklyResponse:
+      | 'YES'
+      | 'NO'
+      | 'UNKNOWN'
+      | 'DECLINED'
+      | 'NOT_APPLICABLE'
+      | 'PREFER_NOT_TO_ANSWER';
+    products: readonly LifestyleTobaccoProduct[];
+  }>;
+
+export type LifestylePhysicalActivity = LifestyleProvenance &
+  Readonly<{
+    localActivityRowId: string;
+    sequenceNumber: number;
+    activityDomain: 'WORK_OR_FARMING' | 'TRANSPORT' | 'HOUSEHOLD' | 'EXERCISE';
+    description: string | null;
+    intensity: 'LIGHT' | 'MODERATE' | 'VIGOROUS';
+    daysInPastSevenDays: number;
+    averageMinutesPerActiveDay: number;
+  }>;
+
+export type LifestylePhysicalActivityWeekly = LifestyleProvenance &
+  Readonly<{
+    localWeeklyRecordId: string;
+    weeklyResponse:
+      | 'YES'
+      | 'NO'
+      | 'UNKNOWN'
+      | 'DECLINED'
+      | 'NOT_APPLICABLE'
+      | 'UNABLE_TO_ANSWER'
+      | 'PREFER_NOT_TO_ANSWER';
+    sedentaryTimeResponse:
+      | 'RECORDED'
+      | 'UNKNOWN'
+      | 'UNABLE_TO_ANSWER'
+      | 'DECLINED'
+      | 'PREFER_NOT_TO_ANSWER';
+    sedentaryMinutesPerDay: number | null;
+    activities: readonly LifestylePhysicalActivity[];
+  }>;
+
+export type LifestyleWorkWeekly = LifestyleProvenance &
+  Readonly<{
+    localWeeklyRecordId: string;
+    weeklyResponse:
+      | 'USUAL'
+      | 'LESS_THAN_USUAL'
+      | 'MORE_THAN_USUAL'
+      | 'NO_WORK'
+      | 'NOT_APPLICABLE'
+      | 'UNKNOWN'
+      | 'DECLINED'
+      | 'PREFER_NOT_TO_ANSWER';
+  }>;
+
+export type LifestyleOtherActivity = LifestyleProvenance &
+  Readonly<{
+    localActivityRowId: string;
+    sequenceNumber: number;
+    category:
+      | 'FARMING_GARDENING'
+      | 'HOUSEHOLD'
+      | 'CAREGIVING'
+      | 'COMMUNITY'
+      | 'COMMUTE'
+      | 'SPORT'
+      | 'OTHER';
+    description: string | null;
+    daysInPastSevenDays: number;
+    averageMinutesPerDay: number;
+    intensity: 'LIGHT' | 'MODERATE' | 'VIGOROUS';
+  }>;
+
+export type LifestylePayload = LifestyleProvenance &
+  Readonly<{
+    localPatientId: string;
+    localEncounterId: string;
+    localScreeningSessionId: string;
+    localLocationId: string;
+    status: 'COMPLETE';
+    periodStart: string;
+    periodEnd: string;
+    baselines: Readonly<{
+      alcohol: LifestyleAlcoholBaseline;
+      tobacco: LifestyleTobaccoBaseline;
+      work: LifestyleWorkBaseline;
+    }>;
+    alcohol: LifestyleAlcoholWeekly;
+    tobacco: LifestyleTobaccoWeekly;
+    physicalActivity: LifestylePhysicalActivityWeekly;
+    work: LifestyleWorkWeekly;
+    otherActivity: Readonly<{
+      weeklyResponse: 'YES' | 'NO' | 'UNKNOWN' | 'DECLINED' | 'PREFER_NOT_TO_ANSWER';
+      activities: readonly LifestyleOtherActivity[];
+    }>;
+  }>;
+
+export type LifestyleSyncRecord = Omit<
+  SyncRecordSnapshot,
+  'payload' | 'resourceType'
+> &
+  Readonly<{
+    resourceType: 'LIFESTYLE';
+    payload: LifestylePayload;
+  }>;
+
+export type LifestyleRecordOutcome = Readonly<{
+  recordId: string;
+  resourceType: 'LIFESTYLE';
+  localResourceId: string;
+  sourceRevision: number;
+  status: 'ACCEPTED' | 'UNCHANGED' | 'REJECTED' | 'RETRY';
+  canonicalResourceId: string | null;
+  centralPersonId: null;
+  chsMedicalId: null;
+  medicalIdStatus: null;
+  errors: readonly SyncRecordError[];
+}>;
+
 export type SyncBatchRequest = Readonly<{
   contractVersion: '1.0';
   batchId: string;
@@ -228,7 +487,8 @@ export type SyncRecordOutcome =
   | PatientRecordOutcome
   | ScreeningSessionRecordOutcome
   | ScreeningEncounterRecordOutcome
-  | VitalsRecordOutcome;
+  | VitalsRecordOutcome
+  | LifestyleRecordOutcome;
 
 export type SyncBatchStatus = 'ACCEPTED' | 'PARTIAL' | 'REJECTED';
 

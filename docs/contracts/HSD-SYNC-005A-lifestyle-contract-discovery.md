@@ -559,7 +559,7 @@ tests only after this freeze is reviewed. It must:
 | `IN_PROGRESS` is persisted but unused by the service | Must remain non-eligible and must not gain invented semantics |
 | Amendment/void creation and Lifestyle replacement rules are absent | Version 1 is limited to completed canonical-root snapshots |
 | Completion conflict confirmations are not stored as durable Lifestyle columns | Central provenance for the confirmation needs a future explicit decision if required |
-| No central Lifestyle persistence or ingestion exists | A later persistence/ingestion task remains required after HSD-SYNC-005B |
+| Central Lifestyle persistence and ingestion were not part of discovery | Implemented by HSD-SYNC-005C after HSD-SYNC-005B |
 | Final `lifestyle_logs` are summaries, while detailed completed data remains in Lifestyle tables | Worker and ingestion must use the detailed aggregate, not treat summary log rows as the source snapshot |
 
 These gaps must be resolved in their owning tasks. They are not permission to

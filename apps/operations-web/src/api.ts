@@ -107,7 +107,13 @@ const medicalIdPattern = /^CHS-[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{4}-[0123456789
 const safeErrorCodePattern = /^[A-Z][A-Z0-9_]{0,99}$/;
 const syncBatchStatuses = ['PROCESSING', 'ACCEPTED', 'PARTIAL', 'REJECTED', 'FAILED'];
 const syncAttentionStates = ['HEALTHY', 'ATTENTION', 'STALLED'];
-const syncResourceTypes = ['PATIENT', 'SCREENING_SESSION', 'SCREENING_ENCOUNTER', 'VITALS'];
+const syncResourceTypes = [
+  'PATIENT',
+  'SCREENING_SESSION',
+  'SCREENING_ENCOUNTER',
+  'VITALS',
+  'LIFESTYLE',
+];
 const syncOutcomeStatuses = [
   'PROCESSING',
   'ACCEPTED',

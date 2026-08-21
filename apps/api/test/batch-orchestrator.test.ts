@@ -47,6 +47,7 @@ function outcome(
 describe('sync batch orchestration policy', () => {
   it('orders dependencies independently of request array order', () => {
     const records = [
+      record('LIFESTYLE', 'l'),
       record('VITALS', 'a', 2),
       record('SCREENING_ENCOUNTER', 'z'),
       record('PATIENT', 'b', 2),
@@ -61,8 +62,9 @@ describe('sync batch orchestration policy', () => {
         ['SCREENING_SESSION', 1],
         ['SCREENING_ENCOUNTER', 1],
         ['VITALS', 2],
+        ['LIFESTYLE', 1],
       ]);
-    expect(records[0]?.resourceType).toBe('VITALS');
+    expect(records[0]?.resourceType).toBe('LIFESTYLE');
   });
 
   it('derives accepted, rejected, and partial batch states', () => {

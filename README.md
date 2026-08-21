@@ -40,10 +40,12 @@ evidence comparison, and confirmation-gated resolution workspace.
 Reviewer-resolved identities are now placed in an installation-scoped durable
 delivery queue so the originating desktop can pull, apply, and acknowledge the
 confirmed CHS Medical ID without submitting a newer patient revision.
-Lifestyle synchronization now has an additive machine contract for one
-completed encounter-owned snapshot with immutable referenced alcohol, tobacco,
-and work baseline versions. Central persistence and ingestion, operations
-viewing, desktop transport, and amendment/void behavior remain follow-up tasks.
+Lifestyle synchronization now has an additive machine contract and central
+ingestion for one completed encounter-owned snapshot with immutable referenced
+alcohol, tobacco, and work baseline versions. PostgreSQL stores the aggregate
+as normalized canonical rows with source provenance and replay-safe outcomes;
+raw Lifestyle payload JSON is not retained. Operations viewing, desktop
+transport, and amendment/void behavior remain follow-up tasks.
 
 ## Prerequisites
 
@@ -194,6 +196,7 @@ pnpm lint          # run lint checks
 - [HSD-SYNC-001 desktop-to-web contract](docs/contracts/HSD-SYNC-001.md)
 - [HSD-SYNC-005A Lifestyle contract discovery](docs/contracts/HSD-SYNC-005A-lifestyle-contract-discovery.md)
 - [HSD-SYNC-005B Lifestyle machine contract](docs/contracts/HSD-SYNC-005B-lifestyle-machine-contract.md)
+- [HSD-SYNC-005C Lifestyle persistence and ingestion](docs/sync/HSD-SYNC-005C.md)
 - [HSD-SYNC-002A sync batch intake foundation](docs/sync/HSD-SYNC-002A.md)
 - [HSD-SYNC-002B patient identity ingestion](docs/sync/HSD-SYNC-002B.md)
 - [HSD-SYNC-002C screening session and protocol ingestion](docs/sync/HSD-SYNC-002C.md)

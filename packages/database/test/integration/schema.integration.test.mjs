@@ -42,6 +42,7 @@ test(
         '0008_identity_review_evidence.sql',
         '0009_identity_review_resolution.sql',
         '0010_identity_resolution_delivery.sql',
+        '0011_lifestyle_ingestion.sql',
       ]);
       assert.deepEqual(secondRun.applied, []);
 
@@ -53,7 +54,7 @@ test(
         [schema],
       );
       const tableNames = tableResult.rows.map((row) => row.table_name);
-      assert.equal(tableNames.length, 31);
+      assert.equal(tableNames.length, 46);
       assert.ok(tableNames.includes('schema_migrations'));
       assert.ok(tableNames.includes('screening_encounters'));
       assert.ok(tableNames.includes('vital_readings'));
@@ -66,6 +67,28 @@ test(
       assert.ok(tableNames.includes('identity_review_evidence_snapshots'));
       assert.ok(tableNames.includes('identity_review_resolutions'));
       assert.ok(tableNames.includes('identity_resolution_deliveries'));
+      assert.ok(tableNames.includes('lifestyle_assessments'));
+      assert.ok(tableNames.includes('lifestyle_alcohol_baselines'));
+      assert.ok(tableNames.includes('lifestyle_tobacco_baselines'));
+      assert.ok(tableNames.includes('lifestyle_work_baselines'));
+      assert.ok(tableNames.includes('lifestyle_tobacco_products'));
+      assert.ok(tableNames.includes('lifestyle_physical_activities'));
+      assert.ok(tableNames.includes('lifestyle_other_activities'));
+
+      const lifestyleColumns = await client.query(
+        `SELECT table_name, column_name, data_type
+         FROM information_schema.columns
+         WHERE table_schema = $1
+           AND table_name LIKE 'lifestyle_%'
+         ORDER BY table_name, ordinal_position`,
+        [schema],
+      );
+      assert.ok(lifestyleColumns.rows.length > 0);
+      assert.ok(
+        lifestyleColumns.rows.every(
+          (row) => row.column_name !== 'payload' && row.data_type !== 'jsonb',
+        ),
+      );
 
       const evidenceColumns = await client.query(
         `SELECT column_name, data_type

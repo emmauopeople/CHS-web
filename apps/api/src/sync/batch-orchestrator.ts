@@ -3,11 +3,13 @@ import type { Pool, PoolClient } from 'pg';
 import { validateSyncBatchResponse } from '../../../../packages/contracts/src/sync-validation.mjs';
 
 import { beginSyncBatch } from './batch-intake.js';
+import { processLifestyleRecord } from './lifestyle.js';
 import { processPatientRecord } from './patient-identity.js';
 import { processScreeningEncounterRecord } from './screening-encounter.js';
 import { processScreeningSessionRecord } from './screening-session.js';
 import type {
   InstallationContext,
+  LifestyleSyncRecord,
   PatientSyncRecord,
   ScreeningEncounterSyncRecord,
   ScreeningSessionSyncRecord,
@@ -65,6 +67,7 @@ const resourcePriority: Readonly<Record<SyncRecordSnapshot['resourceType'], numb
   SCREENING_SESSION: 1,
   SCREENING_ENCOUNTER: 2,
   VITALS: 3,
+  LIFESTYLE: 4,
 };
 
 export function orderSyncRecords(
@@ -121,6 +124,8 @@ function processorFor(
       return processScreeningEncounterRecord as Processor;
     case 'VITALS':
       return processVitalsRecord as Processor;
+    case 'LIFESTYLE':
+      return processLifestyleRecord as Processor;
   }
 }
 
@@ -134,6 +139,8 @@ function typedRecord(record: SyncRecordSnapshot): never {
       return record as ScreeningEncounterSyncRecord as never;
     case 'VITALS':
       return record as VitalsSyncRecord as never;
+    case 'LIFESTYLE':
+      return record as LifestyleSyncRecord as never;
   }
 }
 

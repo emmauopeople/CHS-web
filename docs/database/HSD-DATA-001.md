@@ -104,6 +104,7 @@ this contract clarification does not require a new PostgreSQL migration.
 - `screening_encounters`
 - `screening_vital_sets`
 - `vital_readings`
+- normalized `lifestyle_*` assessment, baseline, weekly, and child tables
 
 ### Synchronization and audit
 
@@ -130,6 +131,7 @@ can reference an operations user and records an explicit access outcome.
 | `locations`, source links | `Location` | physical site, managing organization, and desktop source identity |
 | `screening_encounters` | `Encounter` | patient, participant, service provider, location, period |
 | vital sets/readings | `Observation` | subject, encounter, performer, effective time, code, value, unit, body site/method where applicable |
+| Lifestyle assessment, baselines, weekly sections, and child rows | `Observation` and related profile-dependent resources | subject, encounter, performer, seven-day period, exact baseline version, response, value, and source provenance |
 | sync batches, actor snapshots, records | `Provenance` | source system, source ID/revision, actor snapshot, recorded time, transformation activity |
 
 Blood pressure can later become one vital-signs Observation panel with systolic

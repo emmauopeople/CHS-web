@@ -11,6 +11,7 @@ function readJson(relativePath) {
 
 const schemaPaths = Object.freeze([
   'schemas/sync/v1/common.schema.json',
+  'schemas/sync/v1/lifestyle.schema.json',
   'schemas/sync/v1/sync-batch-request.schema.json',
   'schemas/sync/v1/sync-batch-response.schema.json'
 ])
@@ -36,6 +37,215 @@ function schemaIssues(errors) {
     code: `SCHEMA_${error.keyword.toUpperCase()}`,
     path: error.instancePath || ''
   }))
+}
+
+function appendProvenanceActorReferences(actorReferences, prefix, value) {
+  actorReferences.push(
+    [`${prefix}/createdByLocalActorId`, value.createdByLocalActorId],
+    [`${prefix}/updatedByLocalActorId`, value.updatedByLocalActorId]
+  )
+}
+
+function lifestyleActorReferences(payload) {
+  const actorReferences = []
+  appendProvenanceActorReferences(actorReferences, 'payload', payload)
+
+  for (const domain of ['alcohol', 'tobacco', 'work']) {
+    appendProvenanceActorReferences(
+      actorReferences,
+      `payload/baselines/${domain}`,
+      payload.baselines[domain]
+    )
+  }
+
+  appendProvenanceActorReferences(actorReferences, 'payload/alcohol', payload.alcohol)
+  appendProvenanceActorReferences(actorReferences, 'payload/tobacco', payload.tobacco)
+  for (const [index, product] of payload.tobacco.products.entries()) {
+    appendProvenanceActorReferences(
+      actorReferences,
+      `payload/tobacco/products/${index}`,
+      product
+    )
+  }
+
+  appendProvenanceActorReferences(
+    actorReferences,
+    'payload/physicalActivity',
+    payload.physicalActivity
+  )
+  for (const [index, activity] of payload.physicalActivity.activities.entries()) {
+    appendProvenanceActorReferences(
+      actorReferences,
+      `payload/physicalActivity/activities/${index}`,
+      activity
+    )
+  }
+
+  appendProvenanceActorReferences(actorReferences, 'payload/work', payload.work)
+  for (const [index, activity] of payload.otherActivity.activities.entries()) {
+    appendProvenanceActorReferences(
+      actorReferences,
+      `payload/otherActivity/activities/${index}`,
+      activity
+    )
+  }
+  return actorReferences
+}
+
+function registerLifestyleId(ids, value, path, issues) {
+  if (ids.has(value)) {
+    issues.push({ code: 'DUPLICATE_LIFESTYLE_CHILD_ID', path })
+  }
+  ids.add(value)
+}
+
+function checkLifestyleRows(rows, idField, path, ids, issues) {
+  const sequences = new Set()
+  let previousSequence = 0
+
+  for (const [index, row] of rows.entries()) {
+    const rowPath = `${path}/${index}`
+    registerLifestyleId(ids, row[idField], `${rowPath}/${idField}`, issues)
+    if (sequences.has(row.sequenceNumber)) {
+      issues.push({
+        code: 'DUPLICATE_LIFESTYLE_SEQUENCE',
+        path: `${rowPath}/sequenceNumber`
+      })
+    }
+    if (row.sequenceNumber <= previousSequence) {
+      issues.push({
+        code: 'LIFESTYLE_SEQUENCE_ORDER_INVALID',
+        path: `${rowPath}/sequenceNumber`
+      })
+    }
+    sequences.add(row.sequenceNumber)
+    previousSequence = row.sequenceNumber
+  }
+}
+
+function decimalParts(value) {
+  const [coefficient, exponentText = '0'] = String(value).toLowerCase().split('e')
+  const exponent = Number(exponentText)
+  const [whole, fraction = ''] = coefficient.split('.')
+  let integer = BigInt(`${whole}${fraction}`)
+  let scale = fraction.length - exponent
+  if (scale < 0) {
+    integer *= 10n ** BigInt(-scale)
+    scale = 0
+  }
+  return { integer, scale }
+}
+
+function compareDecimalProduct(total, amount, multiplier) {
+  const totalParts = decimalParts(total)
+  const amountParts = decimalParts(amount)
+  const scale = Math.max(totalParts.scale, amountParts.scale)
+  const scaledTotal = totalParts.integer * 10n ** BigInt(scale - totalParts.scale)
+  const scaledProduct =
+    amountParts.integer * BigInt(multiplier) * 10n ** BigInt(scale - amountParts.scale)
+  return scaledTotal === scaledProduct ? 0 : scaledTotal < scaledProduct ? -1 : 1
+}
+
+function lifestyleSemanticIssues(request, record, recordIndex) {
+  const payload = record.payload
+  const issues = []
+  const path = `/records/${recordIndex}/payload`
+
+  if (payload.localLocationId !== request.locationId) {
+    issues.push({
+      code: 'LIFESTYLE_LOCATION_MISMATCH',
+      path: `${path}/localLocationId`
+    })
+  }
+
+  const periodStart = Date.parse(`${payload.periodStart}T00:00:00.000Z`)
+  const periodEnd = Date.parse(`${payload.periodEnd}T00:00:00.000Z`)
+  if (periodEnd - periodStart !== 6 * 24 * 60 * 60 * 1000) {
+    issues.push({ code: 'LIFESTYLE_PERIOD_INVALID', path: `${path}/periodStart` })
+  }
+
+  const ids = new Set()
+  for (const domain of ['alcohol', 'tobacco', 'work']) {
+    registerLifestyleId(
+      ids,
+      payload.baselines[domain].localBaselineVersionId,
+      `${path}/baselines/${domain}/localBaselineVersionId`,
+      issues
+    )
+  }
+  for (const domain of ['alcohol', 'tobacco', 'physicalActivity', 'work']) {
+    registerLifestyleId(
+      ids,
+      payload[domain].localWeeklyRecordId,
+      `${path}/${domain}/localWeeklyRecordId`,
+      issues
+    )
+  }
+
+  checkLifestyleRows(
+    payload.tobacco.products,
+    'localProductRowId',
+    `${path}/tobacco/products`,
+    ids,
+    issues
+  )
+  checkLifestyleRows(
+    payload.physicalActivity.activities,
+    'localActivityRowId',
+    `${path}/physicalActivity/activities`,
+    ids,
+    issues
+  )
+  checkLifestyleRows(
+    payload.otherActivity.activities,
+    'localActivityRowId',
+    `${path}/otherActivity/activities`,
+    ids,
+    issues
+  )
+
+  const productTypes = new Set()
+  for (const [index, product] of payload.tobacco.products.entries()) {
+    if (productTypes.has(product.productType)) {
+      issues.push({
+        code: 'DUPLICATE_LIFESTYLE_TOBACCO_PRODUCT_TYPE',
+        path: `${path}/tobacco/products/${index}/productType`
+      })
+    }
+    productTypes.add(product.productType)
+  }
+
+  if (payload.alcohol.weeklyResponse === 'YES') {
+    const alcohol = payload.alcohol
+    if (alcohol.largestOneDayAmount > alcohol.totalStandardizedDrinks) {
+      issues.push({
+        code: 'LIFESTYLE_ALCOHOL_LARGEST_EXCEEDS_TOTAL',
+        path: `${path}/alcohol/largestOneDayAmount`
+      })
+    }
+    if (alcohol.daysAtLargestAmount > alcohol.drinkingDays) {
+      issues.push({
+        code: 'LIFESTYLE_ALCOHOL_LARGEST_DAYS_EXCEED_DRINKING_DAYS',
+        path: `${path}/alcohol/daysAtLargestAmount`
+      })
+    }
+    const subtotalComparison = compareDecimalProduct(
+      alcohol.totalStandardizedDrinks,
+      alcohol.largestOneDayAmount,
+      alcohol.daysAtLargestAmount
+    )
+    if (
+      subtotalComparison < 0 ||
+      (alcohol.drinkingDays === alcohol.daysAtLargestAmount && subtotalComparison !== 0) ||
+      (alcohol.drinkingDays > alcohol.daysAtLargestAmount && subtotalComparison <= 0)
+    ) {
+      issues.push({
+        code: 'LIFESTYLE_ALCOHOL_TOTAL_INCONSISTENT',
+        path: `${path}/alcohol/totalStandardizedDrinks`
+      })
+    }
+  }
+  return issues
 }
 
 function semanticRequestIssues(request) {
@@ -123,6 +333,9 @@ function semanticRequestIssues(request) {
           path: `/records/${recordIndex}/payload/readings`
         })
       }
+    } else if (record.resourceType === 'LIFESTYLE') {
+      actorReferences.push(...lifestyleActorReferences(record.payload))
+      issues.push(...lifestyleSemanticIssues(request, record, recordIndex))
     }
 
     for (const [field, actorId] of actorReferences) {

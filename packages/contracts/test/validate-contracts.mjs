@@ -13,6 +13,7 @@ const root = new URL('../', import.meta.url)
 
 const schemaLocations = Object.freeze({
   common: 'schemas/sync/v1/common.schema.json',
+  lifestyle: 'schemas/sync/v1/lifestyle.schema.json',
   syncRequest: 'schemas/sync/v1/sync-batch-request.schema.json',
   syncResponse: 'schemas/sync/v1/sync-batch-response.schema.json',
   resolutionPullRequest: 'schemas/sync/v1/identity-resolution-pull-request.schema.json',
@@ -27,7 +28,9 @@ const schemaLocations = Object.freeze({
 const validFixtureCases = Object.freeze([
   ['syncRequest', 'fixtures/sync/v1/valid/batch-request.json'],
   ['syncRequest', 'fixtures/sync/v1/valid/closed-session-request.json'],
+  ['syncRequest', 'fixtures/sync/v1/valid/lifestyle-batch-request.json'],
   ['syncResponse', 'fixtures/sync/v1/valid/batch-response.json'],
+  ['syncResponse', 'fixtures/sync/v1/valid/lifestyle-batch-response.json'],
   ['resolutionPullRequest', 'fixtures/sync/v1/valid/identity-resolution-pull-request.json'],
   ['resolutionPullResponse', 'fixtures/sync/v1/valid/identity-resolution-pull-response.json'],
   ['resolutionAckRequest', 'fixtures/sync/v1/valid/identity-resolution-acknowledgment-request.json'],
@@ -36,6 +39,17 @@ const validFixtureCases = Object.freeze([
   ['recoveryResponse', 'fixtures/identity/v1/valid/recovery-response-match.json'],
   ['recoveryResponse', 'fixtures/identity/v1/valid/recovery-response-no-match.json'],
   ['recoveryResponse', 'fixtures/identity/v1/valid/recovery-response-review.json']
+])
+
+const invalidFixtureSets = Object.freeze([
+  {
+    request: 'fixtures/sync/v1/valid/batch-request.json',
+    cases: 'fixtures/sync/v1/invalid/request-cases.json'
+  },
+  {
+    request: 'fixtures/sync/v1/valid/lifestyle-batch-request.json',
+    cases: 'fixtures/sync/v1/invalid/lifestyle-request-cases.json'
+  }
 ])
 
 function readJson(relativePath) {
@@ -218,6 +232,110 @@ function assertOpenApi() {
   }
 }
 
+function assertLifestyleResponseBranches(ajv) {
+  const schemaId = readJson(schemaLocations.lifestyle).$id
+  const validate = ajv.getSchema(schemaId)
+  const fixture = readJson('fixtures/sync/v1/valid/lifestyle-batch-request.json')
+  const basePayload = fixture.records.find((record) => record.resourceType === 'LIFESTYLE')?.payload
+  if (!validate || basePayload === undefined) {
+    throw new Error('Lifestyle response-branch validation failed to initialize')
+  }
+
+  let validatedBranches = 0
+  const assertBranch = (payload, label) => {
+    if (!validate(payload)) {
+      throw new Error(`Valid Lifestyle branch ${label} was rejected: ${formatErrors(validate.errors)}`)
+    }
+    validatedBranches += 1
+  }
+
+  for (const response of [
+    'YES',
+    'NO',
+    'UNKNOWN',
+    'DECLINED',
+    'NOT_APPLICABLE',
+    'PREFER_NOT_TO_ANSWER'
+  ]) {
+    const payload = structuredClone(basePayload)
+    payload.alcohol.weeklyResponse = response
+    if (response !== 'YES') {
+      payload.alcohol.drinkingDays = null
+      payload.alcohol.totalStandardizedDrinks = null
+      payload.alcohol.largestOneDayAmount = null
+      payload.alcohol.daysAtLargestAmount = null
+      payload.alcohol.commonBeverageTypes = []
+      payload.alcohol.otherBeverageDescription = null
+    }
+    assertBranch(payload, `alcohol/${response}`)
+  }
+
+  for (const response of [
+    'YES',
+    'NO',
+    'UNKNOWN',
+    'DECLINED',
+    'NOT_APPLICABLE',
+    'PREFER_NOT_TO_ANSWER'
+  ]) {
+    const payload = structuredClone(basePayload)
+    payload.tobacco.weeklyResponse = response
+    if (response !== 'YES') payload.tobacco.products = []
+    assertBranch(payload, `tobacco/${response}`)
+  }
+
+  for (const response of [
+    'YES',
+    'NO',
+    'UNKNOWN',
+    'DECLINED',
+    'NOT_APPLICABLE',
+    'UNABLE_TO_ANSWER',
+    'PREFER_NOT_TO_ANSWER'
+  ]) {
+    const payload = structuredClone(basePayload)
+    payload.physicalActivity.weeklyResponse = response
+    if (response !== 'YES') payload.physicalActivity.activities = []
+    assertBranch(payload, `physical-activity/${response}`)
+  }
+
+  for (const response of [
+    'RECORDED',
+    'UNKNOWN',
+    'UNABLE_TO_ANSWER',
+    'DECLINED',
+    'PREFER_NOT_TO_ANSWER'
+  ]) {
+    const payload = structuredClone(basePayload)
+    payload.physicalActivity.sedentaryTimeResponse = response
+    if (response !== 'RECORDED') payload.physicalActivity.sedentaryMinutesPerDay = null
+    assertBranch(payload, `sedentary/${response}`)
+  }
+
+  for (const response of [
+    'USUAL',
+    'LESS_THAN_USUAL',
+    'MORE_THAN_USUAL',
+    'NO_WORK',
+    'NOT_APPLICABLE',
+    'UNKNOWN',
+    'DECLINED',
+    'PREFER_NOT_TO_ANSWER'
+  ]) {
+    const payload = structuredClone(basePayload)
+    payload.work.weeklyResponse = response
+    assertBranch(payload, `work/${response}`)
+  }
+
+  for (const response of ['YES', 'NO', 'UNKNOWN', 'DECLINED', 'PREFER_NOT_TO_ANSWER']) {
+    const payload = structuredClone(basePayload)
+    payload.otherActivity.weeklyResponse = response
+    if (response !== 'YES') payload.otherActivity.activities = []
+    assertBranch(payload, `other-activity/${response}`)
+  }
+  return validatedBranches
+}
+
 export function validateContracts() {
   const ajv = createAjv()
 
@@ -244,32 +362,31 @@ export function validateContracts() {
 
   const requestSchemaId = readJson(schemaLocations.syncRequest).$id
   const validateRequest = ajv.getSchema(requestSchemaId)
-  const validRequest = readJson('fixtures/sync/v1/valid/batch-request.json')
-  const invalidCases = readJson('fixtures/sync/v1/invalid/request-cases.json')
+  let invalidFixtureCount = 0
+  for (const fixtureSet of invalidFixtureSets) {
+    const validRequest = readJson(fixtureSet.request)
+    const invalidCases = readJson(fixtureSet.cases)
+    invalidFixtureCount += invalidCases.length
 
-  for (const invalidCase of invalidCases) {
-    const invalidRequest = applyMutation(validRequest, invalidCase)
-    let semanticsValid = true
-    try {
-      assertRequestSemantics(invalidRequest)
-    } catch {
-      semanticsValid = false
-    }
-    if (validateRequest(invalidRequest) && semanticsValid) {
-      throw new Error(`Invalid fixture was accepted: ${invalidCase.name}`)
-    }
-    if (validateSyncBatchRequest(invalidRequest).valid) {
-      throw new Error(`Runtime validator accepted invalid fixture: ${invalidCase.name}`)
+    for (const invalidCase of invalidCases) {
+      const invalidRequest = applyMutation(validRequest, invalidCase)
+      const schemaValid = validateRequest(invalidRequest)
+      const runtimeResult = validateSyncBatchRequest(invalidRequest)
+      if (schemaValid && runtimeResult.valid) {
+        throw new Error(`Invalid fixture was accepted: ${invalidCase.name}`)
+      }
     }
   }
 
   assertOpenApi()
+  const lifestyleResponseBranches = assertLifestyleResponseBranches(ajv)
 
   return Object.freeze({
     schemas: Object.keys(schemaLocations).length,
     validFixtures: validFixtureCases.length,
-    invalidFixtures: invalidCases.length,
-    openApiOperations: 5
+    invalidFixtures: invalidFixtureCount,
+    openApiOperations: 5,
+    lifestyleResponseBranches
   })
 }
 

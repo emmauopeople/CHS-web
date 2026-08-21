@@ -85,13 +85,13 @@ reports that its SQLite update committed. This closes the review round trip
 without mutating historical batch responses or requiring a newer patient
 snapshot.
 
-Lifestyle synchronization contract discovery is now frozen against desktop
-schema version 15. The next contract slice is one completed `LIFESTYLE` /
-`lifestyle.v1` full snapshot, dependent on its accepted encounter and carrying
+Lifestyle synchronization is frozen against desktop schema version 15, and its
+additive machine contract is implemented as one completed `LIFESTYLE` /
+`lifestyle.v1` full snapshot. It depends on its accepted encounter and carries
 the exact referenced alcohol, tobacco, and work baseline versions. Desktop
-drafts and in-progress work remain local. Machine-readable schemas, PostgreSQL
-storage, ingestion, operations viewing, desktop transport, and amendment/void
-semantics are not implemented by the discovery task.
+drafts and in-progress work remain local. PostgreSQL storage, ingestion,
+operations viewing, desktop transport, and amendment/void semantics remain
+follow-up work.
 
 Synchronization support now includes a separate operational monitoring
 boundary. A dedicated `SYNC_MONITOR` grant controls access independently of

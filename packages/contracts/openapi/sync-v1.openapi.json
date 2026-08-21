@@ -3,7 +3,7 @@
   "info": {
     "title": "CHS Desktop Synchronization API",
     "version": "1.0.0",
-    "description": "Contract HSD-SYNC-001. Payload examples are synthetic."
+    "description": "Contracts HSD-SYNC-001 and HSD-SYNC-005B. Payload examples are synthetic; completed Lifestyle snapshots use LIFESTYLE / lifestyle.v1."
   },
   "servers": [
     { "url": "https://api.example.invalid" }

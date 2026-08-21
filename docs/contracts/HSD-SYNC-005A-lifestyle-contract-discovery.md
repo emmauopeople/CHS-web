@@ -1,6 +1,6 @@
 # HSD-SYNC-005A: Lifestyle synchronization contract discovery
 
-Status: Discovery frozen for machine-contract implementation
+Status: Discovery frozen; machine contract implemented by HSD-SYNC-005B
 
 Proposed resource type: `LIFESTYLE`
 
@@ -11,10 +11,11 @@ Inspected desktop baseline: `a862ffababe24e8159305c92687ebf6bb868ef2d`
 
 ## Purpose
 
-This document freezes the implemented desktop Lifestyle semantics that the
-Release 1 web synchronization contract may expose next. It is a discovery and
-compatibility decision, not a machine-readable schema or runtime
-implementation.
+This document freezes the implemented desktop Lifestyle semantics exposed by
+the Release 1 web synchronization contract. It remains the discovery and
+compatibility decision; HSD-SYNC-005B implements its machine-readable schema,
+fixtures, and compatibility tests. Central persistence and ingestion remain
+separate runtime work.
 
 The inspected desktop application is the authority for local identifiers,
 versioning, lifecycle, branching, and provenance. The web platform remains the
@@ -558,7 +559,7 @@ tests only after this freeze is reviewed. It must:
 | `IN_PROGRESS` is persisted but unused by the service | Must remain non-eligible and must not gain invented semantics |
 | Amendment/void creation and Lifestyle replacement rules are absent | Version 1 is limited to completed canonical-root snapshots |
 | Completion conflict confirmations are not stored as durable Lifestyle columns | Central provenance for the confirmation needs a future explicit decision if required |
-| No central Lifestyle schema or ingestion exists | HSD-SYNC-005B and a later persistence/ingestion task remain required |
+| No central Lifestyle persistence or ingestion exists | A later persistence/ingestion task remains required after HSD-SYNC-005B |
 | Final `lifestyle_logs` are summaries, while detailed completed data remains in Lifestyle tables | Worker and ingestion must use the detailed aggregate, not treat summary log rows as the source snapshot |
 
 These gaps must be resolved in their owning tasks. They are not permission to

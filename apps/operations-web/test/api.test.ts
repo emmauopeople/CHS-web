@@ -220,7 +220,7 @@ describe('operations API client', () => {
       .mockResolvedValueOnce(
         new Response(JSON.stringify({
           ...batch,
-          outcomeCounts: [{ resourceType: 'VITALS', status: 'RETRY', count: 1 }],
+          outcomeCounts: [{ resourceType: 'LIFESTYLE', status: 'RETRY', count: 1 }],
           errorCodeCounts: [{ code: 'DEPENDENCY_NOT_AVAILABLE', retryable: true, count: 1 }],
         }), { status: 200 }),
       );

@@ -86,12 +86,14 @@ without mutating historical batch responses or requiring a newer patient
 snapshot.
 
 Lifestyle synchronization is frozen against desktop schema version 15, and its
-additive machine contract is implemented as one completed `LIFESTYLE` /
-`lifestyle.v1` full snapshot. It depends on its accepted encounter and carries
-the exact referenced alcohol, tobacco, and work baseline versions. Desktop
-drafts and in-progress work remain local. PostgreSQL storage, ingestion,
-operations viewing, desktop transport, and amendment/void semantics remain
-follow-up work.
+additive machine contract and central ingestion are implemented as one
+completed `LIFESTYLE` / `lifestyle.v1` full snapshot. It depends on its accepted
+encounter and carries the exact referenced alcohol, tobacco, and work baseline
+versions. Fifteen normalized PostgreSQL tables retain the aggregate, exact
+baseline history, actor attribution, source identity, and replay-safe outcome
+without storing raw payload JSON. Desktop drafts and in-progress work remain
+local. Operations viewing, desktop transport, and amendment/void semantics
+remain follow-up work.
 
 Synchronization support now includes a separate operational monitoring
 boundary. A dedicated `SYNC_MONITOR` grant controls access independently of

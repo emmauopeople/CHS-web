@@ -14,7 +14,10 @@ import {
 } from '../../src/sync/installation-auth.js';
 import { processPatientRecord } from '../../src/sync/patient-identity.js';
 import type {
+  LifestyleSyncRecord,
   PatientSyncRecord,
+  ScreeningEncounterSyncRecord,
+  ScreeningSessionSyncRecord,
   SyncBatchRequest,
   SyncBatchResponse,
 } from '../../src/sync/types.js';
@@ -44,6 +47,7 @@ runIntegration('desktop synchronization HTTP routes', () => {
   let servicePool: pg.Pool;
   let app: Awaited<ReturnType<typeof buildApp>>;
   let request: SyncBatchRequest;
+  let lifestyleRequest: SyncBatchRequest;
 
   beforeAll(async () => {
     administrationPool = new pg.Pool({ connectionString });
@@ -67,6 +71,16 @@ runIntegration('desktop synchronization HTTP routes', () => {
         'utf8',
       ),
     ) as SyncBatchRequest;
+    const lifestyleFixture = JSON.parse(
+      await readFile(
+        new URL(
+          '../../../../packages/contracts/fixtures/sync/v1/valid/lifestyle-batch-request.json',
+          import.meta.url,
+        ),
+        'utf8',
+      ),
+    ) as SyncBatchRequest;
+    lifestyleRequest = alignLifestyleFixture(lifestyleFixture, request);
     app = await buildApp({
       config,
       database: {
@@ -266,7 +280,98 @@ runIntegration('desktop synchronization HTTP routes', () => {
     expect(missing.statusCode).toBe(404);
     expect(missing.json()).toMatchObject({ code: 'BATCH_NOT_AVAILABLE' });
   });
+
+  it('ingests a completed Lifestyle snapshot after its same-batch dependencies', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/api/v1/sync/batches',
+      headers: { authorization: bearer },
+      payload: lifestyleRequest,
+    });
+    expect(response.statusCode).toBe(200);
+    const body = response.json<SyncBatchResponse>();
+    expect(body.batchStatus).toBe('ACCEPTED');
+    expect(body.outcomes.map((outcome) => outcome.resourceType)).toEqual([
+      'PATIENT',
+      'SCREENING_SESSION',
+      'SCREENING_ENCOUNTER',
+      'LIFESTYLE',
+    ]);
+    expect(body.outcomes.at(-1)).toMatchObject({
+      resourceType: 'LIFESTYLE',
+      status: 'ACCEPTED',
+    });
+
+    const counts = await servicePool.query(
+      `SELECT
+         (SELECT count(*)::integer FROM lifestyle_assessments) AS assessments,
+         (SELECT count(*)::integer FROM lifestyle_alcohol_baselines) AS alcohol_baselines,
+         (SELECT count(*)::integer FROM lifestyle_tobacco_products) AS tobacco_products,
+         (SELECT count(*)::integer FROM lifestyle_physical_activities) AS physical_activities`,
+    );
+    expect(counts.rows[0]).toEqual({
+      assessments: 1,
+      alcohol_baselines: 1,
+      tobacco_products: 2,
+      physical_activities: 2,
+    });
+  });
 });
+
+function alignLifestyleFixture(
+  fixture: SyncBatchRequest,
+  existingFixture: SyncBatchRequest,
+): SyncBatchRequest {
+  const existingSession = existingFixture.records.find(
+    (record) => record.resourceType === 'SCREENING_SESSION',
+  ) as ScreeningSessionSyncRecord;
+  return {
+    ...fixture,
+    batchId: '10000000-0000-4000-8000-000000000027',
+    installationId: existingFixture.installationId,
+    locationId: existingFixture.locationId,
+    records: fixture.records.map((record) => {
+      if (record.resourceType === 'PATIENT') {
+        const patient = record as PatientSyncRecord;
+        return {
+          ...patient,
+          payload: { ...patient.payload, knownChsMedicalId: null },
+        };
+      }
+      if (record.resourceType === 'SCREENING_SESSION') {
+        const session = record as ScreeningSessionSyncRecord;
+        return {
+          ...session,
+          payload: {
+            ...session.payload,
+            localLocationId: existingFixture.locationId,
+            localProtocolVersionId: existingSession.payload.localProtocolVersionId,
+            protocolChecksum: existingSession.payload.protocolChecksum,
+          },
+        };
+      }
+      if (record.resourceType === 'SCREENING_ENCOUNTER') {
+        const encounter = record as ScreeningEncounterSyncRecord;
+        return {
+          ...encounter,
+          payload: {
+            ...encounter.payload,
+            localLocationId: existingFixture.locationId,
+            localProtocolVersionId: existingSession.payload.localProtocolVersionId,
+          },
+        };
+      }
+      const lifestyle = record as LifestyleSyncRecord;
+      return {
+        ...lifestyle,
+        payload: {
+          ...lifestyle.payload,
+          localLocationId: existingFixture.locationId,
+        },
+      };
+    }),
+  };
+}
 
 async function seedInstallation(pool: pg.Pool) {
   const timestamp = '2026-08-18T00:00:00.000Z';

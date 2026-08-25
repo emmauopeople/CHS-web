@@ -56,7 +56,12 @@ export type SyncBatchMonitoringPage = Readonly<{
 }>;
 
 export type SyncBatchOutcomeCount = Readonly<{
-  resourceType: 'PATIENT' | 'SCREENING_SESSION' | 'SCREENING_ENCOUNTER' | 'VITALS';
+  resourceType:
+    | 'PATIENT'
+    | 'SCREENING_SESSION'
+    | 'SCREENING_ENCOUNTER'
+    | 'VITALS'
+    | 'LIFESTYLE';
   status:
     | 'PROCESSING'
     | 'ACCEPTED'

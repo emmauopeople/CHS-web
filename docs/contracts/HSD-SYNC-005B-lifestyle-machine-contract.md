@@ -12,7 +12,8 @@ Payload schema: `lifestyle.v1`
 
 This task converts the HSD-SYNC-005A Lifestyle discovery freeze into an
 additive machine-readable synchronization contract. It does not add central
-Lifestyle persistence or ingestion behavior.
+Lifestyle persistence or ingestion behavior; that follow-up is implemented by
+[HSD-SYNC-005C](../sync/HSD-SYNC-005C.md).
 
 ## Contract surface
 
@@ -57,7 +58,8 @@ people and contain no credentials.
 ## Deliberate exclusions
 
 - `DRAFT` and `IN_PROGRESS` Lifestyle aggregates;
-- central PostgreSQL persistence and Fastify ingestion;
+- central PostgreSQL persistence and Fastify ingestion (implemented separately
+  by HSD-SYNC-005C);
 - operations-portal Lifestyle viewing;
 - desktop snapshot construction, transport, retry, and acknowledgement;
 - amendment, replacement, and void semantics;

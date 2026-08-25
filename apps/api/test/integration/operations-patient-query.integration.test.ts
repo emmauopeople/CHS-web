@@ -139,8 +139,84 @@ runIntegration('canonical patient query service', () => {
             }),
           ],
         }),
+        lifestyle: {
+          lifestyleAssessmentId: '55000000-0000-4000-8000-000000000001',
+          status: 'COMPLETE',
+          periodStart: '2026-08-12',
+          periodEnd: '2026-08-18',
+          completedAt: '2026-08-18T11:25:00.000Z',
+          recordedByPractitionerName: 'Synthetic Nurse One',
+          baselines: {
+            alcohol: expect.objectContaining({
+              baselineId: '55100000-0000-4000-8000-000000000001',
+              version: 1,
+              status: 'CURRENT',
+              commonBeverageTypes: ['BEER'],
+            }),
+            tobacco: expect.objectContaining({
+              baselineId: '55200000-0000-4000-8000-000000000001',
+              version: 1,
+              status: 'CURRENT_SOME_DAYS',
+              productTypes: ['CIGARETTE'],
+            }),
+            work: expect.objectContaining({
+              baselineId: '55300000-0000-4000-8000-000000000001',
+              version: 1,
+              status: 'FARMING',
+              typicalHoursPerWorkday: 6.5,
+            }),
+          },
+          alcohol: expect.objectContaining({
+            weeklyResponse: 'YES',
+            drinkingDays: 2,
+            totalStandardizedDrinks: 3,
+            commonBeverageTypes: ['BEER'],
+          }),
+          tobacco: {
+            weeklyResponse: 'YES',
+            products: [
+              expect.objectContaining({
+                sequenceNumber: 1,
+                productType: 'CIGARETTE',
+                averageQuantityPerUseDay: 3,
+              }),
+            ],
+          },
+          physicalActivity: {
+            weeklyResponse: 'YES',
+            sedentaryTimeResponse: 'RECORDED',
+            sedentaryMinutesPerDay: 240,
+            activities: [
+              expect.objectContaining({
+                sequenceNumber: 1,
+                activityDomain: 'WORK_OR_FARMING',
+                averageMinutesPerActiveDay: 60,
+              }),
+            ],
+          },
+          work: { weeklyResponse: 'USUAL' },
+          otherActivity: {
+            weeklyResponse: 'YES',
+            activities: [
+              expect.objectContaining({
+                sequenceNumber: 1,
+                category: 'COMMUNITY',
+                averageMinutesPerDay: 45,
+              }),
+            ],
+          },
+        },
       }),
     ]);
+    const serializedDetail = JSON.stringify(detail);
+    expect(serializedDetail).not.toContain(
+      '55010000-0000-4000-8000-000000000001',
+    );
+    expect(serializedDetail).not.toContain(
+      '55110000-0000-4000-8000-000000000001',
+    );
+    expect(serializedDetail).not.toContain('localLifestyleId');
+    expect(serializedDetail).not.toContain('sourceContentHash');
 
     await expect(
       getCanonicalPatientDetail(servicePool, scope, patientC),
@@ -153,6 +229,7 @@ runIntegration('canonical patient query service', () => {
     expect(globalDetail?.screeningHistory.items[0]).toMatchObject({
       organizationName: 'Synthetic Program Two',
       locationName: 'Synthetic Site Two',
+      lifestyle: null,
     });
   });
 });
@@ -444,6 +521,8 @@ async function seedCanonicalViewerData(pool: pg.Pool) {
     ],
   );
 
+  await insertLifestyle(pool);
+
   await pool.query(
     `INSERT INTO identity_review_cases (
        id, installation_id, local_patient_id, status, opened_at, created_at, updated_at
@@ -460,6 +539,273 @@ async function seedCanonicalViewerData(pool: pg.Pool) {
        review_case_id, person_id, score, matched_on, created_at
      ) VALUES ($1, $2, 80, ARRAY['NAME'], $3)`,
     ['54000000-0000-4000-8000-000000000001', patientA, now],
+  );
+}
+
+async function insertLifestyle(pool: pg.Pool) {
+  const installationId = '20000000-0000-4000-8000-000000000001';
+  const encounterId = '51000000-0000-4000-8000-000000000001';
+  const practitionerId = '60000000-0000-4000-8000-000000000001';
+  const alcoholBaselineId = '55100000-0000-4000-8000-000000000001';
+  const tobaccoBaselineId = '55200000-0000-4000-8000-000000000001';
+  const workBaselineId = '55300000-0000-4000-8000-000000000001';
+  const lifestyleId = '55000000-0000-4000-8000-000000000001';
+
+  await pool.query(
+    `INSERT INTO lifestyle_alcohol_baselines (
+       id, person_id, installation_id, local_baseline_version_id,
+       source_version, status, ever_consumed, consumed_past_12_months,
+       other_beverage_description, created_by_practitioner_id,
+       updated_by_practitioner_id, source_content_hash, source_created_at,
+       source_updated_at, created_at, updated_at
+     ) VALUES ($1, $2, $3, $4, 1, 'CURRENT', 'YES', 'YES', NULL,
+       $5, $5, $6, '2026-08-18T09:30:00.000Z',
+       '2026-08-18T09:30:00.000Z', $7, $7)`,
+    [
+      alcoholBaselineId,
+      patientA,
+      installationId,
+      '55110000-0000-4000-8000-000000000001',
+      practitionerId,
+      hash,
+      now,
+    ],
+  );
+  await pool.query(
+    `INSERT INTO lifestyle_alcohol_baseline_beverages (
+       baseline_id, beverage_type
+     ) VALUES ($1, 'BEER')`,
+    [alcoholBaselineId],
+  );
+  await pool.query(
+    `INSERT INTO lifestyle_alcohol_baselines (
+       id, person_id, installation_id, local_baseline_version_id,
+       source_version, status, ever_consumed, consumed_past_12_months,
+       other_beverage_description, created_by_practitioner_id,
+       updated_by_practitioner_id, source_content_hash, source_created_at,
+       source_updated_at, created_at, updated_at
+     ) VALUES ($1, $2, $3, $4, 2, 'CURRENT', 'YES', 'YES', NULL,
+       $5, $5, $6, '2026-08-18T11:20:00.000Z',
+       '2026-08-18T11:20:00.000Z', $7, $7)`,
+    [
+      '55100000-0000-4000-8000-000000000002',
+      patientA,
+      installationId,
+      '55110000-0000-4000-8000-000000000002',
+      practitionerId,
+      hash,
+      now,
+    ],
+  );
+  await pool.query(
+    `INSERT INTO lifestyle_alcohol_baseline_beverages (
+       baseline_id, beverage_type
+     ) VALUES ($1, 'WINE')`,
+    ['55100000-0000-4000-8000-000000000002'],
+  );
+  await pool.query(
+    `INSERT INTO lifestyle_tobacco_baselines (
+       id, person_id, installation_id, local_baseline_version_id,
+       source_version, status, ever_regularly_used,
+       former_use_approximate_stop_date, current_use_frequency,
+       other_product_description, created_by_practitioner_id,
+       updated_by_practitioner_id, source_content_hash, source_created_at,
+       source_updated_at, created_at, updated_at
+     ) VALUES ($1, $2, $3, $4, 1, 'CURRENT_SOME_DAYS', 'YES', NULL,
+       'SOME_DAYS', NULL, $5, $5, $6, '2026-08-18T09:31:00.000Z',
+       '2026-08-18T09:31:00.000Z', $7, $7)`,
+    [
+      tobaccoBaselineId,
+      patientA,
+      installationId,
+      '55210000-0000-4000-8000-000000000001',
+      practitionerId,
+      hash,
+      now,
+    ],
+  );
+  await pool.query(
+    `INSERT INTO lifestyle_tobacco_baseline_products (
+       baseline_id, product_type
+     ) VALUES ($1, 'CIGARETTE')`,
+    [tobaccoBaselineId],
+  );
+  await pool.query(
+    `INSERT INTO lifestyle_work_baselines (
+       id, person_id, installation_id, local_baseline_version_id,
+       source_version, status, occupation_job_title, usual_physical_demand,
+       typical_workdays_per_week, typical_hours_per_workday, shift_pattern,
+       description, created_by_practitioner_id, updated_by_practitioner_id,
+       source_content_hash, source_created_at, source_updated_at,
+       created_at, updated_at
+     ) VALUES ($1, $2, $3, $4, 1, 'FARMING', 'Synthetic crop farmer',
+       'MODERATE_LABOR', 5, 6.5, 'DAY', NULL, $5, $5, $6,
+       '2026-08-18T09:32:00.000Z', '2026-08-18T09:32:00.000Z', $7, $7)`,
+    [
+      workBaselineId,
+      patientA,
+      installationId,
+      '55310000-0000-4000-8000-000000000001',
+      practitionerId,
+      hash,
+      now,
+    ],
+  );
+  await pool.query(
+    `INSERT INTO lifestyle_assessments (
+       id, encounter_id, person_id, screening_session_id, installation_id,
+       organization_id, location_id, protocol_id, local_lifestyle_id,
+       source_location_id, status, period_start, period_end,
+       alcohol_baseline_id, tobacco_baseline_id, work_baseline_id,
+       created_by_practitioner_id, updated_by_practitioner_id,
+       source_revision, source_content_hash, source_created_at,
+       source_updated_at, created_at, updated_at
+     ) VALUES ($1, $2, $3, '70000000-0000-4000-8000-000000000001', $4,
+       $5, '30000000-0000-4000-8000-000000000001',
+       '80000000-0000-4000-8000-000000000001', $6,
+       '30000000-0000-4000-8000-000000000001', 'COMPLETE',
+       '2026-08-12', '2026-08-18', $7, $8, $9, $10, $10, 1, $11,
+       '2026-08-18T09:30:00.000Z', '2026-08-18T11:25:00.000Z', $12, $12)`,
+    [
+      lifestyleId,
+      encounterId,
+      patientA,
+      installationId,
+      org1,
+      '55010000-0000-4000-8000-000000000001',
+      alcoholBaselineId,
+      tobaccoBaselineId,
+      workBaselineId,
+      practitionerId,
+      hash,
+      now,
+    ],
+  );
+  await pool.query(
+    `INSERT INTO lifestyle_alcohol_weekly (
+       lifestyle_assessment_id, local_weekly_record_id, weekly_response,
+       drinking_days, total_standardized_drinks, largest_one_day_amount,
+       days_at_largest_amount, other_beverage_description,
+       created_by_practitioner_id, updated_by_practitioner_id,
+       source_created_at, source_updated_at, created_at, updated_at
+     ) VALUES ($1, $2, 'YES', 2, 3, 2, 1, NULL, $3, $3,
+       '2026-08-18T10:00:00.000Z', '2026-08-18T10:00:00.000Z', $4, $4)`,
+    [
+      lifestyleId,
+      '55400000-0000-4000-8000-000000000001',
+      practitionerId,
+      now,
+    ],
+  );
+  await pool.query(
+    `INSERT INTO lifestyle_alcohol_weekly_beverages (
+       lifestyle_assessment_id, beverage_type
+     ) VALUES ($1, 'BEER')`,
+    [lifestyleId],
+  );
+  await pool.query(
+    `INSERT INTO lifestyle_tobacco_weekly (
+       lifestyle_assessment_id, local_weekly_record_id, weekly_response,
+       created_by_practitioner_id, updated_by_practitioner_id,
+       source_created_at, source_updated_at, created_at, updated_at
+     ) VALUES ($1, $2, 'YES', $3, $3,
+       '2026-08-18T10:05:00.000Z', '2026-08-18T10:05:00.000Z', $4, $4)`,
+    [
+      lifestyleId,
+      '55500000-0000-4000-8000-000000000001',
+      practitionerId,
+      now,
+    ],
+  );
+  await pool.query(
+    `INSERT INTO lifestyle_tobacco_products (
+       id, lifestyle_assessment_id, local_product_row_id, sequence_number,
+       product_type, days_used, average_quantity_per_use_day, unit,
+       secondhand_smoke_exposure, other_product_description,
+       other_unit_description, created_by_practitioner_id,
+       updated_by_practitioner_id, source_created_at, source_updated_at,
+       created_at, updated_at
+     ) VALUES ($1, $2, $3, 1, 'CIGARETTE', 2, 3, 'STICKS_CIGARETTES',
+       false, NULL, NULL, $4, $4, '2026-08-18T10:05:00.000Z',
+       '2026-08-18T10:05:00.000Z', $5, $5)`,
+    [
+      '55600000-0000-4000-8000-000000000001',
+      lifestyleId,
+      '55610000-0000-4000-8000-000000000001',
+      practitionerId,
+      now,
+    ],
+  );
+  await pool.query(
+    `INSERT INTO lifestyle_physical_activity_weekly (
+       lifestyle_assessment_id, local_weekly_record_id, weekly_response,
+       sedentary_time_response, sedentary_minutes_per_day,
+       created_by_practitioner_id, updated_by_practitioner_id,
+       source_created_at, source_updated_at, created_at, updated_at
+     ) VALUES ($1, $2, 'YES', 'RECORDED', 240, $3, $3,
+       '2026-08-18T10:10:00.000Z', '2026-08-18T10:10:00.000Z', $4, $4)`,
+    [
+      lifestyleId,
+      '55700000-0000-4000-8000-000000000001',
+      practitionerId,
+      now,
+    ],
+  );
+  await pool.query(
+    `INSERT INTO lifestyle_physical_activities (
+       id, lifestyle_assessment_id, local_activity_row_id, sequence_number,
+       activity_domain, description, intensity, days_in_past_seven_days,
+       average_minutes_per_active_day, created_by_practitioner_id,
+       updated_by_practitioner_id, source_created_at, source_updated_at,
+       created_at, updated_at
+     ) VALUES ($1, $2, $3, 1, 'WORK_OR_FARMING', NULL, 'MODERATE', 5, 60,
+       $4, $4, '2026-08-18T10:10:00.000Z',
+       '2026-08-18T10:10:00.000Z', $5, $5)`,
+    [
+      '55800000-0000-4000-8000-000000000001',
+      lifestyleId,
+      '55810000-0000-4000-8000-000000000001',
+      practitionerId,
+      now,
+    ],
+  );
+  await pool.query(
+    `INSERT INTO lifestyle_work_weekly (
+       lifestyle_assessment_id, local_weekly_record_id, weekly_response,
+       created_by_practitioner_id, updated_by_practitioner_id,
+       source_created_at, source_updated_at, created_at, updated_at
+     ) VALUES ($1, $2, 'USUAL', $3, $3,
+       '2026-08-18T10:15:00.000Z', '2026-08-18T10:15:00.000Z', $4, $4)`,
+    [
+      lifestyleId,
+      '55900000-0000-4000-8000-000000000001',
+      practitionerId,
+      now,
+    ],
+  );
+  await pool.query(
+    `INSERT INTO lifestyle_other_activity_weekly (
+       lifestyle_assessment_id, weekly_response
+     ) VALUES ($1, 'YES')`,
+    [lifestyleId],
+  );
+  await pool.query(
+    `INSERT INTO lifestyle_other_activities (
+       id, lifestyle_assessment_id, local_activity_row_id, sequence_number,
+       category, description, days_in_past_seven_days,
+       average_minutes_per_day, intensity, created_by_practitioner_id,
+       updated_by_practitioner_id, source_created_at, source_updated_at,
+       created_at, updated_at
+     ) VALUES ($1, $2, $3, 1, 'COMMUNITY', 'Synthetic choir rehearsal',
+       2, 45, 'LIGHT', $4, $4, '2026-08-18T10:20:00.000Z',
+       '2026-08-18T10:20:00.000Z', $5, $5)`,
+    [
+      '55a00000-0000-4000-8000-000000000001',
+      lifestyleId,
+      '55a10000-0000-4000-8000-000000000001',
+      practitionerId,
+      now,
+    ],
   );
 }
 

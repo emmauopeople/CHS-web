@@ -2,6 +2,20 @@ import type { Pool, PoolClient } from 'pg';
 
 import { CHS_MEDICAL_ID_SYSTEM, CHS_MEDICAL_ID_TYPE } from '../sync/medical-id.js';
 import { normalizeIdentityName } from '../sync/patient-identity-normalization.js';
+import type {
+  LifestyleAlcoholBaseline,
+  LifestyleAlcoholWeekly,
+  LifestyleBeverageType,
+  LifestyleOtherActivity,
+  LifestylePayload,
+  LifestylePhysicalActivity,
+  LifestylePhysicalActivityWeekly,
+  LifestyleTobaccoBaseline,
+  LifestyleTobaccoProduct,
+  LifestyleTobaccoWeekly,
+  LifestyleWorkBaseline,
+  LifestyleWorkWeekly,
+} from '../sync/types.js';
 
 type QueryDatabase = Pick<Pool, 'connect'>;
 
@@ -65,6 +79,99 @@ export type VitalReadingView = Readonly<{
   measuredAt: string | null;
 }>;
 
+export type LifestyleAssessmentView = Readonly<{
+  lifestyleAssessmentId: string;
+  status: 'COMPLETE';
+  periodStart: string;
+  periodEnd: string;
+  completedAt: string;
+  recordedByPractitionerName: string;
+  baselines: Readonly<{
+    alcohol: Readonly<{
+      baselineId: string;
+      version: number;
+      status: LifestyleAlcoholBaseline['status'];
+      everConsumed: LifestyleAlcoholBaseline['everConsumed'];
+      consumedPast12Months: LifestyleAlcoholBaseline['consumedPast12Months'];
+      commonBeverageTypes: readonly LifestyleBeverageType[];
+      otherBeverageDescription: string | null;
+    }>;
+    tobacco: Readonly<{
+      baselineId: string;
+      version: number;
+      status: LifestyleTobaccoBaseline['status'];
+      everRegularlyUsed: LifestyleTobaccoBaseline['everRegularlyUsed'];
+      formerUseApproximateStopDate: string | null;
+      currentUseFrequency: LifestyleTobaccoBaseline['currentUseFrequency'];
+      productTypes: readonly LifestyleTobaccoProduct['productType'][];
+      otherProductDescription: string | null;
+    }>;
+    work: Readonly<{
+      baselineId: string;
+      version: number;
+      status: LifestyleWorkBaseline['status'];
+      occupationJobTitle: string | null;
+      usualPhysicalDemand: LifestyleWorkBaseline['usualPhysicalDemand'];
+      typicalWorkdaysPerWeek: number | null;
+      typicalHoursPerWorkday: number | null;
+      shiftPattern: LifestyleWorkBaseline['shiftPattern'];
+      description: string | null;
+    }>;
+  }>;
+  alcohol: Readonly<{
+    weeklyResponse: LifestyleAlcoholWeekly['weeklyResponse'];
+    drinkingDays: number | null;
+    totalStandardizedDrinks: number | null;
+    largestOneDayAmount: number | null;
+    daysAtLargestAmount: number | null;
+    commonBeverageTypes: readonly LifestyleBeverageType[];
+    otherBeverageDescription: string | null;
+  }>;
+  tobacco: Readonly<{
+    weeklyResponse: LifestyleTobaccoWeekly['weeklyResponse'];
+    products: readonly Readonly<{
+      productId: string;
+      sequenceNumber: number;
+      productType: LifestyleTobaccoProduct['productType'];
+      daysUsed: number;
+      averageQuantityPerUseDay: number;
+      unit: LifestyleTobaccoProduct['unit'];
+      secondhandSmokeExposure: boolean | null;
+      otherProductDescription: string | null;
+      otherUnitDescription: string | null;
+    }>[];
+  }>;
+  physicalActivity: Readonly<{
+    weeklyResponse: LifestylePhysicalActivityWeekly['weeklyResponse'];
+    sedentaryTimeResponse: LifestylePhysicalActivityWeekly['sedentaryTimeResponse'];
+    sedentaryMinutesPerDay: number | null;
+    activities: readonly Readonly<{
+      activityId: string;
+      sequenceNumber: number;
+      activityDomain: LifestylePhysicalActivity['activityDomain'];
+      description: string | null;
+      intensity: LifestylePhysicalActivity['intensity'];
+      daysInPastSevenDays: number;
+      averageMinutesPerActiveDay: number;
+    }>[];
+  }>;
+  work: Readonly<{
+    weeklyResponse: LifestyleWorkWeekly['weeklyResponse'];
+  }>;
+  otherActivity: Readonly<{
+    weeklyResponse: LifestylePayload['otherActivity']['weeklyResponse'];
+    activities: readonly Readonly<{
+      activityId: string;
+      sequenceNumber: number;
+      category: LifestyleOtherActivity['category'];
+      description: string | null;
+      daysInPastSevenDays: number;
+      averageMinutesPerDay: number;
+      intensity: LifestyleOtherActivity['intensity'];
+    }>[];
+  }>;
+}>;
+
 export type PatientScreeningView = Readonly<{
   encounterId: string;
   status: 'DRAFT' | 'COMPLETED' | 'AMENDED';
@@ -87,6 +194,7 @@ export type PatientScreeningView = Readonly<{
     recordedByPractitionerName: string;
     readings: readonly VitalReadingView[];
   }>;
+  lifestyle: LifestyleAssessmentView | null;
 }>;
 
 export type PatientDetail = Readonly<{
@@ -204,6 +312,88 @@ type ReadingRow = Readonly<{
   measurement_local_time: string | null;
   measurement_timezone: string;
   measured_at: Date | null;
+}>;
+
+type LifestyleRow = Readonly<{
+  encounter_id: string;
+  lifestyle_assessment_id: string;
+  lifestyle_status: 'COMPLETE';
+  period_start: string;
+  period_end: string;
+  completed_at: Date;
+  lifestyle_practitioner_name: string;
+  alcohol_baseline_id: string;
+  alcohol_baseline_version: number;
+  alcohol_baseline_status: LifestyleAlcoholBaseline['status'];
+  alcohol_ever_consumed: LifestyleAlcoholBaseline['everConsumed'];
+  alcohol_consumed_past_12_months: LifestyleAlcoholBaseline['consumedPast12Months'];
+  alcohol_baseline_beverage_types: LifestyleBeverageType[];
+  alcohol_baseline_other_description: string | null;
+  tobacco_baseline_id: string;
+  tobacco_baseline_version: number;
+  tobacco_baseline_status: LifestyleTobaccoBaseline['status'];
+  tobacco_ever_regularly_used: LifestyleTobaccoBaseline['everRegularlyUsed'];
+  tobacco_former_stop_date: string | null;
+  tobacco_current_use_frequency: LifestyleTobaccoBaseline['currentUseFrequency'];
+  tobacco_baseline_product_types: LifestyleTobaccoProduct['productType'][];
+  tobacco_baseline_other_description: string | null;
+  work_baseline_id: string;
+  work_baseline_version: number;
+  work_baseline_status: LifestyleWorkBaseline['status'];
+  occupation_job_title: string | null;
+  usual_physical_demand: LifestyleWorkBaseline['usualPhysicalDemand'];
+  typical_workdays_per_week: number | null;
+  typical_hours_per_workday: number | null;
+  shift_pattern: LifestyleWorkBaseline['shiftPattern'];
+  work_baseline_description: string | null;
+  alcohol_weekly_response: LifestyleAlcoholWeekly['weeklyResponse'];
+  drinking_days: number | null;
+  total_standardized_drinks: number | null;
+  largest_one_day_amount: number | null;
+  days_at_largest_amount: number | null;
+  alcohol_weekly_beverage_types: LifestyleBeverageType[];
+  alcohol_weekly_other_description: string | null;
+  tobacco_weekly_response: LifestyleTobaccoWeekly['weeklyResponse'];
+  physical_weekly_response: LifestylePhysicalActivityWeekly['weeklyResponse'];
+  sedentary_time_response: LifestylePhysicalActivityWeekly['sedentaryTimeResponse'];
+  sedentary_minutes_per_day: number | null;
+  work_weekly_response: LifestyleWorkWeekly['weeklyResponse'];
+  other_activity_weekly_response: LifestylePayload['otherActivity']['weeklyResponse'];
+}>;
+
+type LifestyleTobaccoProductRow = Readonly<{
+  lifestyle_assessment_id: string;
+  product_id: string;
+  sequence_number: number;
+  product_type: LifestyleTobaccoProduct['productType'];
+  days_used: number;
+  average_quantity_per_use_day: number;
+  unit: LifestyleTobaccoProduct['unit'];
+  secondhand_smoke_exposure: boolean | null;
+  other_product_description: string | null;
+  other_unit_description: string | null;
+}>;
+
+type LifestylePhysicalActivityRow = Readonly<{
+  lifestyle_assessment_id: string;
+  activity_id: string;
+  sequence_number: number;
+  activity_domain: LifestylePhysicalActivity['activityDomain'];
+  description: string | null;
+  intensity: LifestylePhysicalActivity['intensity'];
+  days_in_past_seven_days: number;
+  average_minutes_per_active_day: number;
+}>;
+
+type LifestyleOtherActivityRow = Readonly<{
+  lifestyle_assessment_id: string;
+  activity_id: string;
+  sequence_number: number;
+  category: LifestyleOtherActivity['category'];
+  description: string | null;
+  days_in_past_seven_days: number;
+  average_minutes_per_day: number;
+  intensity: LifestyleOtherActivity['intensity'];
 }>;
 
 const uuidPattern =
@@ -548,6 +738,7 @@ export async function getCanonicalPatientDetail(
     const vitalSetIds = screeningResult.rows.flatMap((row) =>
       row.vital_set_id ? [row.vital_set_id] : [],
     );
+    const encounterIds = screeningResult.rows.map((row) => row.encounter_id);
     const readingResult = vitalSetIds.length === 0
       ? { rows: [] as ReadingRow[] }
       : await client.query<ReadingRow>(
@@ -572,6 +763,159 @@ export async function getCanonicalPatientDetail(
            ORDER BY vital_set_id, sequence_number`,
           [vitalSetIds],
         );
+    const lifestyleResult = encounterIds.length === 0
+      ? { rows: [] as LifestyleRow[] }
+      : await client.query<LifestyleRow>(
+          `SELECT
+             assessment.encounter_id,
+             assessment.id AS lifestyle_assessment_id,
+             assessment.status AS lifestyle_status,
+             to_char(assessment.period_start, 'YYYY-MM-DD') AS period_start,
+             to_char(assessment.period_end, 'YYYY-MM-DD') AS period_end,
+             assessment.source_updated_at AS completed_at,
+             lifestyle_practitioner.display_name AS lifestyle_practitioner_name,
+             alcohol_baseline.id AS alcohol_baseline_id,
+             alcohol_baseline.source_version AS alcohol_baseline_version,
+             alcohol_baseline.status AS alcohol_baseline_status,
+             alcohol_baseline.ever_consumed AS alcohol_ever_consumed,
+             alcohol_baseline.consumed_past_12_months AS alcohol_consumed_past_12_months,
+             ARRAY(
+               SELECT beverage.beverage_type
+               FROM lifestyle_alcohol_baseline_beverages beverage
+               WHERE beverage.baseline_id = alcohol_baseline.id
+               ORDER BY beverage.beverage_type
+             ) AS alcohol_baseline_beverage_types,
+             alcohol_baseline.other_beverage_description
+               AS alcohol_baseline_other_description,
+             tobacco_baseline.id AS tobacco_baseline_id,
+             tobacco_baseline.source_version AS tobacco_baseline_version,
+             tobacco_baseline.status AS tobacco_baseline_status,
+             tobacco_baseline.ever_regularly_used AS tobacco_ever_regularly_used,
+             tobacco_baseline.former_use_approximate_stop_date
+               AS tobacco_former_stop_date,
+             tobacco_baseline.current_use_frequency
+               AS tobacco_current_use_frequency,
+             ARRAY(
+               SELECT product.product_type
+               FROM lifestyle_tobacco_baseline_products product
+               WHERE product.baseline_id = tobacco_baseline.id
+               ORDER BY product.product_type
+             ) AS tobacco_baseline_product_types,
+             tobacco_baseline.other_product_description
+               AS tobacco_baseline_other_description,
+             work_baseline.id AS work_baseline_id,
+             work_baseline.source_version AS work_baseline_version,
+             work_baseline.status AS work_baseline_status,
+             work_baseline.occupation_job_title,
+             work_baseline.usual_physical_demand,
+             work_baseline.typical_workdays_per_week,
+             work_baseline.typical_hours_per_workday::double precision
+               AS typical_hours_per_workday,
+             work_baseline.shift_pattern,
+             work_baseline.description AS work_baseline_description,
+             alcohol_weekly.weekly_response AS alcohol_weekly_response,
+             alcohol_weekly.drinking_days,
+             alcohol_weekly.total_standardized_drinks::double precision
+               AS total_standardized_drinks,
+             alcohol_weekly.largest_one_day_amount::double precision
+               AS largest_one_day_amount,
+             alcohol_weekly.days_at_largest_amount,
+             ARRAY(
+               SELECT beverage.beverage_type
+               FROM lifestyle_alcohol_weekly_beverages beverage
+               WHERE beverage.lifestyle_assessment_id = assessment.id
+               ORDER BY beverage.beverage_type
+             ) AS alcohol_weekly_beverage_types,
+             alcohol_weekly.other_beverage_description
+               AS alcohol_weekly_other_description,
+             tobacco_weekly.weekly_response AS tobacco_weekly_response,
+             physical_weekly.weekly_response AS physical_weekly_response,
+             physical_weekly.sedentary_time_response,
+             physical_weekly.sedentary_minutes_per_day,
+             work_weekly.weekly_response AS work_weekly_response,
+             other_weekly.weekly_response AS other_activity_weekly_response
+           FROM lifestyle_assessments assessment
+           JOIN practitioners lifestyle_practitioner
+             ON lifestyle_practitioner.id = assessment.updated_by_practitioner_id
+           JOIN lifestyle_alcohol_baselines alcohol_baseline
+             ON alcohol_baseline.id = assessment.alcohol_baseline_id
+           JOIN lifestyle_tobacco_baselines tobacco_baseline
+             ON tobacco_baseline.id = assessment.tobacco_baseline_id
+           JOIN lifestyle_work_baselines work_baseline
+             ON work_baseline.id = assessment.work_baseline_id
+           JOIN lifestyle_alcohol_weekly alcohol_weekly
+             ON alcohol_weekly.lifestyle_assessment_id = assessment.id
+           JOIN lifestyle_tobacco_weekly tobacco_weekly
+             ON tobacco_weekly.lifestyle_assessment_id = assessment.id
+           JOIN lifestyle_physical_activity_weekly physical_weekly
+             ON physical_weekly.lifestyle_assessment_id = assessment.id
+           JOIN lifestyle_work_weekly work_weekly
+             ON work_weekly.lifestyle_assessment_id = assessment.id
+           JOIN lifestyle_other_activity_weekly other_weekly
+             ON other_weekly.lifestyle_assessment_id = assessment.id
+           WHERE assessment.encounter_id = ANY($1::uuid[])
+             AND assessment.person_id = $2
+             AND assessment.status = 'COMPLETE'
+           ORDER BY assessment.encounter_id`,
+          [encounterIds, personId],
+        );
+    const lifestyleIds = lifestyleResult.rows.map(
+      (row) => row.lifestyle_assessment_id,
+    );
+    const tobaccoProductResult = lifestyleIds.length === 0
+      ? { rows: [] as LifestyleTobaccoProductRow[] }
+      : await client.query<LifestyleTobaccoProductRow>(
+          `SELECT
+             lifestyle_assessment_id,
+             id AS product_id,
+             sequence_number,
+             product_type,
+             days_used,
+             average_quantity_per_use_day::double precision
+               AS average_quantity_per_use_day,
+             unit,
+             secondhand_smoke_exposure,
+             other_product_description,
+             other_unit_description
+           FROM lifestyle_tobacco_products
+           WHERE lifestyle_assessment_id = ANY($1::uuid[])
+           ORDER BY lifestyle_assessment_id, sequence_number`,
+          [lifestyleIds],
+        );
+    const physicalActivityResult = lifestyleIds.length === 0
+      ? { rows: [] as LifestylePhysicalActivityRow[] }
+      : await client.query<LifestylePhysicalActivityRow>(
+          `SELECT
+             lifestyle_assessment_id,
+             id AS activity_id,
+             sequence_number,
+             activity_domain,
+             description,
+             intensity,
+             days_in_past_seven_days,
+             average_minutes_per_active_day
+           FROM lifestyle_physical_activities
+           WHERE lifestyle_assessment_id = ANY($1::uuid[])
+           ORDER BY lifestyle_assessment_id, sequence_number`,
+          [lifestyleIds],
+        );
+    const otherActivityResult = lifestyleIds.length === 0
+      ? { rows: [] as LifestyleOtherActivityRow[] }
+      : await client.query<LifestyleOtherActivityRow>(
+          `SELECT
+             lifestyle_assessment_id,
+             id AS activity_id,
+             sequence_number,
+             category,
+             description,
+             days_in_past_seven_days,
+             average_minutes_per_day,
+             intensity
+           FROM lifestyle_other_activities
+           WHERE lifestyle_assessment_id = ANY($1::uuid[])
+           ORDER BY lifestyle_assessment_id, sequence_number`,
+          [lifestyleIds],
+        );
     await client.query('COMMIT');
 
     const readingsBySet = new Map<string, VitalReadingView[]>();
@@ -591,6 +935,136 @@ export async function getCanonicalPatientDetail(
         measuredAt: toTimestamp(row.measured_at),
       });
       readingsBySet.set(row.vital_set_id, readings);
+    }
+
+    const tobaccoProductsByLifestyle = new Map<
+      string,
+      LifestyleAssessmentView['tobacco']['products'][number][]
+    >();
+    for (const row of tobaccoProductResult.rows) {
+      const products =
+        tobaccoProductsByLifestyle.get(row.lifestyle_assessment_id) ?? [];
+      products.push({
+        productId: row.product_id,
+        sequenceNumber: row.sequence_number,
+        productType: row.product_type,
+        daysUsed: row.days_used,
+        averageQuantityPerUseDay: row.average_quantity_per_use_day,
+        unit: row.unit,
+        secondhandSmokeExposure: row.secondhand_smoke_exposure,
+        otherProductDescription: row.other_product_description,
+        otherUnitDescription: row.other_unit_description,
+      });
+      tobaccoProductsByLifestyle.set(row.lifestyle_assessment_id, products);
+    }
+
+    const physicalActivitiesByLifestyle = new Map<
+      string,
+      LifestyleAssessmentView['physicalActivity']['activities'][number][]
+    >();
+    for (const row of physicalActivityResult.rows) {
+      const activities =
+        physicalActivitiesByLifestyle.get(row.lifestyle_assessment_id) ?? [];
+      activities.push({
+        activityId: row.activity_id,
+        sequenceNumber: row.sequence_number,
+        activityDomain: row.activity_domain,
+        description: row.description,
+        intensity: row.intensity,
+        daysInPastSevenDays: row.days_in_past_seven_days,
+        averageMinutesPerActiveDay: row.average_minutes_per_active_day,
+      });
+      physicalActivitiesByLifestyle.set(row.lifestyle_assessment_id, activities);
+    }
+
+    const otherActivitiesByLifestyle = new Map<
+      string,
+      LifestyleAssessmentView['otherActivity']['activities'][number][]
+    >();
+    for (const row of otherActivityResult.rows) {
+      const activities =
+        otherActivitiesByLifestyle.get(row.lifestyle_assessment_id) ?? [];
+      activities.push({
+        activityId: row.activity_id,
+        sequenceNumber: row.sequence_number,
+        category: row.category,
+        description: row.description,
+        daysInPastSevenDays: row.days_in_past_seven_days,
+        averageMinutesPerDay: row.average_minutes_per_day,
+        intensity: row.intensity,
+      });
+      otherActivitiesByLifestyle.set(row.lifestyle_assessment_id, activities);
+    }
+
+    const lifestylesByEncounter = new Map<string, LifestyleAssessmentView>();
+    for (const row of lifestyleResult.rows) {
+      lifestylesByEncounter.set(row.encounter_id, {
+        lifestyleAssessmentId: row.lifestyle_assessment_id,
+        status: row.lifestyle_status,
+        periodStart: row.period_start,
+        periodEnd: row.period_end,
+        completedAt: row.completed_at.toISOString(),
+        recordedByPractitionerName: row.lifestyle_practitioner_name,
+        baselines: {
+          alcohol: {
+            baselineId: row.alcohol_baseline_id,
+            version: row.alcohol_baseline_version,
+            status: row.alcohol_baseline_status,
+            everConsumed: row.alcohol_ever_consumed,
+            consumedPast12Months: row.alcohol_consumed_past_12_months,
+            commonBeverageTypes: row.alcohol_baseline_beverage_types,
+            otherBeverageDescription: row.alcohol_baseline_other_description,
+          },
+          tobacco: {
+            baselineId: row.tobacco_baseline_id,
+            version: row.tobacco_baseline_version,
+            status: row.tobacco_baseline_status,
+            everRegularlyUsed: row.tobacco_ever_regularly_used,
+            formerUseApproximateStopDate: row.tobacco_former_stop_date,
+            currentUseFrequency: row.tobacco_current_use_frequency,
+            productTypes: row.tobacco_baseline_product_types,
+            otherProductDescription: row.tobacco_baseline_other_description,
+          },
+          work: {
+            baselineId: row.work_baseline_id,
+            version: row.work_baseline_version,
+            status: row.work_baseline_status,
+            occupationJobTitle: row.occupation_job_title,
+            usualPhysicalDemand: row.usual_physical_demand,
+            typicalWorkdaysPerWeek: row.typical_workdays_per_week,
+            typicalHoursPerWorkday: row.typical_hours_per_workday,
+            shiftPattern: row.shift_pattern,
+            description: row.work_baseline_description,
+          },
+        },
+        alcohol: {
+          weeklyResponse: row.alcohol_weekly_response,
+          drinkingDays: row.drinking_days,
+          totalStandardizedDrinks: row.total_standardized_drinks,
+          largestOneDayAmount: row.largest_one_day_amount,
+          daysAtLargestAmount: row.days_at_largest_amount,
+          commonBeverageTypes: row.alcohol_weekly_beverage_types,
+          otherBeverageDescription: row.alcohol_weekly_other_description,
+        },
+        tobacco: {
+          weeklyResponse: row.tobacco_weekly_response,
+          products:
+            tobaccoProductsByLifestyle.get(row.lifestyle_assessment_id) ?? [],
+        },
+        physicalActivity: {
+          weeklyResponse: row.physical_weekly_response,
+          sedentaryTimeResponse: row.sedentary_time_response,
+          sedentaryMinutesPerDay: row.sedentary_minutes_per_day,
+          activities:
+            physicalActivitiesByLifestyle.get(row.lifestyle_assessment_id) ?? [],
+        },
+        work: { weeklyResponse: row.work_weekly_response },
+        otherActivity: {
+          weeklyResponse: row.other_activity_weekly_response,
+          activities:
+            otherActivitiesByLifestyle.get(row.lifestyle_assessment_id) ?? [],
+        },
+      });
     }
 
     return {
@@ -625,6 +1099,7 @@ export async function getCanonicalPatientDetail(
                   readings: readingsBySet.get(row.vital_set_id) ?? [],
                 }
               : null,
+          lifestyle: lifestylesByEncounter.get(row.encounter_id) ?? null,
         })),
       },
     };

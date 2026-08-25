@@ -92,8 +92,11 @@ encounter and carries the exact referenced alcohol, tobacco, and work baseline
 versions. Fifteen normalized PostgreSQL tables retain the aggregate, exact
 baseline history, actor attribution, source identity, and replay-safe outcome
 without storing raw payload JSON. Desktop drafts and in-progress work remain
-local. Operations viewing, desktop transport, and amendment/void semantics
-remain follow-up work.
+local. Desktop transport and amendment/void semantics remain follow-up work.
+The authorized patient-detail query now exposes the
+finalized normalized assessment, exact baseline versions, weekly responses,
+and ordered child rows under the existing organization scope and read audit;
+the React Lifestyle panel remains a follow-up increment.
 
 Synchronization support now includes a separate operational monitoring
 boundary. A dedicated `SYNC_MONITOR` grant controls access independently of

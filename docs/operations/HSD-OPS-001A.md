@@ -47,6 +47,11 @@ newest-first screening history. Each screening includes:
 - ordered blood-pressure/pulse readings with source local time, IANA timezone,
   and derived clinical instant.
 
+HSD-OPS-005A extends the same scoped result with one finalized normalized
+Lifestyle assessment per encounter, including its exact immutable baseline
+versions and weekly responses. Desktop-local identifiers, hashes, and raw
+payloads remain excluded.
+
 Voided encounters are excluded from clinical history and latest-screening
 summaries. Draft encounters and vital sets remain visible with their explicit
 state so incomplete data is not presented as completed care.

@@ -121,6 +121,9 @@ non-cacheable.
 - API-client tests prove search evidence remains outside URLs, Bearer tokens use
   the authorization header, and malformed success bodies fail closed.
 - formatting tests protect local-date display and missing-value behavior.
+- HSD-OPS-006C runs the real Vite application in Chromium and proves sign-in
+  protection, reason gating, POST-body privacy, bounded request states, canonical
+  detail rendering, assurance context, vitals, and Lifestyle presentation.
 - the production Vite build emits only static assets and no source maps.
 - repository lint, type-check, unit, integration, build, and CI gates remain
   required.

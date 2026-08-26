@@ -25,6 +25,9 @@ reason-for-access protected, and audited POST endpoints. The React operations
 viewer consumes this boundary with PKCE sign-in, reason-gated patient search,
 canonical screening, vitals, and Lifestyle detail views, and a
 permission-controlled one-time workflow for recovering an existing CHS Medical ID.
+Chromium workflow tests now exercise the protected patient viewer, its
+reason-gated POST requests, bounded loading/error/empty states, and the canonical
+detail presentation against deterministic synthetic responses.
 The protected patient-detail API and React viewer return and render finalized
 normalized Lifestyle assessments with their exact immutable baseline versions,
 weekly responses, ordered activity rows, and completion provenance.
@@ -189,6 +192,7 @@ pnpm db:test       # test migrations and constraints against PostgreSQL
 pnpm build         # compile every workspace package
 pnpm typecheck     # type-check every workspace package
 pnpm test          # run automated tests
+pnpm test:e2e      # run Chromium operations-workflow tests
 pnpm lint          # run lint checks
 ```
 
@@ -224,6 +228,7 @@ pnpm lint          # run lint checks
 - [HSD-OPS-005B React Lifestyle patient panel](docs/operations/HSD-OPS-005B.md)
 - [HSD-OPS-006A patient identity assurance and source provenance query](docs/operations/HSD-OPS-006A.md)
 - [HSD-OPS-006B React patient assurance and source provenance](docs/operations/HSD-OPS-006B.md)
+- [HSD-OPS-006C browser patient-viewer workflow evidence](docs/operations/HSD-OPS-006C.md)
 - [HSD-DATA-001 canonical PostgreSQL schema](docs/database/HSD-DATA-001.md)
 - [HSD-DATA-002 identity review evidence foundation](docs/database/HSD-DATA-002.md)
 

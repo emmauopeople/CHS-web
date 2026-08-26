@@ -22,6 +22,7 @@
     "dev:web": "pnpm --filter @chs/operations-web dev",
     "lint": "pnpm --recursive lint",
     "test": "pnpm --recursive test",
+    "test:e2e": "pnpm --filter @chs/operations-web test:e2e",
     "typecheck": "pnpm --recursive typecheck"
   }
 }

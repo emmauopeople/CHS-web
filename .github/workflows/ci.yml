@@ -58,3 +58,20 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+      - name: Install Chromium for browser tests
+        run: pnpm --filter @chs/operations-web exec playwright install --with-deps chromium
+
+      - name: Test operations browser workflows
+        run: pnpm test:e2e
+
+      - name: Upload browser failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: operations-web-playwright
+          path: |
+            apps/operations-web/playwright-report
+            apps/operations-web/test-results
+          if-no-files-found: ignore
+          retention-days: 7

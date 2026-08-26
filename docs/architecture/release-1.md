@@ -119,6 +119,13 @@ complete patient detail presentation. Server authorization, auditing, scope,
 and PostgreSQL behavior remain covered by the API integration suite rather than
 being simulated in the browser test.
 
+The API now applies explicit bounded request-body, request-receipt,
+socket-inactivity, and keep-alive limits with low-bandwidth-safe defaults.
+Fastify drains active requests before the PostgreSQL close hook runs, and the
+process coalesces repeated termination signals so shared resources close once.
+Configuration and runtime tests cover unsafe limit rejection, oversized-body
+handling, in-flight draining, and shutdown failure behavior.
+
 Synchronization support now includes a separate operational monitoring
 boundary. A dedicated `SYNC_MONITOR` grant controls access independently of
 patient viewing and Medical ID recovery. Scoped API queries show batch state,

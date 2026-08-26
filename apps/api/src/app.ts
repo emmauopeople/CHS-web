@@ -55,7 +55,12 @@ export async function buildApp(dependencies: BuildAppDependencies) {
       requestIdLogLabel: 'requestId',
       disableRequestLogging: true,
     }),
-    bodyLimit: 1_048_576,
+    bodyLimit: dependencies.config.http.bodyLimitBytes,
+    requestTimeout: dependencies.config.http.requestTimeoutMs,
+    connectionTimeout: dependencies.config.http.connectionTimeoutMs,
+    keepAliveTimeout: dependencies.config.http.keepAliveTimeoutMs,
+    forceCloseConnections: 'idle',
+    return503OnClosing: true,
     ajv: {
       customOptions: { removeAdditional: false },
     },

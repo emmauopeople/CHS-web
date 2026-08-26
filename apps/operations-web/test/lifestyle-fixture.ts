@@ -1,0 +1,98 @@
+import type { LifestyleAssessmentView } from '../src/types';
+
+export const lifestyleAssessmentFixture = {
+  lifestyleAssessmentId: '55000000-0000-4000-8000-000000000001',
+  status: 'COMPLETE',
+  periodStart: '2026-08-12',
+  periodEnd: '2026-08-18',
+  completedAt: '2026-08-18T11:25:00.000Z',
+  recordedByPractitionerName: 'Synthetic Nurse One',
+  baselines: {
+    alcohol: {
+      baselineId: '55100000-0000-4000-8000-000000000001',
+      version: 1,
+      status: 'CURRENT',
+      everConsumed: 'YES',
+      consumedPast12Months: 'YES',
+      commonBeverageTypes: ['BEER'],
+      otherBeverageDescription: null,
+    },
+    tobacco: {
+      baselineId: '55200000-0000-4000-8000-000000000001',
+      version: 2,
+      status: 'CURRENT_SOME_DAYS',
+      everRegularlyUsed: 'YES',
+      formerUseApproximateStopDate: null,
+      currentUseFrequency: 'SOME_DAYS',
+      productTypes: ['CIGARETTE'],
+      otherProductDescription: null,
+    },
+    work: {
+      baselineId: '55300000-0000-4000-8000-000000000001',
+      version: 3,
+      status: 'FARMING',
+      occupationJobTitle: 'Crop farmer',
+      usualPhysicalDemand: 'MODERATE_LABOR',
+      typicalWorkdaysPerWeek: 5,
+      typicalHoursPerWorkday: 6.5,
+      shiftPattern: 'DAY',
+      description: null,
+    },
+  },
+  alcohol: {
+    weeklyResponse: 'YES',
+    drinkingDays: 2,
+    totalStandardizedDrinks: 3,
+    largestOneDayAmount: 2,
+    daysAtLargestAmount: 1,
+    commonBeverageTypes: ['BEER'],
+    otherBeverageDescription: null,
+  },
+  tobacco: {
+    weeklyResponse: 'YES',
+    products: [
+      {
+        productId: '55600000-0000-4000-8000-000000000001',
+        sequenceNumber: 1,
+        productType: 'CIGARETTE',
+        daysUsed: 2,
+        averageQuantityPerUseDay: 3,
+        unit: 'STICKS_CIGARETTES',
+        secondhandSmokeExposure: false,
+        otherProductDescription: null,
+        otherUnitDescription: null,
+      },
+    ],
+  },
+  physicalActivity: {
+    weeklyResponse: 'YES',
+    sedentaryTimeResponse: 'RECORDED',
+    sedentaryMinutesPerDay: 240,
+    activities: [
+      {
+        activityId: '55800000-0000-4000-8000-000000000001',
+        sequenceNumber: 1,
+        activityDomain: 'WORK_OR_FARMING',
+        description: null,
+        intensity: 'MODERATE',
+        daysInPastSevenDays: 5,
+        averageMinutesPerActiveDay: 60,
+      },
+    ],
+  },
+  work: { weeklyResponse: 'USUAL' },
+  otherActivity: {
+    weeklyResponse: 'YES',
+    activities: [
+      {
+        activityId: '55a00000-0000-4000-8000-000000000001',
+        sequenceNumber: 1,
+        category: 'COMMUNITY',
+        description: 'Choir rehearsal',
+        daysInPastSevenDays: 2,
+        averageMinutesPerDay: 45,
+        intensity: 'LIGHT',
+      },
+    ],
+  },
+} satisfies LifestyleAssessmentView;

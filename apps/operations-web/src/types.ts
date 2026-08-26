@@ -45,6 +45,190 @@ export type VitalReadingView = Readonly<{
   measuredAt: string | null;
 }>;
 
+export type LifestyleBeverageType =
+  | 'BEER'
+  | 'WINE'
+  | 'SPIRITS'
+  | 'COCKTAILS'
+  | 'FORTIFIED_WINE'
+  | 'OTHER';
+
+export type LifestyleAssessmentView = Readonly<{
+  lifestyleAssessmentId: string;
+  status: 'COMPLETE';
+  periodStart: string;
+  periodEnd: string;
+  completedAt: string;
+  recordedByPractitionerName: string;
+  baselines: Readonly<{
+    alcohol: Readonly<{
+      baselineId: string;
+      version: number;
+      status: 'CURRENT' | 'FORMER' | 'NEVER' | 'UNKNOWN' | 'DECLINED';
+      everConsumed: 'YES' | 'NO' | 'UNKNOWN' | 'DECLINED';
+      consumedPast12Months: 'YES' | 'NO' | 'UNKNOWN' | 'DECLINED';
+      commonBeverageTypes: readonly LifestyleBeverageType[];
+      otherBeverageDescription: string | null;
+    }>;
+    tobacco: Readonly<{
+      baselineId: string;
+      version: number;
+      status:
+        | 'CURRENT_DAILY'
+        | 'CURRENT_SOME_DAYS'
+        | 'FORMER'
+        | 'NEVER'
+        | 'UNKNOWN'
+        | 'DECLINED';
+      everRegularlyUsed: 'YES' | 'NO' | 'UNKNOWN' | 'DECLINED';
+      formerUseApproximateStopDate: string | null;
+      currentUseFrequency:
+        | 'EVERY_DAY'
+        | 'SOME_DAYS'
+        | 'NOT_AT_ALL'
+        | 'UNKNOWN'
+        | 'DECLINED';
+      productTypes: readonly LifestyleTobaccoProductType[];
+      otherProductDescription: string | null;
+    }>;
+    work: Readonly<{
+      baselineId: string;
+      version: number;
+      status:
+        | 'EMPLOYED'
+        | 'SELF_EMPLOYED'
+        | 'FARMING'
+        | 'STUDENT'
+        | 'HOMEMAKER_CAREGIVER'
+        | 'UNEMPLOYED'
+        | 'RETIRED'
+        | 'UNABLE_TO_WORK'
+        | 'OTHER'
+        | 'DECLINED';
+      occupationJobTitle: string | null;
+      usualPhysicalDemand:
+        | 'SITTING'
+        | 'STANDING'
+        | 'WALKING'
+        | 'MODERATE_LABOR'
+        | 'HEAVY_LABOR'
+        | 'VARIES'
+        | null;
+      typicalWorkdaysPerWeek: number | null;
+      typicalHoursPerWorkday: number | null;
+      shiftPattern:
+        | 'DAY'
+        | 'EVENING'
+        | 'NIGHT'
+        | 'ROTATING'
+        | 'IRREGULAR'
+        | 'NOT_APPLICABLE'
+        | 'UNKNOWN'
+        | 'DECLINED'
+        | null;
+      description: string | null;
+    }>;
+  }>;
+  alcohol: Readonly<{
+    weeklyResponse: LifestyleWeeklyResponse;
+    drinkingDays: number | null;
+    totalStandardizedDrinks: number | null;
+    largestOneDayAmount: number | null;
+    daysAtLargestAmount: number | null;
+    commonBeverageTypes: readonly LifestyleBeverageType[];
+    otherBeverageDescription: string | null;
+  }>;
+  tobacco: Readonly<{
+    weeklyResponse: LifestyleWeeklyResponse;
+    products: readonly Readonly<{
+      productId: string;
+      sequenceNumber: number;
+      productType: LifestyleTobaccoProductType;
+      daysUsed: number;
+      averageQuantityPerUseDay: number;
+      unit:
+        | 'STICKS_CIGARETTES'
+        | 'SESSIONS'
+        | 'PORTIONS'
+        | 'PINS'
+        | 'PODS_CARTRIDGES'
+        | 'OTHER';
+      secondhandSmokeExposure: boolean | null;
+      otherProductDescription: string | null;
+      otherUnitDescription: string | null;
+    }>[];
+  }>;
+  physicalActivity: Readonly<{
+    weeklyResponse:
+      | LifestyleWeeklyResponse
+      | 'UNABLE_TO_ANSWER';
+    sedentaryTimeResponse:
+      | 'RECORDED'
+      | 'UNKNOWN'
+      | 'UNABLE_TO_ANSWER'
+      | 'DECLINED'
+      | 'PREFER_NOT_TO_ANSWER';
+    sedentaryMinutesPerDay: number | null;
+    activities: readonly Readonly<{
+      activityId: string;
+      sequenceNumber: number;
+      activityDomain: 'WORK_OR_FARMING' | 'TRANSPORT' | 'HOUSEHOLD' | 'EXERCISE';
+      description: string | null;
+      intensity: 'LIGHT' | 'MODERATE' | 'VIGOROUS';
+      daysInPastSevenDays: number;
+      averageMinutesPerActiveDay: number;
+    }>[];
+  }>;
+  work: Readonly<{
+    weeklyResponse:
+      | 'USUAL'
+      | 'LESS_THAN_USUAL'
+      | 'MORE_THAN_USUAL'
+      | 'NO_WORK'
+      | 'NOT_APPLICABLE'
+      | 'UNKNOWN'
+      | 'DECLINED'
+      | 'PREFER_NOT_TO_ANSWER';
+  }>;
+  otherActivity: Readonly<{
+    weeklyResponse: Exclude<LifestyleWeeklyResponse, 'NOT_APPLICABLE'>;
+    activities: readonly Readonly<{
+      activityId: string;
+      sequenceNumber: number;
+      category:
+        | 'FARMING_GARDENING'
+        | 'HOUSEHOLD'
+        | 'CAREGIVING'
+        | 'COMMUNITY'
+        | 'COMMUTE'
+        | 'SPORT'
+        | 'OTHER';
+      description: string | null;
+      daysInPastSevenDays: number;
+      averageMinutesPerDay: number;
+      intensity: 'LIGHT' | 'MODERATE' | 'VIGOROUS';
+    }>[];
+  }>;
+}>;
+
+type LifestyleWeeklyResponse =
+  | 'YES'
+  | 'NO'
+  | 'UNKNOWN'
+  | 'DECLINED'
+  | 'NOT_APPLICABLE'
+  | 'PREFER_NOT_TO_ANSWER';
+
+type LifestyleTobaccoProductType =
+  | 'CIGARETTE'
+  | 'ROLLED_TOBACCO'
+  | 'CIGAR_PIPE'
+  | 'SMOKELESS'
+  | 'SNUFF'
+  | 'HOOKAH'
+  | 'VAPE'
+  | 'OTHER';
+
 export type PatientScreeningView = Readonly<{
   encounterId: string;
   status: 'DRAFT' | 'COMPLETED' | 'AMENDED';
@@ -67,6 +251,7 @@ export type PatientScreeningView = Readonly<{
     recordedByPractitionerName: string;
     readings: readonly VitalReadingView[];
   }>;
+  lifestyle: LifestyleAssessmentView | null;
 }>;
 
 export type PatientDetail = Readonly<{

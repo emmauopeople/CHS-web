@@ -14,6 +14,7 @@ import {
 import type { OperationsWebConfig } from './config';
 import { displayValue, formatDate, formatInstant, humanize } from './format';
 import { IdentityReview } from './IdentityReview';
+import { LifestyleAssessment } from './LifestyleAssessment';
 import { MedicalIdRecovery } from './MedicalIdRecovery';
 import { SyncMonitoring } from './SyncMonitoring';
 import type {
@@ -310,6 +311,7 @@ function Vitals({ detail }: Readonly<{ detail: PatientDetail }>) {
               ) : <div className="empty-inline">No blood-pressure readings recorded.</div>}
             </>
           ) : <div className="empty-inline">No canonical vitals recorded for this encounter.</div>}
+          <LifestyleAssessment assessment={screening.lifestyle} />
         </article>
       ))}
     </div>

@@ -52,6 +52,12 @@ Lifestyle assessment per encounter, including its exact immutable baseline
 versions and weekly responses. Desktop-local identifiers, hashes, and raw
 payloads remain excluded.
 
+HSD-OPS-006A adds bounded identity-assurance and source-provenance context to
+the same response. It reports acknowledgment state, whether any in-scope open
+review case requires attention, and visible desktop deployment/location labels,
+revisions, and source/server timestamps without exposing review evidence or
+desktop patient identifiers.
+
 Voided encounters are excluded from clinical history and latest-screening
 summaries. Draft encounters and vital sets remain visible with their explicit
 state so incomplete data is not presented as completed care.
@@ -63,8 +69,8 @@ An unresolved identity-review submission does not create a new canonical
 person, so it cannot appear as a duplicate patient in the viewer. Review cases
 and candidate scores remain outside patient-facing results.
 
-Desktop-local patient codes, source UUIDs, sync hashes, and raw payloads are not
-returned.
+Desktop-local patient codes and UUIDs, installation/source-link UUIDs, sync
+hashes, review-case IDs and evidence, and raw payloads are not returned.
 
 ## Authorization-ready scope
 

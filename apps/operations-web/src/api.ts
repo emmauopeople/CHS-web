@@ -166,6 +166,15 @@ function nullableString(value: unknown, maximum = 500): boolean {
   return value === null || (typeof value === 'string' && value.length <= maximum);
 }
 
+function boundedString(value: unknown, maximum = 200): value is string {
+  return (
+    typeof value === 'string' &&
+    value.length > 0 &&
+    value.length <= maximum &&
+    value.trim() === value
+  );
+}
+
 function nullableLocalDate(value: unknown): boolean {
   return value === null || (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value));
 }
@@ -344,8 +353,48 @@ function listPage(value: unknown): value is PatientListPage {
 }
 
 function patientDetail(value: unknown): value is PatientDetail {
+  if (
+    !object(value) ||
+    !object(value.identityAssurance) ||
+    !object(value.sourceProvenance)
+  ) return false;
+
+  const assurance = value.identityAssurance;
+  const provenance = value.sourceProvenance;
+  const validAssurance =
+    enumValue(assurance.acknowledgmentStatus, [
+      'ACKNOWLEDGED',
+      'DECLINED',
+      'NOT_REQUESTED',
+    ]) &&
+    enumValue(assurance.reviewState, ['CLEAR', 'REVIEW_REQUIRED']) &&
+    safeCount(assurance.openReviewCaseCount) &&
+    ((assurance.reviewState === 'CLEAR' && assurance.openReviewCaseCount === 0) ||
+      (assurance.reviewState === 'REVIEW_REQUIRED' &&
+        Number(assurance.openReviewCaseCount) > 0));
+  const validSources =
+    safeCount(provenance.sourceCount) &&
+    Array.isArray(provenance.sources) &&
+    provenance.sources.length === provenance.sourceCount &&
+    provenance.sources.every(
+      (source) =>
+        object(source) &&
+        boundedString(source.deploymentName) &&
+        boundedString(source.organizationName) &&
+        boundedString(source.locationName) &&
+        Number.isSafeInteger(source.lastSourceRevision) &&
+        Number(source.lastSourceRevision) >= 1 &&
+        validInstant(source.sourceUpdatedAt) &&
+        validInstant(source.firstObservedAt) &&
+        validInstant(source.lastObservedAt),
+    ) &&
+    ((provenance.sourceCount === 0 && provenance.lastSynchronizedAt === null) ||
+      (Number(provenance.sourceCount) > 0 &&
+        validInstant(provenance.lastSynchronizedAt)));
+
   return (
-    object(value) &&
+    validAssurance &&
+    validSources &&
     typeof value.personId === 'string' &&
     typeof value.chsMedicalId === 'string' &&
     typeof value.displayName === 'string' &&

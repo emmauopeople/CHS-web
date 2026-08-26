@@ -16,6 +16,7 @@ import { displayValue, formatDate, formatInstant, humanize } from './format';
 import { IdentityReview } from './IdentityReview';
 import { LifestyleAssessment } from './LifestyleAssessment';
 import { MedicalIdRecovery } from './MedicalIdRecovery';
+import { PatientAssurance } from './PatientAssurance';
 import { SyncMonitoring } from './SyncMonitoring';
 import type {
   PatientAccessReason,
@@ -350,6 +351,10 @@ function PatientPanel({
             </div>
             <span className={`status status-${detail.status.toLowerCase()}`}>{humanize(detail.status)}</span>
           </section>
+          <PatientAssurance
+            identityAssurance={detail.identityAssurance}
+            sourceProvenance={detail.sourceProvenance}
+          />
           <section className="detail-section">
             <h3>Patient information</h3>
             <dl className="detail-grid">

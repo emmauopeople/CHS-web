@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { ApiError, createOperationsApi } from '../src/api';
 import { lifestyleAssessmentFixture } from './lifestyle-fixture';
+import { patientAssuranceFixture } from './patient-assurance-fixture';
 
 describe('operations API client', () => {
   it('keeps search values out of the URL and sends the bearer token only in a header', async () => {
@@ -99,6 +100,7 @@ describe('operations API client', () => {
       personId: '40000000-0000-4000-8000-000000000001',
       chsMedicalId: 'CHS-AAAA-BBBB-CCCC',
       displayName: 'Alpha Example',
+      ...patientAssuranceFixture,
       screeningHistory: {
         items: [{ lifestyle: lifestyleAssessmentFixture }],
       },
@@ -111,6 +113,8 @@ describe('operations API client', () => {
       personId: patient.personId,
     });
     expect(result.screeningHistory.items[0]?.lifestyle?.status).toBe('COMPLETE');
+    expect(result.identityAssurance.reviewState).toBe('REVIEW_REQUIRED');
+    expect(result.sourceProvenance.sourceCount).toBe(2);
 
     const malformedFetch = vi.fn<typeof fetch>().mockResolvedValue(
       new Response(JSON.stringify({
@@ -133,6 +137,47 @@ describe('operations API client', () => {
     );
     await expect(
       createOperationsApi('', 'token', malformedFetch).getPatientDetail({
+        reasonCode: 'CARE_DELIVERY',
+        personId: patient.personId,
+      }),
+    ).rejects.toMatchObject({ status: 502, code: 'INVALID_API_RESPONSE' });
+  });
+
+  it('fails closed on inconsistent identity assurance or source provenance', async () => {
+    const patient = {
+      personId: '40000000-0000-4000-8000-000000000001',
+      chsMedicalId: 'CHS-AAAA-BBBB-CCCC',
+      displayName: 'Alpha Example',
+      ...patientAssuranceFixture,
+      screeningHistory: { items: [] },
+    };
+    const malformedAssuranceFetch = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(JSON.stringify({
+        ...patient,
+        identityAssurance: {
+          ...patient.identityAssurance,
+          reviewState: 'CLEAR',
+        },
+      }), { status: 200 }),
+    );
+    await expect(
+      createOperationsApi('', 'token', malformedAssuranceFetch).getPatientDetail({
+        reasonCode: 'CARE_DELIVERY',
+        personId: patient.personId,
+      }),
+    ).rejects.toMatchObject({ status: 502, code: 'INVALID_API_RESPONSE' });
+
+    const malformedProvenanceFetch = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(JSON.stringify({
+        ...patient,
+        sourceProvenance: {
+          ...patient.sourceProvenance,
+          sourceCount: 1,
+        },
+      }), { status: 200 }),
+    );
+    await expect(
+      createOperationsApi('', 'token', malformedProvenanceFetch).getPatientDetail({
         reasonCode: 'CARE_DELIVERY',
         personId: patient.personId,
       }),

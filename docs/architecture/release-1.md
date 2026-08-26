@@ -104,8 +104,11 @@ provenance. Acknowledgment state, an in-scope open-review warning/count, source
 deployment/location labels, revisions, and source/server timestamps travel on
 the same audited response. Source registrations and review warnings are scoped
 independently by installation organization, while desktop patient identifiers,
-hashes, review evidence, and raw payloads remain excluded. React presentation
-of this context follows as a separate increment.
+hashes, review evidence, and raw payloads remain excluded. The React patient
+header now renders acknowledgment and the scoped warning directly, with source
+count/latest receipt in the summary and detailed deployment, revision, and
+source/server timestamps in an accessible disclosure. The browser validates the
+nested response and makes no additional request.
 
 Synchronization support now includes a separate operational monitoring
 boundary. A dedicated `SYNC_MONITOR` grant controls access independently of

@@ -80,8 +80,11 @@ The patient list shows:
 The detail panel shows canonical demographics and paginated screening history,
 including organization, location, practitioner, protocol, encounter state,
 amendment context, vital-set status, anthropometrics, and blood-pressure
-readings. It does not show raw synchronization payloads, rejected records,
-quarantine data, or unresolved identity-review candidates as clinical truth.
+readings. HSD-OPS-006B adds acknowledgment status, a bounded in-scope identity
+warning, and approved source deployment/location/revision/timestamp context to
+the same detail response. It does not show raw synchronization payloads,
+rejected records, quarantine data, or unresolved identity-review candidates as
+clinical truth.
 
 ## Local development
 

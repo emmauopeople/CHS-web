@@ -25,6 +25,9 @@ reason-for-access protected, and audited POST endpoints. The React operations
 viewer consumes this boundary with PKCE sign-in, reason-gated patient search,
 canonical screening and vitals detail views, and a permission-controlled
 one-time workflow for recovering an existing CHS Medical ID.
+The protected patient-detail API also returns finalized normalized Lifestyle
+assessments with their exact immutable baseline versions and weekly responses;
+the corresponding React Lifestyle panel remains the next viewer increment.
 The operations API also exposes a scoped, redacted view of desktop sync batch
 health. The React operations portal consumes it through a low-bandwidth,
 manually refreshed synchronization dashboard.
@@ -44,7 +47,7 @@ Lifestyle synchronization now has an additive machine contract and central
 ingestion for one completed encounter-owned snapshot with immutable referenced
 alcohol, tobacco, and work baseline versions. PostgreSQL stores the aggregate
 as normalized canonical rows with source provenance and replay-safe outcomes;
-raw Lifestyle payload JSON is not retained. Operations viewing, desktop
+raw Lifestyle payload JSON is not retained. React Lifestyle rendering, desktop
 transport, and amendment/void behavior remain follow-up tasks.
 
 ## Prerequisites
@@ -217,6 +220,7 @@ pnpm lint          # run lint checks
 - [HSD-OPS-004A identity review query API](docs/operations/HSD-OPS-004A.md)
 - [HSD-OPS-004B identity review resolution API](docs/operations/HSD-OPS-004B.md)
 - [HSD-OPS-004C React identity review workspace](docs/operations/HSD-OPS-004C.md)
+- [HSD-OPS-005A canonical Lifestyle patient query](docs/operations/HSD-OPS-005A.md)
 - [HSD-DATA-001 canonical PostgreSQL schema](docs/database/HSD-DATA-001.md)
 - [HSD-DATA-002 identity review evidence foundation](docs/database/HSD-DATA-002.md)
 

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { ApiError, createOperationsApi } from '../src/api';
+import { lifestyleAssessmentFixture } from './lifestyle-fixture';
 
 describe('operations API client', () => {
   it('keeps search values out of the URL and sends the bearer token only in a header', async () => {
@@ -89,6 +90,51 @@ describe('operations API client', () => {
     await expect(
       createOperationsApi('', 'token', malformedFetch).searchPatients({
         reasonCode: 'CARE_DELIVERY',
+      }),
+    ).rejects.toMatchObject({ status: 502, code: 'INVALID_API_RESPONSE' });
+  });
+
+  it('accepts canonical Lifestyle detail and fails closed on malformed nested rows', async () => {
+    const patient = {
+      personId: '40000000-0000-4000-8000-000000000001',
+      chsMedicalId: 'CHS-AAAA-BBBB-CCCC',
+      displayName: 'Alpha Example',
+      screeningHistory: {
+        items: [{ lifestyle: lifestyleAssessmentFixture }],
+      },
+    };
+    const validFetch = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(JSON.stringify(patient), { status: 200 }),
+    );
+    const result = await createOperationsApi('', 'token', validFetch).getPatientDetail({
+      reasonCode: 'CARE_DELIVERY',
+      personId: patient.personId,
+    });
+    expect(result.screeningHistory.items[0]?.lifestyle?.status).toBe('COMPLETE');
+
+    const malformedFetch = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(JSON.stringify({
+        ...patient,
+        screeningHistory: {
+          items: [{
+            lifestyle: {
+              ...lifestyleAssessmentFixture,
+              tobacco: {
+                ...lifestyleAssessmentFixture.tobacco,
+                products: [{
+                  ...lifestyleAssessmentFixture.tobacco.products[0],
+                  productId: 'desktop-local-row-id',
+                }],
+              },
+            },
+          }],
+        },
+      }), { status: 200 }),
+    );
+    await expect(
+      createOperationsApi('', 'token', malformedFetch).getPatientDetail({
+        reasonCode: 'CARE_DELIVERY',
+        personId: patient.personId,
       }),
     ).rejects.toMatchObject({ status: 502, code: 'INVALID_API_RESPONSE' });
   });

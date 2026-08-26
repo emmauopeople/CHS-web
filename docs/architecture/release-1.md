@@ -93,10 +93,11 @@ versions. Fifteen normalized PostgreSQL tables retain the aggregate, exact
 baseline history, actor attribution, source identity, and replay-safe outcome
 without storing raw payload JSON. Desktop drafts and in-progress work remain
 local. Desktop transport and amendment/void semantics remain follow-up work.
-The authorized patient-detail query now exposes the
-finalized normalized assessment, exact baseline versions, weekly responses,
-and ordered child rows under the existing organization scope and read audit;
-the React Lifestyle panel remains a follow-up increment.
+The authorized patient-detail query and React viewer now expose the finalized
+normalized assessment, exact baseline versions, weekly responses, ordered child
+rows, and completion provenance under the existing organization scope and read
+audit. The viewer uses the existing patient-detail request without adding a
+second query or browser-to-database path.
 
 Synchronization support now includes a separate operational monitoring
 boundary. A dedicated `SYNC_MONITOR` grant controls access independently of

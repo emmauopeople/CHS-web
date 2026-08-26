@@ -1,6 +1,6 @@
 # HSD-OPS-005A: Canonical Lifestyle patient query
 
-Status: Draft for implementation review
+Status: Implemented
 
 ## Purpose
 

@@ -124,6 +124,30 @@ const syncOutcomeStatuses = [
 ];
 const identityEvidenceStates = ['AVAILABLE', 'EVIDENCE_PENDING'];
 const identitySexValues = ['FEMALE', 'MALE', 'OTHER', 'UNKNOWN'];
+const yesNoResponses = ['YES', 'NO', 'UNKNOWN', 'DECLINED'];
+const weeklyResponses = [
+  ...yesNoResponses,
+  'NOT_APPLICABLE',
+  'PREFER_NOT_TO_ANSWER',
+];
+const beverageTypes = [
+  'BEER',
+  'WINE',
+  'SPIRITS',
+  'COCKTAILS',
+  'FORTIFIED_WINE',
+  'OTHER',
+];
+const tobaccoProductTypes = [
+  'CIGARETTE',
+  'ROLLED_TOBACCO',
+  'CIGAR_PIPE',
+  'SMOKELESS',
+  'SNUFF',
+  'HOOKAH',
+  'VAPE',
+  'OTHER',
+];
 
 function safeCount(value: unknown): value is number {
   return Number.isSafeInteger(value) && Number(value) >= 0;
@@ -144,6 +168,161 @@ function nullableString(value: unknown, maximum = 500): boolean {
 
 function nullableLocalDate(value: unknown): boolean {
   return value === null || (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value));
+}
+
+function enumValue(value: unknown, values: readonly string[]): boolean {
+  return typeof value === 'string' && values.includes(value);
+}
+
+function finiteNumber(value: unknown): boolean {
+  return typeof value === 'number' && Number.isFinite(value);
+}
+
+function nullableNumber(value: unknown): boolean {
+  return value === null || finiteNumber(value);
+}
+
+function enumArray(value: unknown, values: readonly string[]): boolean {
+  return Array.isArray(value) && value.every((item) => enumValue(item, values));
+}
+
+function lifestyleAssessment(value: unknown): boolean {
+  if (
+    !object(value) ||
+    typeof value.lifestyleAssessmentId !== 'string' ||
+    !uuidPattern.test(value.lifestyleAssessmentId) ||
+    value.status !== 'COMPLETE' ||
+    !nullableLocalDate(value.periodStart) || value.periodStart === null ||
+    !nullableLocalDate(value.periodEnd) || value.periodEnd === null ||
+    !validInstant(value.completedAt) ||
+    typeof value.recordedByPractitionerName !== 'string' ||
+    !object(value.baselines) ||
+    !object(value.alcohol) ||
+    !object(value.tobacco) ||
+    !object(value.physicalActivity) ||
+    !object(value.work) ||
+    !object(value.otherActivity)
+  ) return false;
+
+  const { alcohol, tobacco, work } = value.baselines;
+  if (
+    !object(alcohol) ||
+    typeof alcohol.baselineId !== 'string' || !uuidPattern.test(alcohol.baselineId) ||
+    !Number.isSafeInteger(alcohol.version) || Number(alcohol.version) < 1 ||
+    !enumValue(alcohol.status, ['CURRENT', 'FORMER', 'NEVER', 'UNKNOWN', 'DECLINED']) ||
+    !enumValue(alcohol.everConsumed, yesNoResponses) ||
+    !enumValue(alcohol.consumedPast12Months, yesNoResponses) ||
+    !enumArray(alcohol.commonBeverageTypes, beverageTypes) ||
+    !nullableString(alcohol.otherBeverageDescription) ||
+    !object(tobacco) ||
+    typeof tobacco.baselineId !== 'string' || !uuidPattern.test(tobacco.baselineId) ||
+    !Number.isSafeInteger(tobacco.version) || Number(tobacco.version) < 1 ||
+    !enumValue(tobacco.status, [
+      'CURRENT_DAILY', 'CURRENT_SOME_DAYS', 'FORMER', 'NEVER', 'UNKNOWN', 'DECLINED',
+    ]) ||
+    !enumValue(tobacco.everRegularlyUsed, yesNoResponses) ||
+    !nullableString(tobacco.formerUseApproximateStopDate, 7) ||
+    !enumValue(tobacco.currentUseFrequency, [
+      'EVERY_DAY', 'SOME_DAYS', 'NOT_AT_ALL', 'UNKNOWN', 'DECLINED',
+    ]) ||
+    !enumArray(tobacco.productTypes, tobaccoProductTypes) ||
+    !nullableString(tobacco.otherProductDescription) ||
+    !object(work) ||
+    typeof work.baselineId !== 'string' || !uuidPattern.test(work.baselineId) ||
+    !Number.isSafeInteger(work.version) || Number(work.version) < 1 ||
+    !enumValue(work.status, [
+      'EMPLOYED', 'SELF_EMPLOYED', 'FARMING', 'STUDENT',
+      'HOMEMAKER_CAREGIVER', 'UNEMPLOYED', 'RETIRED', 'UNABLE_TO_WORK',
+      'OTHER', 'DECLINED',
+    ]) ||
+    !nullableString(work.occupationJobTitle) ||
+    !(work.usualPhysicalDemand === null || enumValue(work.usualPhysicalDemand, [
+      'SITTING', 'STANDING', 'WALKING', 'MODERATE_LABOR', 'HEAVY_LABOR', 'VARIES',
+    ])) ||
+    !nullableNumber(work.typicalWorkdaysPerWeek) ||
+    !nullableNumber(work.typicalHoursPerWorkday) ||
+    !(work.shiftPattern === null || enumValue(work.shiftPattern, [
+      'DAY', 'EVENING', 'NIGHT', 'ROTATING', 'IRREGULAR',
+      'NOT_APPLICABLE', 'UNKNOWN', 'DECLINED',
+    ])) ||
+    !nullableString(work.description)
+  ) return false;
+
+  const weeklyAlcohol = value.alcohol;
+  const weeklyTobacco = value.tobacco;
+  const physicalActivity = value.physicalActivity;
+  const weeklyWork = value.work;
+  const otherActivity = value.otherActivity;
+  return (
+    enumValue(weeklyAlcohol.weeklyResponse, weeklyResponses) &&
+    nullableNumber(weeklyAlcohol.drinkingDays) &&
+    nullableNumber(weeklyAlcohol.totalStandardizedDrinks) &&
+    nullableNumber(weeklyAlcohol.largestOneDayAmount) &&
+    nullableNumber(weeklyAlcohol.daysAtLargestAmount) &&
+    enumArray(weeklyAlcohol.commonBeverageTypes, beverageTypes) &&
+    nullableString(weeklyAlcohol.otherBeverageDescription) &&
+    enumValue(weeklyTobacco.weeklyResponse, weeklyResponses) &&
+    Array.isArray(weeklyTobacco.products) &&
+    weeklyTobacco.products.every((product) =>
+      object(product) &&
+      typeof product.productId === 'string' && uuidPattern.test(product.productId) &&
+      Number.isSafeInteger(product.sequenceNumber) && Number(product.sequenceNumber) >= 1 &&
+      enumValue(product.productType, tobaccoProductTypes) &&
+      Number.isSafeInteger(product.daysUsed) && Number(product.daysUsed) >= 1 &&
+      finiteNumber(product.averageQuantityPerUseDay) &&
+      enumValue(product.unit, [
+        'STICKS_CIGARETTES', 'SESSIONS', 'PORTIONS', 'PINS',
+        'PODS_CARTRIDGES', 'OTHER',
+      ]) &&
+      (product.secondhandSmokeExposure === null ||
+        typeof product.secondhandSmokeExposure === 'boolean') &&
+      nullableString(product.otherProductDescription) &&
+      nullableString(product.otherUnitDescription)
+    ) &&
+    enumValue(physicalActivity.weeklyResponse, [...weeklyResponses, 'UNABLE_TO_ANSWER']) &&
+    enumValue(physicalActivity.sedentaryTimeResponse, [
+      'RECORDED', 'UNKNOWN', 'UNABLE_TO_ANSWER', 'DECLINED', 'PREFER_NOT_TO_ANSWER',
+    ]) &&
+    nullableNumber(physicalActivity.sedentaryMinutesPerDay) &&
+    Array.isArray(physicalActivity.activities) &&
+    physicalActivity.activities.every((activity) =>
+      object(activity) &&
+      typeof activity.activityId === 'string' && uuidPattern.test(activity.activityId) &&
+      Number.isSafeInteger(activity.sequenceNumber) && Number(activity.sequenceNumber) >= 1 &&
+      enumValue(activity.activityDomain, [
+        'WORK_OR_FARMING', 'TRANSPORT', 'HOUSEHOLD', 'EXERCISE',
+      ]) &&
+      nullableString(activity.description) &&
+      enumValue(activity.intensity, ['LIGHT', 'MODERATE', 'VIGOROUS']) &&
+      Number.isSafeInteger(activity.daysInPastSevenDays) &&
+      Number(activity.daysInPastSevenDays) >= 1 &&
+      Number.isSafeInteger(activity.averageMinutesPerActiveDay) &&
+      Number(activity.averageMinutesPerActiveDay) >= 1
+    ) &&
+    enumValue(weeklyWork.weeklyResponse, [
+      'USUAL', 'LESS_THAN_USUAL', 'MORE_THAN_USUAL', 'NO_WORK',
+      'NOT_APPLICABLE', 'UNKNOWN', 'DECLINED', 'PREFER_NOT_TO_ANSWER',
+    ]) &&
+    enumValue(otherActivity.weeklyResponse, [
+      'YES', 'NO', 'UNKNOWN', 'DECLINED', 'PREFER_NOT_TO_ANSWER',
+    ]) &&
+    Array.isArray(otherActivity.activities) &&
+    otherActivity.activities.every((activity) =>
+      object(activity) &&
+      typeof activity.activityId === 'string' && uuidPattern.test(activity.activityId) &&
+      Number.isSafeInteger(activity.sequenceNumber) && Number(activity.sequenceNumber) >= 1 &&
+      enumValue(activity.category, [
+        'FARMING_GARDENING', 'HOUSEHOLD', 'CAREGIVING', 'COMMUNITY',
+        'COMMUTE', 'SPORT', 'OTHER',
+      ]) &&
+      nullableString(activity.description) &&
+      Number.isSafeInteger(activity.daysInPastSevenDays) &&
+      Number(activity.daysInPastSevenDays) >= 1 &&
+      Number.isSafeInteger(activity.averageMinutesPerDay) &&
+      Number(activity.averageMinutesPerDay) >= 1 &&
+      enumValue(activity.intensity, ['LIGHT', 'MODERATE', 'VIGOROUS'])
+    )
+  );
 }
 
 function listPage(value: unknown): value is PatientListPage {
@@ -171,7 +350,11 @@ function patientDetail(value: unknown): value is PatientDetail {
     typeof value.chsMedicalId === 'string' &&
     typeof value.displayName === 'string' &&
     object(value.screeningHistory) &&
-    Array.isArray(value.screeningHistory.items)
+    Array.isArray(value.screeningHistory.items) &&
+    value.screeningHistory.items.every((screening) =>
+      object(screening) &&
+      (screening.lifestyle === null || lifestyleAssessment(screening.lifestyle))
+    )
   );
 }
 

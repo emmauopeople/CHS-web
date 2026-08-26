@@ -110,6 +110,15 @@ count/latest receipt in the summary and detailed deployment, revision, and
 source/server timestamps in an accessible disclosure. The browser validates the
 nested response and makes no additional request.
 
+The patient viewer also has deterministic Chromium workflow evidence. The
+browser suite starts the real Vite application, injects a synthetic short-lived
+session, and intercepts the operations HTTP boundary with synthetic canonical
+responses. It verifies the unauthenticated barrier, reason-gated POST requests,
+absence of patient evidence from URLs, loading/empty/error behavior, and the
+complete patient detail presentation. Server authorization, auditing, scope,
+and PostgreSQL behavior remain covered by the API integration suite rather than
+being simulated in the browser test.
+
 Synchronization support now includes a separate operational monitoring
 boundary. A dedicated `SYNC_MONITOR` grant controls access independently of
 patient viewing and Medical ID recovery. Scoped API queries show batch state,

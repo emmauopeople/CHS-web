@@ -272,6 +272,24 @@ export type PatientDetail = Readonly<{
   quarter: string | null;
   residenceNotes: string | null;
   status: PersonStatus;
+  identityAssurance: Readonly<{
+    acknowledgmentStatus: 'ACKNOWLEDGED' | 'DECLINED' | 'NOT_REQUESTED';
+    reviewState: 'CLEAR' | 'REVIEW_REQUIRED';
+    openReviewCaseCount: number;
+  }>;
+  sourceProvenance: Readonly<{
+    sourceCount: number;
+    lastSynchronizedAt: string | null;
+    sources: readonly Readonly<{
+      deploymentName: string;
+      organizationName: string;
+      locationName: string;
+      lastSourceRevision: number;
+      sourceUpdatedAt: string;
+      firstObservedAt: string;
+      lastObservedAt: string;
+    }>[];
+  }>;
   screeningHistory: Readonly<{
     page: number;
     pageSize: number;

@@ -223,6 +223,7 @@ pnpm lint          # run lint checks
 - [HSD-OPS-005A canonical Lifestyle patient query](docs/operations/HSD-OPS-005A.md)
 - [HSD-OPS-005B React Lifestyle patient panel](docs/operations/HSD-OPS-005B.md)
 - [HSD-OPS-006A patient identity assurance and source provenance query](docs/operations/HSD-OPS-006A.md)
+- [HSD-OPS-006B React patient assurance and source provenance](docs/operations/HSD-OPS-006B.md)
 - [HSD-DATA-001 canonical PostgreSQL schema](docs/database/HSD-DATA-001.md)
 - [HSD-DATA-002 identity review evidence foundation](docs/database/HSD-DATA-002.md)
 

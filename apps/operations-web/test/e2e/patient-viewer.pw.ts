@@ -92,7 +92,7 @@ test('requires an access reason and completes the canonical patient workflow', a
   expect(page.url()).not.toContain('Alpha');
   expect(page.url()).not.toContain(syntheticPersonId);
 
-  await page.getByRole('button', { name: 'View' }).click();
+  await page.getByRole('button', { name: 'View', exact: true }).click();
   await expect(
     page
       .getByRole('complementary', { name: 'Patient details' })

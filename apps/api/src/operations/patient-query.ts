@@ -21,6 +21,11 @@ type QueryDatabase = Pick<Pool, 'connect'>;
 
 export type PersonStatus = 'ACTIVE' | 'INACTIVE' | 'DECEASED';
 
+export type AcknowledgmentStatus =
+  | 'ACKNOWLEDGED'
+  | 'DECLINED'
+  | 'NOT_REQUESTED';
+
 export type PatientAccessScope =
   | Readonly<{ kind: 'GLOBAL' }>
   | Readonly<{
@@ -215,6 +220,24 @@ export type PatientDetail = Readonly<{
   quarter: string | null;
   residenceNotes: string | null;
   status: PersonStatus;
+  identityAssurance: Readonly<{
+    acknowledgmentStatus: AcknowledgmentStatus;
+    reviewState: 'CLEAR' | 'REVIEW_REQUIRED';
+    openReviewCaseCount: number;
+  }>;
+  sourceProvenance: Readonly<{
+    sourceCount: number;
+    lastSynchronizedAt: string | null;
+    sources: readonly Readonly<{
+      deploymentName: string;
+      organizationName: string;
+      locationName: string;
+      lastSourceRevision: number;
+      sourceUpdatedAt: string;
+      firstObservedAt: string;
+      lastObservedAt: string;
+    }>[];
+  }>;
   screeningHistory: Readonly<{
     page: number;
     pageSize: number;
@@ -269,6 +292,7 @@ type PatientRow = Readonly<{
   quarter: string | null;
   residence_notes: string | null;
   status: PersonStatus;
+  acknowledgment_status: AcknowledgmentStatus;
 }>;
 
 type PatientListRow = PatientRow &
@@ -394,6 +418,16 @@ type LifestyleOtherActivityRow = Readonly<{
   days_in_past_seven_days: number;
   average_minutes_per_day: number;
   intensity: LifestyleOtherActivity['intensity'];
+}>;
+
+type SourceProvenanceRow = Readonly<{
+  deployment_name: string;
+  organization_name: string;
+  location_name: string;
+  last_source_revision: number;
+  source_updated_at: Date;
+  first_observed_at: Date;
+  last_observed_at: Date;
 }>;
 
 const uuidPattern =
@@ -548,6 +582,7 @@ export async function listCanonicalPatients(
          p.quarter,
          p.residence_notes,
          p.status,
+         p.acknowledgment_status,
          latest.started_at AS last_screening_at,
          latest.status AS last_screening_status,
          latest.location_name AS last_location_name
@@ -666,7 +701,8 @@ export async function getCanonicalPatientDetail(
          p.village,
          p.quarter,
          p.residence_notes,
-         p.status
+         p.status,
+         p.acknowledgment_status
        FROM persons p
        JOIN person_identifiers medical_id
          ON medical_id.person_id = p.id
@@ -682,6 +718,44 @@ export async function getCanonicalPatientDetail(
       await client.query('COMMIT');
       return null;
     }
+
+    const provenanceResult = await client.query<SourceProvenanceRow>(
+      `SELECT
+         installation.deployment_name,
+         organization.name AS organization_name,
+         location.name AS location_name,
+         source_link.last_source_revision,
+         source_link.source_updated_at,
+         source_link.first_observed_at,
+         source_link.last_observed_at
+       FROM patient_source_links source_link
+       JOIN desktop_installations installation
+         ON installation.id = source_link.installation_id
+       JOIN organizations organization
+         ON organization.id = installation.organization_id
+       JOIN locations location
+         ON location.id = installation.configured_location_id
+       WHERE source_link.person_id = $3
+         AND ($1::boolean OR installation.organization_id = ANY($2::uuid[]))
+       ORDER BY source_link.last_observed_at DESC,
+         installation.deployment_name,
+         source_link.id`,
+      [preparedScope.global, preparedScope.organizationIds, personId],
+    );
+    const reviewResult = await client.query<{ open_review_case_count: number }>(
+      `SELECT count(*)::integer AS open_review_case_count
+       FROM identity_review_candidates candidate
+       JOIN identity_review_cases review_case
+         ON review_case.id = candidate.review_case_id
+       JOIN desktop_installations installation
+         ON installation.id = review_case.installation_id
+       WHERE candidate.person_id = $3
+         AND review_case.status = 'OPEN'
+         AND ($1::boolean OR installation.organization_id = ANY($2::uuid[]))`,
+      [preparedScope.global, preparedScope.organizationIds, personId],
+    );
+    const openReviewCaseCount =
+      reviewResult.rows[0]?.open_review_case_count ?? 0;
 
     const encounterScope = `person_id = $3
       AND status <> 'VOID'
@@ -1069,6 +1143,27 @@ export async function getCanonicalPatientDetail(
 
     return {
       ...patientDetailFromRow(person),
+      identityAssurance: {
+        acknowledgmentStatus: person.acknowledgment_status,
+        reviewState:
+          openReviewCaseCount === 0 ? 'CLEAR' : 'REVIEW_REQUIRED',
+        openReviewCaseCount,
+      },
+      sourceProvenance: {
+        sourceCount: provenanceResult.rows.length,
+        lastSynchronizedAt: toTimestamp(
+          provenanceResult.rows[0]?.last_observed_at ?? null,
+        ),
+        sources: provenanceResult.rows.map((row) => ({
+          deploymentName: row.deployment_name,
+          organizationName: row.organization_name,
+          locationName: row.location_name,
+          lastSourceRevision: row.last_source_revision,
+          sourceUpdatedAt: row.source_updated_at.toISOString(),
+          firstObservedAt: row.first_observed_at.toISOString(),
+          lastObservedAt: row.last_observed_at.toISOString(),
+        })),
+      },
       screeningHistory: {
         page: pagination.page,
         pageSize: pagination.pageSize,

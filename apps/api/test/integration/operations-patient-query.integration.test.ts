@@ -17,6 +17,7 @@ const org2 = '10000000-0000-4000-8000-000000000002';
 const patientA = '40000000-0000-4000-8000-000000000001';
 const patientB = '40000000-0000-4000-8000-000000000002';
 const patientC = '40000000-0000-4000-8000-000000000003';
+const patientALocalId = '41000000-0000-4000-8000-000000000001';
 const now = '2026-08-19T12:00:00.000Z';
 const hash = 'a'.repeat(64);
 
@@ -110,6 +111,26 @@ runIntegration('canonical patient query service', () => {
       chsMedicalId: 'CHS-AAAA-BBBB-CCCC',
       displayName: 'Alpha Example',
       phone: '+237600000001',
+      identityAssurance: {
+        acknowledgmentStatus: 'ACKNOWLEDGED',
+        reviewState: 'REVIEW_REQUIRED',
+        openReviewCaseCount: 1,
+      },
+      sourceProvenance: {
+        sourceCount: 1,
+        lastSynchronizedAt: now,
+        sources: [
+          {
+            deploymentName: 'Desktop One',
+            organizationName: 'Synthetic Program One',
+            locationName: 'Synthetic Site One',
+            lastSourceRevision: 1,
+            sourceUpdatedAt: now,
+            firstObservedAt: now,
+            lastObservedAt: now,
+          },
+        ],
+      },
       screeningHistory: {
         totalItems: 1,
         totalPages: 1,
@@ -217,6 +238,38 @@ runIntegration('canonical patient query service', () => {
     );
     expect(serializedDetail).not.toContain('localLifestyleId');
     expect(serializedDetail).not.toContain('sourceContentHash');
+    expect(serializedDetail).not.toContain(patientALocalId);
+    expect(serializedDetail).not.toContain('PT-000001');
+    expect(serializedDetail).not.toContain(hash);
+    expect(serializedDetail).not.toContain(
+      '54000000-0000-4000-8000-000000000001',
+    );
+
+    const otherOrganizationDetail = await getCanonicalPatientDetail(
+      servicePool,
+      { kind: 'ORGANIZATIONS', organizationIds: [org2] },
+      patientA,
+    );
+    expect(otherOrganizationDetail).toMatchObject({
+      identityAssurance: {
+        acknowledgmentStatus: 'ACKNOWLEDGED',
+        reviewState: 'CLEAR',
+        openReviewCaseCount: 0,
+      },
+      sourceProvenance: {
+        sourceCount: 1,
+        lastSynchronizedAt: '2026-08-20T12:00:00.000Z',
+        sources: [
+          {
+            deploymentName: 'Desktop Two',
+            organizationName: 'Synthetic Program Two',
+            locationName: 'Synthetic Site Two',
+            lastSourceRevision: 2,
+          },
+        ],
+      },
+      screeningHistory: { totalItems: 0, items: [] },
+    });
 
     await expect(
       getCanonicalPatientDetail(servicePool, scope, patientC),
@@ -230,6 +283,22 @@ runIntegration('canonical patient query service', () => {
       organizationName: 'Synthetic Program Two',
       locationName: 'Synthetic Site Two',
       lifestyle: null,
+    });
+
+    const globalPatientA = await getCanonicalPatientDetail(
+      servicePool,
+      { kind: 'GLOBAL' },
+      patientA,
+    );
+    expect(globalPatientA).toMatchObject({
+      identityAssurance: {
+        reviewState: 'REVIEW_REQUIRED',
+        openReviewCaseCount: 1,
+      },
+      sourceProvenance: {
+        sourceCount: 2,
+        lastSynchronizedAt: '2026-08-20T12:00:00.000Z',
+      },
     });
   });
 });
@@ -389,6 +458,7 @@ async function seedCanonicalViewerData(pool: pg.Pool) {
       phone: '+237600000001',
       medicalId: 'CHS-AAAA-BBBB-CCCC',
       installationId: '20000000-0000-4000-8000-000000000001',
+      localPatientId: patientALocalId,
       code: 'PT-000001',
     },
     {
@@ -399,6 +469,7 @@ async function seedCanonicalViewerData(pool: pg.Pool) {
       phone: null,
       medicalId: 'CHS-DDDD-EEEE-FFFF',
       installationId: '20000000-0000-4000-8000-000000000001',
+      localPatientId: '41000000-0000-4000-8000-000000000002',
       code: 'PT-000002',
     },
     {
@@ -409,6 +480,7 @@ async function seedCanonicalViewerData(pool: pg.Pool) {
       phone: null,
       medicalId: 'CHS-GGGG-HHHH-JJJJ',
       installationId: '20000000-0000-4000-8000-000000000002',
+      localPatientId: '41000000-0000-4000-8000-000000000003',
       code: 'PT-000001',
     },
   ]) {
@@ -437,13 +509,29 @@ async function seedCanonicalViewerData(pool: pg.Pool) {
         randomUUID(),
         person.id,
         person.installationId,
-        randomUUID(),
+        person.localPatientId,
         person.code,
         hash,
         now,
       ],
     );
   }
+
+  await pool.query(
+    `INSERT INTO patient_source_links (
+       id, person_id, installation_id, local_patient_id, local_patient_code,
+       last_source_revision, last_content_hash, source_created_at,
+       source_updated_at, first_observed_at, last_observed_at
+     ) VALUES ($1, $2, $3, $4, 'PT-000003', 2, $5, $6, $6, $6, $6)`,
+    [
+      randomUUID(),
+      patientA,
+      '20000000-0000-4000-8000-000000000002',
+      '41000000-0000-4000-8000-000000000004',
+      hash,
+      '2026-08-20T12:00:00.000Z',
+    ],
+  );
 
   await insertEncounter(pool, {
     id: '51000000-0000-4000-8000-000000000001',

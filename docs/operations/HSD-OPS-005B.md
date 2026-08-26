@@ -1,6 +1,6 @@
 # HSD-OPS-005B: React Lifestyle patient panel
 
-Status: Draft for implementation review
+Status: Implemented
 
 ## Purpose
 

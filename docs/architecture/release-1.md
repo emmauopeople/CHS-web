@@ -126,6 +126,12 @@ process coalesces repeated termination signals so shared resources close once.
 Configuration and runtime tests cover unsafe limit rejection, oversized-body
 handling, in-flight draining, and shutdown failure behavior.
 
+Repository delivery now has automated security and supply-chain gates. Pull
+requests receive CodeQL analysis, while pull requests, `main`, and a weekly
+schedule run an audit of the complete locked production dependency graph and a
+deterministic high-confidence credential scan. The scanner reports only file,
+line, and rule metadata and never prints a possible secret value.
+
 Synchronization support now includes a separate operational monitoring
 boundary. A dedicated `SYNC_MONITOR` grant controls access independently of
 patient viewing and Medical ID recovery. Scoped API queries show batch state,

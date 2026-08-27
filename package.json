@@ -17,6 +17,7 @@
     "admin:installation:rotate": "pnpm --filter @chs/api admin:installation:rotate",
     "build": "pnpm --recursive build",
     "db:migrate": "pnpm --filter @chs/database migrate",
+    "db:rehearse": "pnpm --filter @chs/database test:backup-restore",
     "db:test": "pnpm --filter @chs/database test:integration && pnpm --filter @chs/api test:integration",
     "dev:api": "pnpm --filter @chs/api dev",
     "dev:web": "pnpm --filter @chs/operations-web dev",

@@ -198,6 +198,7 @@ pnpm admin:installation:enroll -- --input <file> # enroll one desktop installati
 pnpm admin:installation:rotate -- --input <file> # atomically replace its token
 pnpm admin:installation:revoke -- --input <file> # explicitly revoke a token
 pnpm db:migrate    # apply checksum-protected PostgreSQL migrations
+pnpm db:rehearse   # rehearse synthetic PostgreSQL backup and restore
 pnpm db:test       # test migrations and constraints against PostgreSQL
 pnpm build         # compile every workspace package
 pnpm typecheck     # type-check every workspace package
@@ -244,6 +245,8 @@ pnpm security:check # scan repository files and production dependencies
 - [HSD-HARD-001A API runtime admission and shutdown hardening](docs/operations/HSD-HARD-001A.md)
 - [HSD-HARD-001B automated security and supply-chain gates](docs/operations/HSD-HARD-001B.md)
 - [HSD-HARD-001C bounded API load and concurrency evidence](docs/operations/HSD-HARD-001C.md)
+- [HSD-HARD-002A PostgreSQL backup and restore rehearsal](docs/operations/HSD-HARD-002A.md)
+- [PostgreSQL backup and restore runbook](docs/runbooks/postgresql-backup-restore.md)
 - [HSD-DATA-001 canonical PostgreSQL schema](docs/database/HSD-DATA-001.md)
 - [HSD-DATA-002 identity review evidence foundation](docs/database/HSD-DATA-002.md)
 

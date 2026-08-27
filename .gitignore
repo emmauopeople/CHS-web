@@ -5,6 +5,7 @@ coverage/
 playwright-report/
 test-results/
 load-results/
+rehearsal-results/
 .env
 .env.*
 !.env.example

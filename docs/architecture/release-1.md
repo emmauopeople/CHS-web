@@ -139,6 +139,12 @@ The replay profile rechecks canonical row counts after the burst, and its
 short-lived artifact contains timings and runtime context only—never clinical
 payloads, identifiers, credentials, or database connection details.
 
+Release evidence now includes a synthetic PostgreSQL logical backup and restore
+rehearsal. CI applies every migration, writes a custom-format archive, restores
+it into an isolated database, revalidates migration immutability, and compares
+schema plus synthetic-data manifests exactly. Cloud-specific encrypted backups,
+point-in-time recovery, retention, and approved RPO/RTO remain deployment gates.
+
 Synchronization support now includes a separate operational monitoring
 boundary. A dedicated `SYNC_MONITOR` grant controls access independently of
 patient viewing and Medical ID recovery. Scoped API queries show batch state,

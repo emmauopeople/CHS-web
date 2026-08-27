@@ -132,6 +132,13 @@ schedule run an audit of the complete locked production dependency graph and a
 deterministic high-confidence credential scan. The scanner reports only file,
 line, and rule metadata and never prints a possible secret value.
 
+The API also has a bounded performance-regression gate across its real loopback
+HTTP and PostgreSQL boundary. Concurrent database-readiness requests and exact
+accepted-batch replays must remain correct and below generous CI p95 ceilings.
+The replay profile rechecks canonical row counts after the burst, and its
+short-lived artifact contains timings and runtime context only—never clinical
+payloads, identifiers, credentials, or database connection details.
+
 Synchronization support now includes a separate operational monitoring
 boundary. A dedicated `SYNC_MONITOR` grant controls access independently of
 patient viewing and Medical ID recovery. Scoped API queries show batch state,

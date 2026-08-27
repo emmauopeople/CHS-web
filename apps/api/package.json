@@ -33,6 +33,7 @@
     "start": "node dist/main.js",
     "test": "vitest run",
     "test:integration": "node --env-file-if-exists=../../.env ./node_modules/vitest/vitest.mjs run test/integration --no-file-parallelism",
+    "test:load": "node --env-file-if-exists=../../.env --import tsx test/load/api-load-evidence.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   }
 }

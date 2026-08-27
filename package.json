@@ -27,6 +27,7 @@
     "security:test": "node --test scripts/security/scan-repository-secrets.test.mjs",
     "test": "pnpm --recursive test",
     "test:e2e": "pnpm --filter @chs/operations-web test:e2e",
+    "test:load": "pnpm --filter @chs/api test:load",
     "typecheck": "pnpm --recursive typecheck"
   }
 }

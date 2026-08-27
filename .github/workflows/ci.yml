@@ -58,6 +58,20 @@ jobs:
         env:
           DATABASE_TEST_URL: postgresql://chs:chs-ci-only@localhost:5432/chs_test
 
+      - name: Test bounded API load profiles
+        run: pnpm test:load
+        env:
+          DATABASE_TEST_URL: postgresql://chs:chs-ci-only@localhost:5432/chs_test
+
+      - name: Upload API load evidence
+        if: always()
+        uses: actions/upload-artifact@v6.0.0
+        with:
+          name: api-load-evidence
+          path: apps/api/load-results/api-load-evidence.json
+          if-no-files-found: warn
+          retention-days: 14
+
       - name: Build
         run: pnpm build
 

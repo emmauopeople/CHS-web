@@ -203,6 +203,7 @@ pnpm build         # compile every workspace package
 pnpm typecheck     # type-check every workspace package
 pnpm test          # run automated tests
 pnpm test:e2e      # run Chromium operations-workflow tests
+pnpm test:load     # run bounded HTTP/PostgreSQL concurrency evidence
 pnpm lint          # run lint checks
 pnpm security:check # scan repository files and production dependencies
 ```
@@ -242,6 +243,7 @@ pnpm security:check # scan repository files and production dependencies
 - [HSD-OPS-006C browser patient-viewer workflow evidence](docs/operations/HSD-OPS-006C.md)
 - [HSD-HARD-001A API runtime admission and shutdown hardening](docs/operations/HSD-HARD-001A.md)
 - [HSD-HARD-001B automated security and supply-chain gates](docs/operations/HSD-HARD-001B.md)
+- [HSD-HARD-001C bounded API load and concurrency evidence](docs/operations/HSD-HARD-001C.md)
 - [HSD-DATA-001 canonical PostgreSQL schema](docs/database/HSD-DATA-001.md)
 - [HSD-DATA-002 identity review evidence foundation](docs/database/HSD-DATA-002.md)
 

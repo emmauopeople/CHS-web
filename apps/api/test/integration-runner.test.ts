@@ -10,4 +10,7 @@ it('runs PostgreSQL integration files serially to avoid migration contention', a
   expect(packageJson.scripts['test:integration']).toContain(
     '--no-file-parallelism',
   );
+  expect(packageJson.scripts['test:load']).toContain(
+    'test/load/api-load-evidence.ts',
+  );
 });

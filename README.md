@@ -77,6 +77,11 @@ keep-alive limits. Their reviewed defaults are present in `.env.example`; see
 [HSD-HARD-001A](docs/operations/HSD-HARD-001A.md) before changing them in a
 deployment.
 
+Pull requests and `main` are checked by dependency, credential, and static
+analysis workflows documented in
+[HSD-HARD-001B](docs/operations/HSD-HARD-001B.md). Run the locally reproducible
+checks with `pnpm security:check`.
+
 Configure the public OIDC SPA values in `.env`, then run `pnpm dev:web` in a
 second terminal. The patient viewer listens on `http://127.0.0.1:4173` and
 proxies `/api` to the local API. See
@@ -199,6 +204,7 @@ pnpm typecheck     # type-check every workspace package
 pnpm test          # run automated tests
 pnpm test:e2e      # run Chromium operations-workflow tests
 pnpm lint          # run lint checks
+pnpm security:check # scan repository files and production dependencies
 ```
 
 ## Documentation
@@ -235,6 +241,7 @@ pnpm lint          # run lint checks
 - [HSD-OPS-006B React patient assurance and source provenance](docs/operations/HSD-OPS-006B.md)
 - [HSD-OPS-006C browser patient-viewer workflow evidence](docs/operations/HSD-OPS-006C.md)
 - [HSD-HARD-001A API runtime admission and shutdown hardening](docs/operations/HSD-HARD-001A.md)
+- [HSD-HARD-001B automated security and supply-chain gates](docs/operations/HSD-HARD-001B.md)
 - [HSD-DATA-001 canonical PostgreSQL schema](docs/database/HSD-DATA-001.md)
 - [HSD-DATA-002 identity review evidence foundation](docs/database/HSD-DATA-002.md)
 

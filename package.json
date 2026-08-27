@@ -21,6 +21,10 @@
     "dev:api": "pnpm --filter @chs/api dev",
     "dev:web": "pnpm --filter @chs/operations-web dev",
     "lint": "pnpm --recursive lint",
+    "security:audit": "pnpm audit --prod --audit-level=high",
+    "security:check": "pnpm security:test && pnpm security:secrets && pnpm security:audit",
+    "security:secrets": "node scripts/security/scan-repository-secrets.mjs",
+    "security:test": "node --test scripts/security/scan-repository-secrets.test.mjs",
     "test": "pnpm --recursive test",
     "test:e2e": "pnpm --filter @chs/operations-web test:e2e",
     "typecheck": "pnpm --recursive typecheck"

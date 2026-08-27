@@ -11,6 +11,12 @@ const config: AppConfig = {
   logLevel: 'silent',
   databaseUrl: 'postgresql://unused',
   databasePoolMax: 1,
+  http: {
+    bodyLimitBytes: 1_048_576,
+    requestTimeoutMs: 120_000,
+    connectionTimeoutMs: 30_000,
+    keepAliveTimeoutMs: 5_000,
+  },
   buildCommit: 'test-commit',
   buildTime: '2026-08-18T00:00:00.000Z',
   trustedProxyCidrs: [],

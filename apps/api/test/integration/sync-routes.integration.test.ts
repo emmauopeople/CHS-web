@@ -35,6 +35,12 @@ const config: AppConfig = {
   logLevel: 'silent',
   databaseUrl: 'postgresql://unused',
   databasePoolMax: 4,
+  http: {
+    bodyLimitBytes: 1_048_576,
+    requestTimeoutMs: 120_000,
+    connectionTimeoutMs: 30_000,
+    keepAliveTimeoutMs: 5_000,
+  },
   buildCommit: 'sync-route-test',
   buildTime: '2026-08-19T00:00:00.000Z',
   trustedProxyCidrs: [],

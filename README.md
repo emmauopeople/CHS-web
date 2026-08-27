@@ -72,6 +72,11 @@ pnpm dev:api
 
 The API listens on `http://localhost:3000` by default.
 
+The API starts with bounded request-body, request-receipt, socket-idle, and
+keep-alive limits. Their reviewed defaults are present in `.env.example`; see
+[HSD-HARD-001A](docs/operations/HSD-HARD-001A.md) before changing them in a
+deployment.
+
 Configure the public OIDC SPA values in `.env`, then run `pnpm dev:web` in a
 second terminal. The patient viewer listens on `http://127.0.0.1:4173` and
 proxies `/api` to the local API. See
@@ -229,6 +234,7 @@ pnpm lint          # run lint checks
 - [HSD-OPS-006A patient identity assurance and source provenance query](docs/operations/HSD-OPS-006A.md)
 - [HSD-OPS-006B React patient assurance and source provenance](docs/operations/HSD-OPS-006B.md)
 - [HSD-OPS-006C browser patient-viewer workflow evidence](docs/operations/HSD-OPS-006C.md)
+- [HSD-HARD-001A API runtime admission and shutdown hardening](docs/operations/HSD-HARD-001A.md)
 - [HSD-DATA-001 canonical PostgreSQL schema](docs/database/HSD-DATA-001.md)
 - [HSD-DATA-002 identity review evidence foundation](docs/database/HSD-DATA-002.md)
 

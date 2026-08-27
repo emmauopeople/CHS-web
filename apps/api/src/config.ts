@@ -5,6 +5,12 @@ export type AppConfig = Readonly<{
   logLevel: string;
   databaseUrl: string;
   databasePoolMax: number;
+  http: Readonly<{
+    bodyLimitBytes: number;
+    requestTimeoutMs: number;
+    connectionTimeoutMs: number;
+    keepAliveTimeoutMs: number;
+  }>;
   buildCommit: string;
   buildTime: string;
   trustedProxyCidrs: readonly string[];
@@ -39,6 +45,19 @@ function integer(
   const value = Number.parseInt(raw, 10);
   if (!Number.isSafeInteger(value) || value <= 0) {
     throw new Error(`${name} must be a positive integer`);
+  }
+  return value;
+}
+
+function boundedInteger(
+  environment: NodeJS.ProcessEnv,
+  name: string,
+  fallback: number,
+  maximum: number,
+): number {
+  const value = integer(environment, name, fallback);
+  if (value > maximum) {
+    throw new Error(`${name} must be no greater than ${maximum}`);
   }
   return value;
 }
@@ -99,7 +118,38 @@ export function loadConfig(
     port: integer(environment, 'PORT', 3000),
     logLevel: environment.LOG_LEVEL?.trim() || 'info',
     databaseUrl: required(environment, 'DATABASE_URL'),
-    databasePoolMax: integer(environment, 'DATABASE_POOL_MAX', 10),
+    databasePoolMax: boundedInteger(
+      environment,
+      'DATABASE_POOL_MAX',
+      10,
+      100,
+    ),
+    http: {
+      bodyLimitBytes: boundedInteger(
+        environment,
+        'API_BODY_LIMIT_BYTES',
+        1_048_576,
+        8_388_608,
+      ),
+      requestTimeoutMs: boundedInteger(
+        environment,
+        'API_REQUEST_TIMEOUT_MS',
+        120_000,
+        900_000,
+      ),
+      connectionTimeoutMs: boundedInteger(
+        environment,
+        'API_CONNECTION_TIMEOUT_MS',
+        30_000,
+        120_000,
+      ),
+      keepAliveTimeoutMs: boundedInteger(
+        environment,
+        'API_KEEP_ALIVE_TIMEOUT_MS',
+        5_000,
+        120_000,
+      ),
+    },
     buildCommit: environment.BUILD_COMMIT?.trim() || 'local',
     buildTime: environment.BUILD_TIME?.trim() || 'unknown',
     trustedProxyCidrs,

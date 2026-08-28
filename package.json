@@ -29,6 +29,7 @@
     "test": "pnpm --recursive test",
     "test:e2e": "pnpm --filter @chs/operations-web test:e2e",
     "test:load": "pnpm --filter @chs/api test:load",
+    "test:recovery": "pnpm --filter @chs/api test:recovery",
     "typecheck": "pnpm --recursive typecheck"
   }
 }

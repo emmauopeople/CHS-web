@@ -145,6 +145,14 @@ it into an isolated database, revalidates migration immutability, and compares
 schema plus synthetic-data manifests exactly. Cloud-specific encrypted backups,
 point-in-time recovery, retention, and approved RPO/RTO remain deployment gates.
 
+Synchronization recovery also has a dedicated PostgreSQL-backed release drill.
+It creates an interrupted batch, resumes it through the real HTTP boundary,
+proves exact POST replay and authenticated GET response recovery, rejects
+changed content under the same batch ID, and exercises controlled failed-batch
+recovery without creating duplicate canonical rows. Its retained evidence is
+aggregate and synthetic; the companion operator runbook prohibits payload
+inspection and direct database repair.
+
 Synchronization support now includes a separate operational monitoring
 boundary. A dedicated `SYNC_MONITOR` grant controls access independently of
 patient viewing and Medical ID recovery. Scoped API queries show batch state,

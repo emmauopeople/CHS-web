@@ -200,6 +200,7 @@ pnpm admin:installation:revoke -- --input <file> # explicitly revoke a token
 pnpm db:migrate    # apply checksum-protected PostgreSQL migrations
 pnpm db:rehearse   # rehearse synthetic PostgreSQL backup and restore
 pnpm db:test       # test migrations and constraints against PostgreSQL
+pnpm test:recovery # drill synthetic sync interruption, replay, and recovery
 pnpm build         # compile every workspace package
 pnpm typecheck     # type-check every workspace package
 pnpm test          # run automated tests
@@ -247,6 +248,8 @@ pnpm security:check # scan repository files and production dependencies
 - [HSD-HARD-001C bounded API load and concurrency evidence](docs/operations/HSD-HARD-001C.md)
 - [HSD-HARD-002A PostgreSQL backup and restore rehearsal](docs/operations/HSD-HARD-002A.md)
 - [PostgreSQL backup and restore runbook](docs/runbooks/postgresql-backup-restore.md)
+- [HSD-HARD-002B synchronization incident and recovery drill](docs/operations/HSD-HARD-002B.md)
+- [Synchronization incident, replay, and recovery runbook](docs/runbooks/sync-incident-replay-recovery.md)
 - [HSD-DATA-001 canonical PostgreSQL schema](docs/database/HSD-DATA-001.md)
 - [HSD-DATA-002 identity review evidence foundation](docs/database/HSD-DATA-002.md)
 

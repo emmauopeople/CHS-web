@@ -58,6 +58,20 @@ jobs:
         env:
           DATABASE_TEST_URL: postgresql://chs:chs-ci-only@localhost:5432/chs_test
 
+      - name: Drill synchronization incident recovery
+        run: pnpm test:recovery
+        env:
+          DATABASE_TEST_URL: postgresql://chs:chs-ci-only@localhost:5432/chs_test
+
+      - name: Upload synchronization recovery evidence
+        if: always()
+        uses: actions/upload-artifact@v6.0.0
+        with:
+          name: sync-recovery-evidence
+          path: apps/api/recovery-results/sync-recovery-evidence.json
+          if-no-files-found: warn
+          retention-days: 14
+
       - name: Rehearse PostgreSQL backup and restore
         run: pnpm db:rehearse
         env:

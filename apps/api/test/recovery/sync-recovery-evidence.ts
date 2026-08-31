@@ -211,11 +211,10 @@ async function main(): Promise<void> {
     if (failedIntake.kind !== 'NEW') {
       throw new Error('Expected a new synthetic failed batch');
     }
-    await servicePool.query(
-      `UPDATE sync_batches
-       SET status = 'FAILED'
-       WHERE id = $1 AND response_body IS NULL`,
-      [failedIntake.batchInternalId],
+    await markBatchFailedForRecoveryDrill(
+      servicePool,
+      failedIntake.batchInternalId,
+      new Date(interruptedAt.getTime() + 1_000),
     );
     const failedRecovery = await postBatch(
       baseUrl,
@@ -349,6 +348,31 @@ async function assertInterruptedState(
     status: 'PROCESSING',
     records: 1,
     persons: 1,
+  });
+}
+
+export async function markBatchFailedForRecoveryDrill(
+  pool: Pick<pg.Pool, 'query'>,
+  batchInternalId: string,
+  failedAt: Date,
+): Promise<void> {
+  const result = await pool.query(
+    `UPDATE sync_batches
+     SET status = 'FAILED',
+         completed_at = $2
+     WHERE id = $1
+       AND status = 'PROCESSING'
+       AND response_body IS NULL
+     RETURNING status,
+       completed_at AS "completedAt",
+       response_body AS "responseBody"`,
+    [batchInternalId, failedAt],
+  );
+  assert.equal(result.rowCount, 1, 'Expected one controlled failed batch');
+  assert.deepEqual(result.rows[0], {
+    status: 'FAILED',
+    completedAt: failedAt,
+    responseBody: null,
   });
 }
 

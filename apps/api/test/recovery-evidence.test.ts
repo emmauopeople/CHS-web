@@ -24,7 +24,7 @@ describe('synchronization recovery evidence command', () => {
     ).toThrow();
   });
 
-  it('refuses a database URL that is not explicitly test-named', () => {
+  it('accepts only a test-named or exact local Compose database URL', () => {
     expect(() =>
       assertSafeRecoveryDatabaseUrl(
         'postgresql://chs:local-only@localhost:5432/chs_test',
@@ -32,9 +32,9 @@ describe('synchronization recovery evidence command', () => {
     ).not.toThrow();
     expect(() =>
       assertSafeRecoveryDatabaseUrl(
-        'postgresql://chs:local-only@localhost:5432/chs',
+        'postgresql://chs:chs-local-only@localhost:5432/chs',
       ),
-    ).toThrow();
+    ).not.toThrow();
     expect(() =>
       assertSafeRecoveryDatabaseUrl(
         'postgresql://chs:local-only@localhost:5432/postgres',
@@ -43,6 +43,16 @@ describe('synchronization recovery evidence command', () => {
     expect(() =>
       assertSafeRecoveryDatabaseUrl(
         'postgresql://chs:local-only@localhost:5432/chs_test_prod',
+      ),
+    ).toThrow();
+    expect(() =>
+      assertSafeRecoveryDatabaseUrl(
+        'postgresql://chs:wrong-password@localhost:5432/chs',
+      ),
+    ).toThrow();
+    expect(() =>
+      assertSafeRecoveryDatabaseUrl(
+        'postgresql://chs:chs-local-only@database.example/chs',
       ),
     ).toThrow();
   });

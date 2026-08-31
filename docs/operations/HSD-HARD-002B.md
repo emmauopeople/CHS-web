@@ -46,9 +46,11 @@ chs_recovery_<32 lowercase hexadecimal characters>
 ```
 
 The cleanup guard rejects `public`, caller-selected names, suffixes, shell
-fragments, and any other schema. The command requires `DATABASE_TEST_URL`, and
-the parsed database name must start with `test_` or end with `_test`. It is for
-the repository test database only. Never point it at staging or production.
+fragments, and any other schema. The command requires `DATABASE_TEST_URL`. The
+parsed database name must start with `test_` or end with `_test`, except for the
+repository's exact loopback Compose URL from `.env.example`. This narrow local
+exception requires the `chs` role, `chs-local-only` password, `chs` database,
+and default PostgreSQL port. Never point the command at staging or production.
 
 The `FAILED` transition is injected directly only inside this synthetic,
 ephemeral schema to exercise the already implemented recovery path. Operators
@@ -74,7 +76,9 @@ for 14 days; generated local evidence is ignored by Git.
 
 ## Running the drill
 
-Set `DATABASE_TEST_URL` through the existing local `.env` mechanism, then run:
+Set `DATABASE_TEST_URL` through the existing local `.env` mechanism. The
+checked-in `.env.example` value works with the repository's local Compose
+PostgreSQL service. Then run:
 
 ```bash
 pnpm test:recovery

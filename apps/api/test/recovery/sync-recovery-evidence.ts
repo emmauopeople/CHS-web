@@ -71,8 +71,17 @@ export function assertSafeRecoveryDatabaseUrl(connectionString: string): void {
     throw new Error('Sync recovery evidence requires a PostgreSQL test URL');
   }
   const databaseName = decodeURIComponent(url.pathname.slice(1));
-  if (!/(?:^test_|_test$)/i.test(databaseName)) {
-    throw new Error('Sync recovery evidence requires a test-named database');
+  const testNamedDatabase = /(?:^test_|_test$)/i.test(databaseName);
+  const localComposeDatabase =
+    ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname) &&
+    (url.port === '' || url.port === '5432') &&
+    decodeURIComponent(url.username) === 'chs' &&
+    decodeURIComponent(url.password) === 'chs-local-only' &&
+    databaseName === 'chs';
+  if (!testNamedDatabase && !localComposeDatabase) {
+    throw new Error(
+      'Sync recovery evidence requires a test-named database or the exact local Compose database',
+    );
   }
 }
 

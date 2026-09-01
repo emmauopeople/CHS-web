@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "release": "1",
+  "endpointCount": 18,
+  "endpoints": [
+    { "method": "GET", "path": "/health/live", "audience": "platform", "authentication": "NONE", "permission": null, "cache": "NO_STORE", "purpose": "Process liveness without dependency checks." },
+    { "method": "GET", "path": "/health/startup", "audience": "platform", "authentication": "NONE", "permission": null, "cache": "NO_STORE", "purpose": "Startup completion state." },
+    { "method": "GET", "path": "/health/ready", "audience": "platform", "authentication": "NONE", "permission": null, "cache": "NO_STORE", "purpose": "Database-backed readiness state." },
+    { "method": "GET", "path": "/metrics", "audience": "platform", "authentication": "NONE", "permission": null, "cache": "NO_STORE", "purpose": "Prometheus-compatible bounded operational metrics." },
+    { "method": "GET", "path": "/version", "audience": "platform", "authentication": "NONE", "permission": null, "cache": "NO_STORE", "purpose": "Build commit and time metadata." },
+    { "method": "POST", "path": "/api/v1/sync/batches", "audience": "installation", "authentication": "INSTALLATION_BEARER", "permission": null, "cache": "NO_STORE", "purpose": "Submit or exactly replay one bounded synchronization batch." },
+    { "method": "GET", "path": "/api/v1/sync/batches/:batchId", "audience": "installation", "authentication": "INSTALLATION_BEARER", "permission": null, "cache": "NO_STORE", "purpose": "Recover the immutable stored response for the installation's batch." },
+    { "method": "POST", "path": "/api/v1/sync/identity-resolutions/pull", "audience": "installation", "authentication": "INSTALLATION_BEARER", "permission": null, "cache": "NO_STORE", "purpose": "Pull bounded pending central identity decisions for the installation." },
+    { "method": "POST", "path": "/api/v1/sync/identity-resolutions/acknowledge", "audience": "installation", "authentication": "INSTALLATION_BEARER", "permission": null, "cache": "NO_STORE", "purpose": "Idempotently acknowledge a persisted desktop identity decision." },
+    { "method": "POST", "path": "/api/v1/operations/patients/search", "audience": "operations", "authentication": "OIDC_BEARER", "permission": "PATIENT_READ", "cache": "NO_STORE", "purpose": "Reason-gated paginated canonical patient search." },
+    { "method": "POST", "path": "/api/v1/operations/patients/detail", "audience": "operations", "authentication": "OIDC_BEARER", "permission": "PATIENT_READ", "cache": "NO_STORE", "purpose": "Reason-gated canonical patient timeline, vitals, Lifestyle, assurance, and provenance." },
+    { "method": "POST", "path": "/api/v1/operations/medical-id-recovery/search", "audience": "operations", "authentication": "OIDC_BEARER", "permission": "MEDICAL_ID_RECOVER", "cache": "NO_STORE", "purpose": "Return bounded masked candidates for an audited recovery case." },
+    { "method": "POST", "path": "/api/v1/operations/medical-id-recovery/reveal", "audience": "operations", "authentication": "OIDC_BEARER", "permission": "MEDICAL_ID_RECOVER", "cache": "NO_STORE", "purpose": "Reveal one verified existing CHS medical ID once." },
+    { "method": "POST", "path": "/api/v1/operations/identity-reviews/search", "audience": "operations", "authentication": "OIDC_BEARER", "permission": "IDENTITY_REVIEW", "cache": "NO_STORE", "purpose": "Paginate organization-scoped open and resolved review cases." },
+    { "method": "POST", "path": "/api/v1/operations/identity-reviews/detail", "audience": "operations", "authentication": "OIDC_BEARER", "permission": "IDENTITY_REVIEW", "cache": "NO_STORE", "purpose": "Read bounded minimum-necessary identity-review evidence." },
+    { "method": "POST", "path": "/api/v1/operations/identity-reviews/resolve", "audience": "operations", "authentication": "OIDC_BEARER", "permission": "IDENTITY_REVIEW_RESOLVE", "cache": "NO_STORE", "purpose": "Resolve one review case with optimistic concurrency and immutable evidence." },
+    { "method": "POST", "path": "/api/v1/operations/sync/batches/search", "audience": "operations", "authentication": "OIDC_BEARER", "permission": "SYNC_MONITOR", "cache": "NO_STORE", "purpose": "Search bounded organization-scoped synchronization metadata." },
+    { "method": "POST", "path": "/api/v1/operations/sync/batches/detail", "audience": "operations", "authentication": "OIDC_BEARER", "permission": "SYNC_MONITOR", "cache": "NO_STORE", "purpose": "Read grouped outcomes and stable safe errors for one batch." }
+  ]
+}

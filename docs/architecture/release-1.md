@@ -153,6 +153,14 @@ recovery without creating duplicate canonical rows. Its retained evidence is
 aggregate and synthetic; the companion operator runbook prohibits payload
 inspection and direct database repair.
 
+Release documentation is guarded as executable evidence. A machine-readable
+catalog classifies every PostgreSQL table by domain, sensitivity, and viewer
+boundary, while a second catalog records every HTTP route's audience,
+authentication, permission, cache policy, and purpose. Repository tests compare
+those catalogs with immutable migrations and registered route literals so new
+tables or endpoints cannot silently bypass the human data dictionary and API
+guide.
+
 Synchronization support now includes a separate operational monitoring
 boundary. A dedicated `SYNC_MONITOR` grant controls access independently of
 patient viewing and Medical ID recovery. Scoped API queries show batch state,

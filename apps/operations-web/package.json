@@ -25,6 +25,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:e2e": "playwright test",
+    "test:e2e:privileged": "playwright test test/e2e/privileged-operations.pw.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   }
 }

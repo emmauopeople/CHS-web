@@ -252,6 +252,7 @@ pnpm security:check # scan repository files and production dependencies
 - [HSD-HARD-002B synchronization incident and recovery drill](docs/operations/HSD-HARD-002B.md)
 - [Synchronization incident, replay, and recovery runbook](docs/runbooks/sync-incident-replay-recovery.md)
 - [HSD-HARD-002C Release 1 documentation baseline](docs/operations/HSD-HARD-002C.md)
+- [HSD-HARD-002D privileged operations browser acceptance](docs/operations/HSD-HARD-002D.md)
 - [Release 1 canonical data dictionary](docs/data-dictionary/release-1.md)
 - [Release 1 API guide](docs/api/release-1.md)
 - [Release 1 candidate notes](docs/releases/release-1.md)

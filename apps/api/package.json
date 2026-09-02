@@ -32,6 +32,7 @@
     "lint": "tsc -p tsconfig.json --noEmit",
     "start": "node dist/main.js",
     "test": "vitest run",
+    "test:documentation": "vitest run test/api-documentation.test.ts",
     "test:integration": "node --env-file-if-exists=../../.env ./node_modules/vitest/vitest.mjs run test/integration --no-file-parallelism",
     "test:load": "node --env-file-if-exists=../../.env --import tsx test/load/api-load-evidence.ts",
     "test:recovery": "node --env-file-if-exists=../../.env --import tsx test/recovery/sync-recovery-evidence.ts",

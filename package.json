@@ -21,6 +21,7 @@
     "db:test": "pnpm --filter @chs/database test:integration && pnpm --filter @chs/api test:integration",
     "dev:api": "pnpm --filter @chs/api dev",
     "dev:web": "pnpm --filter @chs/operations-web dev",
+    "docs:check": "pnpm --filter @chs/database test:documentation && pnpm --filter @chs/api test:documentation",
     "lint": "pnpm --recursive lint",
     "security:audit": "pnpm audit --prod --audit-level=high",
     "security:check": "pnpm security:test && pnpm security:secrets && pnpm security:audit",

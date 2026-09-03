@@ -14,7 +14,8 @@ gated.
 - OIDC-protected operations workflows for canonical patient viewing, Medical ID
   recovery, identity review, and bounded synchronization monitoring.
 - Responsive low-bandwidth React operations UI with browser-level workflow
-  evidence.
+  evidence for the patient viewer, Medical ID recovery, synchronization
+  monitoring, and identity-review resolution.
 - Liveness, startup, readiness, version, Prometheus metrics, structured logging,
   redaction tests, bounded runtime limits, graceful shutdown, security scans,
   load evidence, backup/restore rehearsal, and sync recovery evidence.

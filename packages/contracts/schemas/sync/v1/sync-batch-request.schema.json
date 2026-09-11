@@ -48,7 +48,9 @@
           { "$ref": "#/$defs/sessionRecord" },
           { "$ref": "#/$defs/encounterRecord" },
           { "$ref": "#/$defs/vitalsRecord" },
-          { "$ref": "#/$defs/lifestyleRecord" }
+          { "$ref": "#/$defs/lifestyleRecord" },
+          { "$ref": "#/$defs/foodRecord" },
+          { "$ref": "#/$defs/otcRecord" }
         ]
       }
     }
@@ -82,7 +84,7 @@
       "properties": {
         "recordId": { "$ref": "common.schema.json#/$defs/uuid" },
         "resourceType": {
-          "enum": ["PATIENT", "SCREENING_SESSION", "SCREENING_ENCOUNTER", "VITALS", "LIFESTYLE"]
+          "enum": ["PATIENT", "SCREENING_SESSION", "SCREENING_ENCOUNTER", "VITALS", "LIFESTYLE", "FOOD", "OTC"]
         },
         "localResourceId": { "$ref": "common.schema.json#/$defs/uuid" },
         "sourceRevision": { "type": "integer", "minimum": 1 },
@@ -158,6 +160,56 @@
             "resourceType": { "const": "LIFESTYLE" },
             "schemaVersion": { "const": "lifestyle.v1" },
             "payload": { "$ref": "lifestyle.schema.json" }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "foodRecord": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/recordBase"
+        },
+        {
+          "properties": {
+            "resourceType": {
+              "const": "FOOD"
+            },
+            "schemaVersion": {
+              "const": "food.v1"
+            },
+            "sourceRevision": {
+              "const": 1
+            },
+            "payload": {
+              "$ref": "food.schema.json"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "otcRecord": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/recordBase"
+        },
+        {
+          "properties": {
+            "resourceType": {
+              "const": "OTC"
+            },
+            "schemaVersion": {
+              "const": "otc.v1"
+            },
+            "sourceRevision": {
+              "const": 1
+            },
+            "payload": {
+              "$ref": "otc.schema.json"
+            }
           }
         }
       ],

@@ -1,0 +1,91 @@
+{
+  "contractVersion": "1.0",
+  "batchId": "12000000-0000-4000-8000-000000000001",
+  "installationId": "22000000-0000-4000-8000-000000000001",
+  "locationId": "32000000-0000-4000-8000-000000000001",
+  "installationTimezone": "Africa/Douala",
+  "desktopApplicationVersion": "0.15.0",
+  "desktopSchemaVersion": 15,
+  "createdAt": "2026-08-20T16:00:00.000Z",
+  "actors": [
+    {
+      "localActorId": "62000000-0000-4000-8000-000000000001",
+      "displayName": "Synthetic Nurse",
+      "role": "NURSE",
+      "active": true,
+      "updatedAt": "2026-08-20T14:00:00.000Z"
+    },
+    {
+      "localActorId": "62000000-0000-4000-8000-000000000002",
+      "displayName": "Synthetic Local Administrator",
+      "role": "LOCAL_ADMIN",
+      "active": true,
+      "updatedAt": "2026-08-20T14:05:00.000Z"
+    }
+  ],
+  "records": [
+    {
+      "recordId": "42000000-0000-4000-8000-000000000401",
+      "resourceType": "FOOD",
+      "localResourceId": "92000000-0000-4000-8000-000000000001",
+      "sourceRevision": 1,
+      "schemaVersion": "food.v1",
+      "operation": "UPSERT",
+      "capturedAt": "2026-08-20T15:40:00.000Z",
+      "sourceActorLocalId": "62000000-0000-4000-8000-000000000001",
+      "payload": {
+        "localEncounterId": "92000000-0000-4000-8000-000000000001",
+        "completedAt": "2026-08-20T15:40:00.000Z",
+        "periodStart": "2026-08-14",
+        "periodEnd": "2026-08-20",
+        "recordedByLocalActorId": "62000000-0000-4000-8000-000000000001",
+        "response": "REPORTED",
+        "rows": [
+          {
+            "localRowId": "a1000000-0000-4000-8000-000000000001",
+            "recordedByLocalActorId": "62000000-0000-4000-8000-000000000001",
+            "recordedAt": "2026-08-20T15:40:00.000Z",
+            "sourceType": "PATIENT_REPORTED",
+            "foodCode": "BEANS",
+            "foodName": "Beans",
+            "frequencyCode": null,
+            "preparationNote": null
+          }
+        ]
+      }
+    },
+    {
+      "recordId": "42000000-0000-4000-8000-000000000402",
+      "resourceType": "OTC",
+      "localResourceId": "92000000-0000-4000-8000-000000000001",
+      "sourceRevision": 1,
+      "schemaVersion": "otc.v1",
+      "operation": "UPSERT",
+      "capturedAt": "2026-08-20T15:40:00.000Z",
+      "sourceActorLocalId": "62000000-0000-4000-8000-000000000001",
+      "payload": {
+        "localEncounterId": "92000000-0000-4000-8000-000000000001",
+        "completedAt": "2026-08-20T15:40:00.000Z",
+        "periodStart": "2026-08-14",
+        "periodEnd": "2026-08-20",
+        "recordedByLocalActorId": "62000000-0000-4000-8000-000000000001",
+        "response": "REPORTED",
+        "rows": [
+          {
+            "localRowId": "a1000000-0000-4000-8000-000000000002",
+            "recordedByLocalActorId": "62000000-0000-4000-8000-000000000001",
+            "recordedAt": "2026-08-20T15:40:00.000Z",
+            "sourceType": "PATIENT_REPORTED",
+            "productName": "Synthetic product",
+            "reasonForUse": "Patient-reported reason",
+            "doseText": "Reported dose",
+            "frequencyText": null,
+            "durationText": null,
+            "sourceOfMedication": null,
+            "currentlyTaking": null
+          }
+        ]
+      }
+    }
+  ]
+}

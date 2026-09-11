@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chs.example/contracts/sync/v1/food.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "localEncounterId",
+    "completedAt",
+    "periodStart",
+    "periodEnd",
+    "recordedByLocalActorId",
+    "response",
+    "rows"
+  ],
+  "properties": {
+    "localEncounterId": {
+      "$ref": "common.schema.json#/$defs/uuid"
+    },
+    "completedAt": {
+      "$ref": "common.schema.json#/$defs/utcTimestamp"
+    },
+    "periodStart": {
+      "oneOf": [
+        {
+          "$ref": "common.schema.json#/$defs/localDate"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "periodEnd": {
+      "oneOf": [
+        {
+          "$ref": "common.schema.json#/$defs/localDate"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "recordedByLocalActorId": {
+      "$ref": "common.schema.json#/$defs/uuid"
+    },
+    "response": {
+      "enum": [
+        "REPORTED",
+        "UNKNOWN",
+        "DECLINED",
+        "PREFER_NOT_TO_ANSWER",
+        null
+      ]
+    },
+    "rows": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "localRowId",
+          "recordedByLocalActorId",
+          "recordedAt",
+          "sourceType",
+          "foodCode",
+          "foodName",
+          "frequencyCode",
+          "preparationNote"
+        ],
+        "properties": {
+          "localRowId": {
+            "$ref": "common.schema.json#/$defs/uuid"
+          },
+          "recordedByLocalActorId": {
+            "$ref": "common.schema.json#/$defs/uuid"
+          },
+          "recordedAt": {
+            "$ref": "common.schema.json#/$defs/utcTimestamp"
+          },
+          "sourceType": {
+            "const": "PATIENT_REPORTED"
+          },
+          "foodCode": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "\\S"
+          },
+          "foodName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "\\S"
+          },
+          "frequencyCode": {
+            "enum": [
+              "1_DAY",
+              "2_TO_3_DAYS",
+              "4_TO_6_DAYS",
+              "EVERY_DAY",
+              null
+            ]
+          },
+          "preparationNote": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1,
+            "maxLength": 200,
+            "pattern": "\\S"
+          }
+        }
+      }
+    }
+  }
+}

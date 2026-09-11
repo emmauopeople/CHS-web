@@ -1,7 +1,4 @@
-export type DesktopActorRole =
-  | 'LOCAL_ADMIN'
-  | 'NURSE'
-  | 'TRAINED_SCREENER';
+export type DesktopActorRole = 'LOCAL_ADMIN' | 'NURSE' | 'TRAINED_SCREENER';
 
 export type SyncActorSnapshot = Readonly<{
   localActorId: string;
@@ -16,7 +13,9 @@ export type SyncResourceType =
   | 'SCREENING_SESSION'
   | 'SCREENING_ENCOUNTER'
   | 'VITALS'
-  | 'LIFESTYLE';
+  | 'LIFESTYLE'
+  | 'FOOD'
+  | 'OTC';
 
 export type SyncRecordSnapshot = Readonly<{
   recordId: string;
@@ -53,7 +52,10 @@ export type PatientPayload = Readonly<{
   updatedAt: string;
 }>;
 
-export type PatientSyncRecord = Omit<SyncRecordSnapshot, 'payload' | 'resourceType'> &
+export type PatientSyncRecord = Omit<
+  SyncRecordSnapshot,
+  'payload' | 'resourceType'
+> &
   Readonly<{
     resourceType: 'PATIENT';
     payload: PatientPayload;
@@ -206,12 +208,7 @@ export type VitalsRecordOutcome = Readonly<{
 }>;
 
 export type LifestyleBeverageType =
-  | 'BEER'
-  | 'WINE'
-  | 'SPIRITS'
-  | 'COCKTAILS'
-  | 'FORTIFIED_WINE'
-  | 'OTHER';
+  'BEER' | 'WINE' | 'SPIRITS' | 'COCKTAILS' | 'FORTIFIED_WINE' | 'OTHER';
 
 export type LifestyleTobaccoProductType =
   | 'CIGARETTE'
@@ -255,11 +252,7 @@ export type LifestyleTobaccoBaseline = LifestyleProvenance &
     everRegularlyUsed: 'YES' | 'NO' | 'UNKNOWN' | 'DECLINED';
     formerUseApproximateStopDate: string | null;
     currentUseFrequency:
-      | 'EVERY_DAY'
-      | 'SOME_DAYS'
-      | 'NOT_AT_ALL'
-      | 'UNKNOWN'
-      | 'DECLINED';
+      'EVERY_DAY' | 'SOME_DAYS' | 'NOT_AT_ALL' | 'UNKNOWN' | 'DECLINED';
     productTypes: readonly LifestyleTobaccoProductType[];
     otherProductDescription: string | null;
   }>;
@@ -436,7 +429,8 @@ export type LifestylePayload = LifestyleProvenance &
     physicalActivity: LifestylePhysicalActivityWeekly;
     work: LifestyleWorkWeekly;
     otherActivity: Readonly<{
-      weeklyResponse: 'YES' | 'NO' | 'UNKNOWN' | 'DECLINED' | 'PREFER_NOT_TO_ANSWER';
+      weeklyResponse:
+        'YES' | 'NO' | 'UNKNOWN' | 'DECLINED' | 'PREFER_NOT_TO_ANSWER';
       activities: readonly LifestyleOtherActivity[];
     }>;
   }>;
@@ -488,7 +482,8 @@ export type SyncRecordOutcome =
   | ScreeningSessionRecordOutcome
   | ScreeningEncounterRecordOutcome
   | VitalsRecordOutcome
-  | LifestyleRecordOutcome;
+  | LifestyleRecordOutcome
+  | ReportedIntakeOutcome;
 
 export type SyncBatchStatus = 'ACCEPTED' | 'PARTIAL' | 'REJECTED';
 
@@ -500,3 +495,49 @@ export type SyncBatchResponse = Readonly<{
   completedAt: string;
   outcomes: readonly SyncRecordOutcome[];
 }>;
+
+export type ReportedIntakeRow = Readonly<{
+  localRowId: string;
+  recordedByLocalActorId: string;
+  recordedAt: string;
+  sourceType: 'PATIENT_REPORTED';
+}>;
+export type FoodRow = ReportedIntakeRow &
+  Readonly<{
+    foodCode: string | null;
+    foodName: string;
+    frequencyCode: '1_DAY' | '2_TO_3_DAYS' | '4_TO_6_DAYS' | 'EVERY_DAY' | null;
+    preparationNote: string | null;
+  }>;
+export type OtcRow = ReportedIntakeRow &
+  Readonly<{
+    productName: string;
+    reasonForUse: string;
+    doseText: string | null;
+    frequencyText: string | null;
+    durationText: string | null;
+    sourceOfMedication: string | null;
+    currentlyTaking: boolean | null;
+  }>;
+export type ReportedIntakePayload = Readonly<{
+  localEncounterId: string;
+  completedAt: string;
+  periodStart: string | null;
+  periodEnd: string | null;
+  response:
+    | 'REPORTED'
+    | 'NONE_REPORTED'
+    | 'UNKNOWN'
+    | 'DECLINED'
+    | 'PREFER_NOT_TO_ANSWER'
+    | null;
+  recordedByLocalActorId: string;
+  rows: readonly (FoodRow | OtcRow)[];
+}>;
+export type ReportedIntakeRecord = Omit<
+  SyncRecordSnapshot,
+  'payload' | 'resourceType'
+> &
+  Readonly<{ resourceType: 'FOOD' | 'OTC'; payload: ReportedIntakePayload }>;
+export type ReportedIntakeOutcome = Omit<VitalsRecordOutcome, 'resourceType'> &
+  Readonly<{ resourceType: 'FOOD' | 'OTC' }>;

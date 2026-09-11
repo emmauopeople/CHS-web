@@ -12,6 +12,8 @@ function readJson(relativePath) {
 const schemaPaths = Object.freeze([
   'schemas/sync/v1/common.schema.json',
   'schemas/sync/v1/lifestyle.schema.json',
+  'schemas/sync/v1/food.schema.json',
+  'schemas/sync/v1/otc.schema.json',
   'schemas/sync/v1/sync-batch-request.schema.json',
   'schemas/sync/v1/sync-batch-response.schema.json'
 ])
@@ -58,8 +60,16 @@ function lifestyleActorReferences(payload) {
     )
   }
 
-  appendProvenanceActorReferences(actorReferences, 'payload/alcohol', payload.alcohol)
-  appendProvenanceActorReferences(actorReferences, 'payload/tobacco', payload.tobacco)
+  appendProvenanceActorReferences(
+    actorReferences,
+    'payload/alcohol',
+    payload.alcohol
+  )
+  appendProvenanceActorReferences(
+    actorReferences,
+    'payload/tobacco',
+    payload.tobacco
+  )
   for (const [index, product] of payload.tobacco.products.entries()) {
     appendProvenanceActorReferences(
       actorReferences,
@@ -73,7 +83,10 @@ function lifestyleActorReferences(payload) {
     'payload/physicalActivity',
     payload.physicalActivity
   )
-  for (const [index, activity] of payload.physicalActivity.activities.entries()) {
+  for (const [
+    index,
+    activity
+  ] of payload.physicalActivity.activities.entries()) {
     appendProvenanceActorReferences(
       actorReferences,
       `payload/physicalActivity/activities/${index}`,
@@ -124,7 +137,9 @@ function checkLifestyleRows(rows, idField, path, ids, issues) {
 }
 
 function decimalParts(value) {
-  const [coefficient, exponentText = '0'] = String(value).toLowerCase().split('e')
+  const [coefficient, exponentText = '0'] = String(value)
+    .toLowerCase()
+    .split('e')
   const exponent = Number(exponentText)
   const [whole, fraction = ''] = coefficient.split('.')
   let integer = BigInt(`${whole}${fraction}`)
@@ -140,10 +155,17 @@ function compareDecimalProduct(total, amount, multiplier) {
   const totalParts = decimalParts(total)
   const amountParts = decimalParts(amount)
   const scale = Math.max(totalParts.scale, amountParts.scale)
-  const scaledTotal = totalParts.integer * 10n ** BigInt(scale - totalParts.scale)
+  const scaledTotal =
+    totalParts.integer * 10n ** BigInt(scale - totalParts.scale)
   const scaledProduct =
-    amountParts.integer * BigInt(multiplier) * 10n ** BigInt(scale - amountParts.scale)
-  return scaledTotal === scaledProduct ? 0 : scaledTotal < scaledProduct ? -1 : 1
+    amountParts.integer *
+    BigInt(multiplier) *
+    10n ** BigInt(scale - amountParts.scale)
+  return scaledTotal === scaledProduct
+    ? 0
+    : scaledTotal < scaledProduct
+      ? -1
+      : 1
 }
 
 function lifestyleSemanticIssues(request, record, recordIndex) {
@@ -161,7 +183,10 @@ function lifestyleSemanticIssues(request, record, recordIndex) {
   const periodStart = Date.parse(`${payload.periodStart}T00:00:00.000Z`)
   const periodEnd = Date.parse(`${payload.periodEnd}T00:00:00.000Z`)
   if (periodEnd - periodStart !== 6 * 24 * 60 * 60 * 1000) {
-    issues.push({ code: 'LIFESTYLE_PERIOD_INVALID', path: `${path}/periodStart` })
+    issues.push({
+      code: 'LIFESTYLE_PERIOD_INVALID',
+      path: `${path}/periodStart`
+    })
   }
 
   const ids = new Set()
@@ -236,8 +261,10 @@ function lifestyleSemanticIssues(request, record, recordIndex) {
     )
     if (
       subtotalComparison < 0 ||
-      (alcohol.drinkingDays === alcohol.daysAtLargestAmount && subtotalComparison !== 0) ||
-      (alcohol.drinkingDays > alcohol.daysAtLargestAmount && subtotalComparison <= 0)
+      (alcohol.drinkingDays === alcohol.daysAtLargestAmount &&
+        subtotalComparison !== 0) ||
+      (alcohol.drinkingDays > alcohol.daysAtLargestAmount &&
+        subtotalComparison <= 0)
     ) {
       issues.push({
         code: 'LIFESTYLE_ALCOHOL_TOTAL_INCONSISTENT',
@@ -255,7 +282,10 @@ function semanticRequestIssues(request) {
   const actorIds = new Set()
   for (const [index, actor] of request.actors.entries()) {
     if (actorIds.has(actor.localActorId)) {
-      issues.push({ code: 'DUPLICATE_ACTOR_ID', path: `/actors/${index}/localActorId` })
+      issues.push({
+        code: 'DUPLICATE_ACTOR_ID',
+        path: `/actors/${index}/localActorId`
+      })
     }
     actorIds.add(actor.localActorId)
   }
@@ -284,9 +314,7 @@ function semanticRequestIssues(request) {
     }
     snapshotKeys.add(snapshotKey)
 
-    const actorReferences = [
-      ['sourceActorLocalId', record.sourceActorLocalId]
-    ]
+    const actorReferences = [['sourceActorLocalId', record.sourceActorLocalId]]
     if (record.resourceType === 'SCREENING_SESSION') {
       actorReferences.push(
         ['payload/openedByLocalActorId', record.payload.openedByLocalActorId],
@@ -326,11 +354,73 @@ function semanticRequestIssues(request) {
         readingIds.add(reading.localReadingId)
         sequences.add(reading.sequenceNumber)
       }
-      const orderedSequences = [...sequences].sort((left, right) => left - right)
+      const orderedSequences = [...sequences].sort(
+        (left, right) => left - right
+      )
       if (orderedSequences.some((sequence, index) => sequence !== index + 1)) {
         issues.push({
           code: 'VITALS_READING_SEQUENCE_NOT_CONTIGUOUS',
           path: `/records/${recordIndex}/payload/readings`
+        })
+      }
+    } else if (
+      record.resourceType === 'FOOD' ||
+      record.resourceType === 'OTC'
+    ) {
+      const payload = record.payload
+      actorReferences.push([
+        'payload/recordedByLocalActorId',
+        payload.recordedByLocalActorId
+      ])
+      const ids = new Set()
+      for (const [index, row] of payload.rows.entries()) {
+        actorReferences.push([
+          `payload/rows/${index}/recordedByLocalActorId`,
+          row.recordedByLocalActorId
+        ])
+        if (ids.has(row.localRowId))
+          issues.push({
+            code: 'DUPLICATE_REPORTED_ROW_ID',
+            path: `/records/${recordIndex}/payload/rows/${index}`
+          })
+        ids.add(row.localRowId)
+        if (row.recordedAt !== payload.completedAt)
+          issues.push({
+            code: 'REPORTED_SOURCE_TIME_INVALID',
+            path: `/records/${recordIndex}/payload/rows/${index}/recordedAt`
+          })
+      }
+      if (
+        record.localResourceId !== payload.localEncounterId ||
+        record.capturedAt !== payload.completedAt
+      ) {
+        issues.push({
+          code: 'REPORTED_SNAPSHOT_IDENTITY_INVALID',
+          path: `/records/${recordIndex}`
+        })
+      }
+      if (
+        (payload.periodStart === null) !== (payload.periodEnd === null) ||
+        (payload.periodStart !== null &&
+          payload.periodStart > payload.periodEnd)
+      ) {
+        issues.push({
+          code: 'REPORTED_PERIOD_INVALID',
+          path: `/records/${recordIndex}/payload/periodStart`
+        })
+      }
+      // Legacy encounters can lack a response. Never manufacture a negative answer.
+      const permitsRows =
+        payload.response === null ||
+        payload.response === 'REPORTED' ||
+        (record.resourceType === 'OTC' && payload.response === 'UNKNOWN')
+      if (
+        (!permitsRows && payload.rows.length > 0) ||
+        (payload.response === 'REPORTED' && payload.rows.length === 0)
+      ) {
+        issues.push({
+          code: 'REPORTED_RESPONSE_ROWS_INVALID',
+          path: `/records/${recordIndex}/payload/rows`
         })
       }
     } else if (record.resourceType === 'LIFESTYLE') {

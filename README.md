@@ -53,6 +53,11 @@ as normalized canonical rows with source provenance and replay-safe outcomes;
 raw Lifestyle payload JSON is not retained. Desktop transport and
 amendment/void behavior remain follow-up tasks.
 
+Food and OTC upload support is added by [HSW-019A](docs/sync/HSW-019A-food-otc.md).
+Deploy its API and PostgreSQL migration before the paired desktop update.
+The [sync expansion sequence](docs/sync/sync-expansion-sequence.md) tracks
+referrals, addenda/review flags, and read-only patient-history downloads.
+
 ## Prerequisites
 
 - Node.js 24 LTS

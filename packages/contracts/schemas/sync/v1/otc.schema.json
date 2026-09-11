@@ -1,0 +1,145 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chs.example/contracts/sync/v1/otc.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "localEncounterId",
+    "completedAt",
+    "periodStart",
+    "periodEnd",
+    "recordedByLocalActorId",
+    "response",
+    "rows"
+  ],
+  "properties": {
+    "localEncounterId": {
+      "$ref": "common.schema.json#/$defs/uuid"
+    },
+    "completedAt": {
+      "$ref": "common.schema.json#/$defs/utcTimestamp"
+    },
+    "periodStart": {
+      "oneOf": [
+        {
+          "$ref": "common.schema.json#/$defs/localDate"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "periodEnd": {
+      "oneOf": [
+        {
+          "$ref": "common.schema.json#/$defs/localDate"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "recordedByLocalActorId": {
+      "$ref": "common.schema.json#/$defs/uuid"
+    },
+    "response": {
+      "enum": [
+        "REPORTED",
+        "NONE_REPORTED",
+        "UNKNOWN",
+        "DECLINED",
+        "PREFER_NOT_TO_ANSWER",
+        null
+      ]
+    },
+    "rows": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "localRowId",
+          "recordedByLocalActorId",
+          "recordedAt",
+          "sourceType",
+          "productName",
+          "reasonForUse",
+          "doseText",
+          "frequencyText",
+          "durationText",
+          "sourceOfMedication",
+          "currentlyTaking"
+        ],
+        "properties": {
+          "localRowId": {
+            "$ref": "common.schema.json#/$defs/uuid"
+          },
+          "recordedByLocalActorId": {
+            "$ref": "common.schema.json#/$defs/uuid"
+          },
+          "recordedAt": {
+            "$ref": "common.schema.json#/$defs/utcTimestamp"
+          },
+          "sourceType": {
+            "const": "PATIENT_REPORTED"
+          },
+          "productName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160,
+            "pattern": "\\S"
+          },
+          "reasonForUse": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500,
+            "pattern": "\\S"
+          },
+          "doseText": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1,
+            "maxLength": 160,
+            "pattern": "\\S"
+          },
+          "frequencyText": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1,
+            "maxLength": 160,
+            "pattern": "\\S"
+          },
+          "durationText": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1,
+            "maxLength": 160,
+            "pattern": "\\S"
+          },
+          "sourceOfMedication": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1,
+            "maxLength": 160,
+            "pattern": "\\S"
+          },
+          "currentlyTaking": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

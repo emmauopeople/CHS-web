@@ -14,6 +14,8 @@ const root = new URL('../', import.meta.url)
 const schemaLocations = Object.freeze({
   common: 'schemas/sync/v1/common.schema.json',
   lifestyle: 'schemas/sync/v1/lifestyle.schema.json',
+  food: 'schemas/sync/v1/food.schema.json',
+  otc: 'schemas/sync/v1/otc.schema.json',
   syncRequest: 'schemas/sync/v1/sync-batch-request.schema.json',
   syncResponse: 'schemas/sync/v1/sync-batch-response.schema.json',
   resolutionPullRequest: 'schemas/sync/v1/identity-resolution-pull-request.schema.json',
@@ -29,6 +31,7 @@ const validFixtureCases = Object.freeze([
   ['syncRequest', 'fixtures/sync/v1/valid/batch-request.json'],
   ['syncRequest', 'fixtures/sync/v1/valid/closed-session-request.json'],
   ['syncRequest', 'fixtures/sync/v1/valid/lifestyle-batch-request.json'],
+  ['syncRequest', 'fixtures/sync/v1/valid/food-otc-batch-request.json'],
   ['syncResponse', 'fixtures/sync/v1/valid/batch-response.json'],
   ['syncResponse', 'fixtures/sync/v1/valid/lifestyle-batch-response.json'],
   ['resolutionPullRequest', 'fixtures/sync/v1/valid/identity-resolution-pull-request.json'],

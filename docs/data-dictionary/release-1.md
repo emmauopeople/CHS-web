@@ -3,7 +3,7 @@
 ## Purpose and authority
 
 This dictionary describes the PostgreSQL schema after migrations `0001` through
-`0012`. PostgreSQL constraints and the approved synchronization contracts remain
+`0013`. PostgreSQL constraints and the approved synchronization contracts remain
 the executable authority for field types and accepted values. The companion
 [`release-1.json`](release-1.json) catalog is checked against every `CREATE
 TABLE` statement and the migration ledger table during tests, so undocumented

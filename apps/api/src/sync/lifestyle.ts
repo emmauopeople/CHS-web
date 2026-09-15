@@ -891,7 +891,7 @@ export async function processLifestyleRecord(
          encounter.source_location_id, encounter.status, encounter.source_type,
          encounter.amendment_of_encounter_id,
          session.local_session_id,
-         session.session_date::text AS session_date
+         COALESCE(encounter.clinical_time->>'localDate', session.session_date::text) AS session_date
        FROM screening_encounters AS encounter
        JOIN screening_sessions AS session ON session.id = encounter.screening_session_id
        WHERE encounter.installation_id = $1 AND encounter.local_encounter_id = $2

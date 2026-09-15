@@ -282,7 +282,8 @@ function Vitals({ detail }: Readonly<{ detail: PatientDetail }>) {
           <dl className="screening-meta">
             <div><dt>Recorded by</dt><dd>{screening.recordedByPractitionerName}</dd></div>
             <div><dt>Protocol</dt><dd>{screening.protocolVersionLabel}</dd></div>
-            <div><dt>Started</dt><dd>{formatInstant(screening.startedAt)}</dd></div>
+            <div><dt>Screening time</dt><dd>{screening.clinicalTime ? `${screening.clinicalTime.localDate} ${screening.clinicalTime.localTime} (${screening.clinicalTime.timezone})` : formatInstant(screening.startedAt)}</dd></div>
+            {screening.documentationStartedAt ? <div><dt>Documentation started</dt><dd>{formatInstant(screening.documentationStartedAt)}</dd></div> : null}
           </dl>
           {screening.amendmentReason ? (
             <div className="amendment-note"><strong>Amendment:</strong> {screening.amendmentReason}</div>

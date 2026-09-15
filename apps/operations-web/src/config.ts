@@ -10,6 +10,13 @@ export type OperationsWebConfig = Readonly<{
   }>;
 }>;
 
+export class LocalPortalAddressError extends Error {
+  readonly portalUrl = 'http://127.0.0.1:4173/';
+  constructor() {
+    super('Open the registered local portal address before signing in.');
+  }
+}
+
 function required(value: string | undefined, name: string): string {
   const normalized = value?.trim();
   if (!normalized) throw new Error(`${name} is required`);
@@ -45,6 +52,15 @@ export function loadConfig(location: Location = window.location): OperationsWebC
     ),
     'VITE_OPERATIONS_OIDC_TOKEN_ENDPOINT',
   );
+  if (
+    import.meta.env.DEV &&
+    authorizationEndpoint === 'http://127.0.0.1:18080/realms/chs-local/protocol/openid-connect/auth' &&
+    `${location.origin}${location.pathname}` !== 'http://127.0.0.1:4173/'
+  ) {
+    // Do not send a callback to another origin: the PKCE transaction is kept
+    // in this origin's sessionStorage. Let the user open the correct origin first.
+    throw new LocalPortalAddressError();
+  }
   const endSessionValue =
     import.meta.env.VITE_OPERATIONS_OIDC_END_SESSION_ENDPOINT?.trim();
   const apiBaseUrl = import.meta.env.VITE_CHS_API_BASE_URL?.trim() ?? '';

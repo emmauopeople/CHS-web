@@ -76,7 +76,17 @@ Visit `http://127.0.0.1:4173/` (use this exact host and port), choose Sign in,
 and use the `chs-reviewer` initial password from the file. Keycloak requires a
 new password on first login. The file retains the initial password afterward;
 it is not a record of later password changes. Do not paste this file into chat.
-If Vite selects a different port, stop the other Vite process and restart on 4173.
+Vite now fails if port 4173 is occupied instead of silently selecting another
+port. Stop the older portal terminal and start it again. Opening localhost, a
+different port, or `/index.html` shows a link to the registered local address
+before any sign-in transaction is created. Keep the client redirect allowlist
+exact; do not add wildcard redirects to work around this error.
+
+The development server permits its injected styles and the local Keycloak token
+connection through a development-only HTML policy. Production builds retain the
+original stricter policy. If the portal appears unstyled or shows a redirect
+error after pulling this change, stop and restart Vite and open the exact portal
+URL again with a hard refresh. There is no need to recreate Keycloak or grants.
 
 The separate Keycloak admin credentials in that file are for managing local
 sign-in accounts at `http://127.0.0.1:18080/admin/`; they do not grant CHS access.

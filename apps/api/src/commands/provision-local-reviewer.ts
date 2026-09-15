@@ -17,6 +17,7 @@ async function main(): Promise<void> {
     );
   }
   const args = process.argv.slice(2);
+  if (args[0] === '--') args.shift();
   if (
     args.length !== 2 ||
     args[0] !== '--installation' ||
@@ -24,7 +25,7 @@ async function main(): Promise<void> {
       args[1] ?? '',
     )
   ) {
-    throw new Error('Usage: pnpm local:auth:grant -- --installation <installation UUID>');
+    throw new Error('Usage: pnpm local:auth:grant --installation <installation UUID>');
   }
   const databaseUrl = new URL(process.env.DATABASE_URL ?? '');
   if (

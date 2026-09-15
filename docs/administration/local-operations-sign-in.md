@@ -38,7 +38,7 @@ docker compose -f compose.yaml -f compose.local-auth.yaml logs --tail=60 keycloa
 Provision the reviewer for the organization of your already enrolled desktop:
 
 ```bash
-pnpm local:auth:grant -- --installation 0fa09f2b-9a79-4c7f-a874-031de2cd16df
+pnpm local:auth:grant --installation 0fa09f2b-9a79-4c7f-a874-031de2cd16df
 ```
 
 Use the relevant installation UUID for another deployment. The command checks

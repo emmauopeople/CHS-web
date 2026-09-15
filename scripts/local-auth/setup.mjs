@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-export const issuer = 'http://127.0.0.1:8080/realms/chs-local';
+export const issuer = 'http://127.0.0.1:18080/realms/chs-local';
 export const settings = {
   OPERATIONS_OIDC_ISSUER: issuer,
   OPERATIONS_OIDC_AUDIENCE: 'chs-operations-api',
@@ -91,6 +91,7 @@ export function configureEnv(source) {
         key === 'VITE_CHS_API_BASE_URL') &&
       value &&
       value !== settings[key] &&
+      value !== settings[key].replace('http://127.0.0.1:18080/', 'http://127.0.0.1:8080/') &&
       !value.startsWith('https://identity.example.invalid/')
     ) {
       throw new Error(
@@ -146,9 +147,18 @@ export function setup(root) {
     );
     writeFileSync(
       credentialsPath,
-      `LOCAL DEVELOPMENT ONLY\n\nPortal: http://127.0.0.1:4173/\nUsername: chs-reviewer\nInitial password: ${reviewerPassword}\nChange this password at first login.\n\nKeycloak administration: http://127.0.0.1:8080/admin/\nUsername: chs-local-admin\nInitial password: ${adminPassword}\n\nThese initial passwords are not updated after a password change.\n`,
+      `LOCAL DEVELOPMENT ONLY\n\nPortal: http://127.0.0.1:4173/\nUsername: chs-reviewer\nInitial password: ${reviewerPassword}\nChange this password at first login.\n\nKeycloak administration: http://127.0.0.1:18080/admin/\nUsername: chs-local-admin\nInitial password: ${adminPassword}\n\nThese initial passwords are not updated after a password change.\n`,
       { mode: 0o600, flag: 'wx' },
     );
+  }
+  // Upgrade the display URL only; preserve the existing passwords and subject.
+  const credentials = readFileSync(credentialsPath, 'utf8');
+  const updatedCredentials = credentials.replace(
+    'Keycloak administration: http://127.0.0.1:8080/admin/',
+    'Keycloak administration: http://127.0.0.1:18080/admin/',
+  );
+  if (updatedCredentials !== credentials) {
+    writeFileSync(credentialsPath, updatedCredentials, { mode: 0o600 });
   }
   const backup = resolve(root, '.env.before-local-auth');
   if (!existsSync(backup)) writeFileSync(backup, before, { mode: 0o600, flag: 'wx' });

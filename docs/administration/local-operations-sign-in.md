@@ -1,9 +1,17 @@
 # Local operations sign-in with Docker
 
-This development setup runs Keycloak 26.7.3 on `127.0.0.1:8080`. The operations
+This development setup runs Keycloak 26.7.3 on `127.0.0.1:18080`. The operations
 portal remains at `http://127.0.0.1:4173/`, the API at port 3000, and CHS PostgreSQL
 at port 5432. Keycloak uses its own persistent development database volume;
 clinical records stay in the existing CHS PostgreSQL database.
+
+Port 18080 avoids the common port 8080 used by local Kubernetes labs. The
+container still listens internally on 8080. If you ran setup before this port
+change but have not signed in or provisioned the reviewer yet, pull the update
+and rerun `pnpm local:auth:setup` and `pnpm local:auth:up`. Setup upgrades only the
+recognized previous local URLs and preserves generated passwords and the subject.
+Restart the API and web afterward. Existing grants under the old issuer are not
+rewritten; they require separate reviewed provisioning if previously created.
 
 ## Start on Windows / Git Bash
 
@@ -26,7 +34,7 @@ passwords are preserved on a repeated setup.
 Wait until this command succeeds (initial image download/startup can take a few minutes):
 
 ```bash
-curl --fail --max-time 10 http://127.0.0.1:8080/realms/chs-local/.well-known/openid-configuration
+curl --fail --max-time 10 http://127.0.0.1:18080/realms/chs-local/.well-known/openid-configuration
 ```
 
 If it does not respond, inspect startup logs:
@@ -71,7 +79,7 @@ it is not a record of later password changes. Do not paste this file into chat.
 If Vite selects a different port, stop the other Vite process and restart on 4173.
 
 The separate Keycloak admin credentials in that file are for managing local
-sign-in accounts at `http://127.0.0.1:8080/admin/`; they do not grant CHS access.
+sign-in accounts at `http://127.0.0.1:18080/admin/`; they do not grant CHS access.
 The reviewer identity must be preserved. Deleting/recreating that user changes
 its subject and requires reviewed provisioning rather than assuming the same
 username is the same identity.

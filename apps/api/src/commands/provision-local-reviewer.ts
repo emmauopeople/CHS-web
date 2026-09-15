@@ -5,7 +5,7 @@ import {
   provisionOperationsAccess,
 } from '../administration/operations-access-provisioning.js';
 
-const issuer = 'http://127.0.0.1:8080/realms/chs-local';
+const issuer = 'http://127.0.0.1:18080/realms/chs-local';
 
 async function main(): Promise<void> {
   if (

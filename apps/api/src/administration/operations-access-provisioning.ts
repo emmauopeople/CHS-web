@@ -411,7 +411,7 @@ function requiredOidcIssuer(value: Record<string, unknown>, environment: string)
   }
   const localDevelopmentIssuer =
     environment === 'development' &&
-    issuer.href === 'http://127.0.0.1:8080/realms/chs-local';
+    issuer.href === 'http://127.0.0.1:18080/realms/chs-local';
   if (
     (issuer.protocol !== 'https:' && !localDevelopmentIssuer) ||
     issuer.username !== '' ||

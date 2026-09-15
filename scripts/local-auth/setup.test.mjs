@@ -75,3 +75,25 @@ test('repeated setup preserves initial credentials, subject, and original env ba
     rmSync(root, { recursive: true, force: true });
   }
 });
+
+test('upgrades the previous local port without rotating credentials or overwriting unrelated settings', () => {
+  const root = mkdtempSync(join(tmpdir(), 'chs-local-auth-upgrade-'));
+  try {
+    writeFileSync(join(root, '.env'), 'NODE_ENV=development\nDATABASE_URL=postgresql://unchanged\n');
+    setup(root);
+    const preservedPaths = ['.env.local-auth', '.env.before-local-auth', '.local-auth/import/chs-local-realm.json'];
+    const before = preservedPaths.map((path) => readFileSync(join(root, path), 'utf8'));
+    const expectedCredentials = readFileSync(join(root, '.local-auth/credentials.txt'), 'utf8');
+    writeFileSync(join(root, '.local-auth/credentials.txt'), expectedCredentials.replace(':18080/admin/', ':8080/admin/'));
+    const previousEnv = readFileSync(join(root, '.env'), 'utf8').replaceAll('127.0.0.1:18080/', '127.0.0.1:8080/');
+    writeFileSync(join(root, '.env'), previousEnv);
+    setup(root);
+    assert.deepEqual(preservedPaths.map((path) => readFileSync(join(root, path), 'utf8')), before);
+    assert.equal(readFileSync(join(root, '.local-auth/credentials.txt'), 'utf8'), expectedCredentials);
+    assert.ok(!readFileSync(join(root, '.env'), 'utf8').includes(':8080/'));
+    assert.ok(readFileSync(join(root, '.env'), 'utf8').includes('DATABASE_URL=postgresql://unchanged'));
+    assert.throws(() => configureEnv(previousEnv.replace('/realms/chs-local', '/realms/another')), /Existing identity/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});

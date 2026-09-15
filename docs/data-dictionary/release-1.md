@@ -3,7 +3,7 @@
 ## Purpose and authority
 
 This dictionary describes the PostgreSQL schema after migrations `0001` through
-`0011`. PostgreSQL constraints and the approved synchronization contracts remain
+`0012`. PostgreSQL constraints and the approved synchronization contracts remain
 the executable authority for field types and accepted values. The companion
 [`release-1.json`](release-1.json) catalog is checked against every `CREATE
 TABLE` statement and the migration ledger table during tests, so undocumented
@@ -119,3 +119,11 @@ tables.
   desktop source times remain distinct.
 - Access is enforced by the API using active users, permissions, organization
   scope, reason/purpose, and audit—not by browser knowledge of table names.
+
+## Food and OTC extension
+
+| Table | Purpose | Classification | Viewer boundary |
+| --- | --- | --- | --- |
+| `reported_intake_assessments` | Immutable completed Food and OTC assessments with encounter ownership and source provenance. | CLINICAL | NONE |
+| `reported_food_rows` | Finalized patient-reported food items with optional frequency and preparation notes. | CLINICAL | NONE |
+| `reported_otc_rows` | Finalized patient-reported OTC products, reasons and medication-use details. | CLINICAL | NONE |

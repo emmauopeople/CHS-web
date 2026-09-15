@@ -61,7 +61,9 @@ export type SyncBatchOutcomeCount = Readonly<{
     | 'SCREENING_SESSION'
     | 'SCREENING_ENCOUNTER'
     | 'VITALS'
-    | 'LIFESTYLE';
+    | 'LIFESTYLE'
+    | 'FOOD'
+    | 'OTC';
   status:
     | 'PROCESSING'
     | 'ACCEPTED'

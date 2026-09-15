@@ -41,7 +41,8 @@ server value and do not parse meaning from its current display format.
 
 Completed Lifestyle snapshots are included through the HSD-SYNC-005B additive
 machine-contract change. Lifestyle drafts and in-progress work remain local.
-Food and over-the-counter medication structures are still evolving and are not
+Historical baseline below predates the additive [HSW-019A Food/OTC contract](../sync/HSW-019A-food-otc.md).
+Food and over-the-counter medication structures were initially evolving and were not
 in contract version 1.0.
 
 ## HTTP operations

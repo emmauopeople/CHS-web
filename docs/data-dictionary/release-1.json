@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "release": "1",
-  "migrationCount": 11,
-  "tableCount": 46,
+  "migrationCount": 12,
+  "tableCount": 49,
   "tables": [
     { "name": "schema_migrations", "domain": "migration", "classification": "METADATA", "viewerAccess": "NONE", "purpose": "Immutable migration version, checksum, and application-time ledger." },
     { "name": "organizations", "domain": "platform", "classification": "OPERATIONAL", "viewerAccess": "CANONICAL_PATIENT", "purpose": "Screening program or organization identity and status." },
@@ -49,6 +49,9 @@
     { "name": "sync_batches", "domain": "sync", "classification": "OPERATIONAL", "viewerAccess": "MASKED_SUPPORT", "purpose": "Authenticated batch envelope, payload hash, completion state, counts, and stored response." },
     { "name": "sync_batch_actors", "domain": "sync", "classification": "IDENTITY", "viewerAccess": "NONE", "purpose": "Batch-local actor references resolved to canonical practitioners." },
     { "name": "sync_records", "domain": "sync", "classification": "OPERATIONAL", "viewerAccess": "MASKED_SUPPORT", "purpose": "Per-record idempotency ledger, safe outcomes, stable error codes, and canonical links; no raw payload." },
-    { "name": "audit_events", "domain": "audit", "classification": "AUDIT", "viewerAccess": "NONE", "purpose": "Append-only operational and access audit events with minimum-necessary metadata." }
+    { "name": "audit_events", "domain": "audit", "classification": "AUDIT", "viewerAccess": "NONE", "purpose": "Append-only operational and access audit events with minimum-necessary metadata." },
+    {"name": "reported_intake_assessments", "domain": "clinical", "classification": "CLINICAL", "viewerAccess": "NONE", "purpose": "Immutable completed Food and OTC assessments with encounter ownership and source provenance."},
+    {"name": "reported_food_rows", "domain": "clinical", "classification": "CLINICAL", "viewerAccess": "NONE", "purpose": "Finalized patient-reported food items with optional frequency and preparation notes."},
+    {"name": "reported_otc_rows", "domain": "clinical", "classification": "CLINICAL", "viewerAccess": "NONE", "purpose": "Finalized patient-reported OTC products, reasons and medication-use details."}
   ]
 }

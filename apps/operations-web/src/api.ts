@@ -113,6 +113,8 @@ const syncResourceTypes = [
   'SCREENING_ENCOUNTER',
   'VITALS',
   'LIFESTYLE',
+  'FOOD',
+  'OTC',
 ];
 const syncOutcomeStatuses = [
   'PROCESSING',

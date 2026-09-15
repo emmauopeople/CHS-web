@@ -254,6 +254,9 @@ async function main() {
     ).stdout;
     assert.match(archiveList, /TABLE DATA public organizations/);
     assert.match(archiveList, /TABLE DATA public schema_migrations/);
+    assert.match(archiveList, /TABLE DATA public reported_intake_assessments/);
+    assert.match(archiveList, /TABLE DATA public reported_food_rows/);
+    assert.match(archiveList, /TABLE DATA public reported_otc_rows/);
     const archiveBytes = Number(
       (
         await dockerExec(containerId, ['stat', '-c', '%s', archivePath])
@@ -275,8 +278,8 @@ async function main() {
     const restoredMigrationCount = await verifyRestoredMigrations(restoreUrl);
     const restoredSnapshot = await databaseSnapshot(restoreUrl);
     assert.deepEqual(restoredSnapshot, sourceSnapshot);
-    assert.equal(sourceSnapshot.tables.length, 46);
-    assert.equal(restoredMigrationCount, 11);
+    assert.equal(sourceSnapshot.tables.length, 49);
+    assert.equal(restoredMigrationCount, 12);
     assert.equal(sourceSnapshot.organizations.length, 1);
 
     const sourceFingerprint = snapshotFingerprint(sourceSnapshot);

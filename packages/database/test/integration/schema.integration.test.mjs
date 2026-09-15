@@ -43,6 +43,7 @@ test(
         '0009_identity_review_resolution.sql',
         '0010_identity_resolution_delivery.sql',
         '0011_lifestyle_ingestion.sql',
+        '0012_food_otc_ingestion.sql',
       ]);
       assert.deepEqual(secondRun.applied, []);
 
@@ -54,7 +55,7 @@ test(
         [schema],
       );
       const tableNames = tableResult.rows.map((row) => row.table_name);
-      assert.equal(tableNames.length, 46);
+      assert.equal(tableNames.length, 49);
       assert.ok(tableNames.includes('schema_migrations'));
       assert.ok(tableNames.includes('screening_encounters'));
       assert.ok(tableNames.includes('vital_readings'));

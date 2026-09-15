@@ -1,0 +1,16 @@
+# Local development only. Always combine with compose.yaml.
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.7.3
+    command: ["start-dev", "--import-realm"]
+    env_file: .env.local-auth
+    environment:
+      KC_HOSTNAME: http://127.0.0.1:8080
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - chs-keycloak-data:/opt/keycloak/data
+      - ./.local-auth/import:/opt/keycloak/data/import:ro
+
+volumes:
+  chs-keycloak-data:

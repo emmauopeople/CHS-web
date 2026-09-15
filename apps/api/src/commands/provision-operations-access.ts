@@ -15,7 +15,11 @@ async function main(): Promise<void> {
   if (!databaseUrl) throw new Error('DATABASE_URL is required');
 
   const rawInput = await readFile(inputPath, 'utf8');
-  const input = parseOperationsAccessProvisioningInput(JSON.parse(rawInput));
+  const input = parseOperationsAccessProvisioningInput(
+    JSON.parse(rawInput),
+    new Date(),
+    process.env.NODE_ENV,
+  );
   const pool = new pg.Pool({
     connectionString: databaseUrl,
     application_name: 'chs-operations-access-provisioning',

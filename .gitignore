@@ -16,3 +16,4 @@ recovery-results/
 .idea/
 .vscode/
 tmp/
+.local-auth/

@@ -110,6 +110,13 @@ describe('operations OIDC authentication', () => {
     ).rejects.toMatchObject({ code: 'INVALID_OPERATIONS_TOKEN' });
   });
 
+  it('rejects a signed access token without the subject supplied by Keycloak basic scope', async () => {
+    await expect(verifier().verify(`Bearer ${token({ sub: undefined })}`))
+      .rejects.toMatchObject({ code: 'INVALID_OPERATIONS_TOKEN', statusCode: 401 });
+    await expect(verifier().verify(`Bearer ${token()}`))
+      .resolves.toMatchObject({ subject: 'operations-user-1' });
+  });
+
   it('fails closed when authentication is unconfigured or JWKS is unavailable', async () => {
     await expect(
       createDisabledOperationsTokenVerifier().verify('Bearer any-token'),

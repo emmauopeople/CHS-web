@@ -40,7 +40,7 @@ export function realm(subject, password) {
           'pkce.code.challenge.method': 'S256',
           'post.logout.redirect.uris': 'http://127.0.0.1:4173/',
         },
-        defaultClientScopes: ['web-origins', 'profile', 'email'],
+        defaultClientScopes: ['basic', 'web-origins', 'profile', 'email'],
         protocolMappers: [
           {
             name: 'chs-api-audience',
@@ -150,6 +150,16 @@ export function setup(root) {
       `LOCAL DEVELOPMENT ONLY\n\nPortal: http://127.0.0.1:4173/\nUsername: chs-reviewer\nInitial password: ${reviewerPassword}\nChange this password at first login.\n\nKeycloak administration: http://127.0.0.1:18080/admin/\nUsername: chs-local-admin\nInitial password: ${adminPassword}\n\nThese initial passwords are not updated after a password change.\n`,
       { mode: 0o600, flag: 'wx' },
     );
+  }
+  const imported = JSON.parse(readFileSync(realmPath, 'utf8'));
+  const portalClients = imported.clients?.filter((client) => client.clientId === 'chs-operations-web');
+  if (imported.realm !== 'chs-local' || portalClients?.length !== 1 ||
+      !Array.isArray(portalClients[0].defaultClientScopes)) {
+    throw new Error('Local realm import is invalid; restore it before continuing.');
+  }
+  if (!portalClients[0].defaultClientScopes.includes('basic')) {
+    portalClients[0].defaultClientScopes.unshift('basic');
+    writeFileSync(realmPath, JSON.stringify(imported, null, 2), { mode: 0o644 });
   }
   // Upgrade the display URL only; preserve the existing passwords and subject.
   const credentials = readFileSync(credentialsPath, 'utf8');

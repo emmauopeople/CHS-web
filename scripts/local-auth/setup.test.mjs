@@ -31,6 +31,7 @@ test('realm uses a public PKCE client, exact redirect, API audience, and passwor
   const config = realm('test-subject', 'test-password');
   const client = config.clients[0];
   assert.equal(client.publicClient, true);
+  assert.ok(client.defaultClientScopes.includes('basic'));
   assert.equal(client.directAccessGrantsEnabled, false);
   assert.equal(client.implicitFlowEnabled, false);
   assert.equal(client.attributes['pkce.code.challenge.method'], 'S256');
@@ -93,6 +94,27 @@ test('upgrades the previous local port without rotating credentials or overwriti
     assert.ok(!readFileSync(join(root, '.env'), 'utf8').includes(':8080/'));
     assert.ok(readFileSync(join(root, '.env'), 'utf8').includes('DATABASE_URL=postgresql://unchanged'));
     assert.throws(() => configureEnv(previousEnv.replace('/realms/chs-local', '/realms/another')), /Existing identity/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('upgrades an older saved client scope without changing user identity or credentials', () => {
+  const root = mkdtempSync(join(tmpdir(), 'chs-local-auth-basic-'));
+  try {
+    writeFileSync(join(root, '.env'), 'NODE_ENV=development\n');
+    setup(root);
+    const path = join(root, '.local-auth/import/chs-local-realm.json');
+    const imported = JSON.parse(readFileSync(path, 'utf8'));
+    const users = structuredClone(imported.users);
+    const credentials = readFileSync(join(root, '.env.local-auth'), 'utf8');
+    imported.clients[0].defaultClientScopes = ['web-origins', 'profile', 'email'];
+    writeFileSync(path, JSON.stringify(imported));
+    setup(root);
+    const updated = JSON.parse(readFileSync(path, 'utf8'));
+    assert.deepEqual(updated.users, users);
+    assert.ok(updated.clients[0].defaultClientScopes.includes('basic'));
+    assert.equal(readFileSync(join(root, '.env.local-auth'), 'utf8'), credentials);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

@@ -117,6 +117,40 @@ Docker and interactive browser verification must run on the developer's PC when
 the coding environment has no Docker daemon. Unit tests alone do not prove the
 container import or browser redirect flow.
 
+## Login succeeds but API actions return to sign-in
+
+The original local client import omitted Keycloak's `basic` default client scope.
+That scope supplies the access token's `sub` claim. The browser could complete
+login, but the API correctly rejected a token without a subject with HTTP 401.
+The setup template now includes `basic`. Existing realms skip startup imports,
+so changing the JSON and restarting Keycloak alone does not repair a running realm.
+
+After pulling the fix, run:
+
+```bash
+pnpm local:auth:setup
+pnpm local:auth:repair
+```
+
+Setup preserves the imported subject and password while updating the saved
+client scopes. Repair signs in to the fixed loopback Keycloak admin endpoint
+using the original generated admin credentials, adds only `basic` to the existing
+portal client's default scopes, and verifies it is attached. It does not change
+users, passwords, CHS grants, patient identities, or token validation. It reports
+`REPAIRED` or `ALREADY_CONFIGURED`. Credentials and tokens are not printed.
+
+Sign out of the portal and sign in again immediately, then search. Previously
+issued tokens are not repaired retroactively. If the admin password was changed,
+use the Keycloak Admin Console instead: choose `chs-local`, Clients,
+`chs-operations-web`, Client scopes, Add client scope, select `basic`, and add it
+as **Default**. Do not recreate the user or realm.
+
+If fresh sessions still fail after this repair, inspect the failed request's HTTP
+status and controlled response code in browser Network tools and verify the API
+was restarted with the local issuer configuration. Do not share the bearer token.
+
+Reference: [Keycloak's basic scope and subject mapper](https://www.keycloak.org/docs/latest/upgrading/index.html#_new_default_client_scope_basic).
+
 ## Boundaries and recovery
 
 This is local development only: Keycloak's development mode uses HTTP on a

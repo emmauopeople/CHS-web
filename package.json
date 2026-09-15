@@ -35,6 +35,7 @@
     "local:auth:setup": "node scripts/local-auth/setup.mjs",
     "local:auth:up": "docker compose -f compose.yaml -f compose.local-auth.yaml up -d keycloak",
     "local:auth:grant": "pnpm --filter @chs/api local:auth:grant",
-    "local:auth:test": "node --test scripts/local-auth/setup.test.mjs"
+    "local:auth:test": "node --test scripts/local-auth/setup.test.mjs scripts/local-auth/repair.test.mjs",
+    "local:auth:repair": "node scripts/local-auth/repair.mjs"
   }
 }

@@ -115,6 +115,9 @@ const syncResourceTypes = [
   'LIFESTYLE',
   'FOOD',
   'OTC',
+  'REFERRAL',
+  'REFERRAL_STATUS',
+  'REFERRAL_FOLLOWUP',
 ];
 const syncOutcomeStatuses = [
   'PROCESSING',

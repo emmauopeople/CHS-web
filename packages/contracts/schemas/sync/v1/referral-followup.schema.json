@@ -1,0 +1,218 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chs.example/contracts/sync/v1/referral-followup.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "localReferralId",
+    "contactDate",
+    "contactMethod",
+    "informationSource",
+    "providerSeen",
+    "facilityName",
+    "dateSeen",
+    "reportedOutcome",
+    "reportedMedicationsOrAdvice",
+    "nextAction",
+    "nextFollowupDate",
+    "sourceType",
+    "recordedByLocalActorId",
+    "recordedAt",
+    "treatmentActions",
+    "medicationChanges"
+  ],
+  "properties": {
+    "localReferralId": {
+      "$ref": "common.schema.json#/$defs/uuid"
+    },
+    "contactDate": {
+      "$ref": "common.schema.json#/$defs/localDate"
+    },
+    "contactMethod": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "pattern": "\\S"
+    },
+    "informationSource": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "pattern": "\\S"
+    },
+    "providerSeen": {
+      "type": ["boolean", "null"]
+    },
+    "facilityName": {
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255,
+          "pattern": "\\S"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "dateSeen": {
+      "oneOf": [
+        {
+          "$ref": "common.schema.json#/$defs/localDate"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "reportedOutcome": {
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "pattern": "\\S"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "reportedMedicationsOrAdvice": {
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "pattern": "\\S"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "nextAction": {
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000,
+          "pattern": "\\S"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "nextFollowupDate": {
+      "oneOf": [
+        {
+          "$ref": "common.schema.json#/$defs/localDate"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "sourceType": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "pattern": "\\S"
+    },
+    "recordedByLocalActorId": {
+      "$ref": "common.schema.json#/$defs/uuid"
+    },
+    "recordedAt": {
+      "$ref": "common.schema.json#/$defs/utcTimestamp"
+    },
+    "treatmentActions": {
+      "type": "array",
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["localActionId", "sequenceNumber", "actionCode"],
+        "properties": {
+          "localActionId": {
+            "$ref": "common.schema.json#/$defs/uuid"
+          },
+          "sequenceNumber": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 3
+          },
+          "actionCode": {
+            "enum": [
+              "TREATMENT_INITIATED",
+              "TREATMENT_MODIFIED",
+              "NEW_MEDICATION"
+            ]
+          }
+        }
+      }
+    },
+    "medicationChanges": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "localMedicationChangeId",
+          "sequenceNumber",
+          "changeType",
+          "medicationName",
+          "dosage",
+          "frequency"
+        ],
+        "properties": {
+          "localMedicationChangeId": {
+            "$ref": "common.schema.json#/$defs/uuid"
+          },
+          "sequenceNumber": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20
+          },
+          "changeType": {
+            "enum": ["NEW_MEDICATION", "TREATMENT_MODIFIED"]
+          },
+          "medicationName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "pattern": "\\S"
+          },
+          "dosage": {
+            "oneOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 255,
+                "pattern": "\\S"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "frequency": {
+            "oneOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 255,
+                "pattern": "\\S"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

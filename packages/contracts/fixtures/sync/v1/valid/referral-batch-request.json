@@ -1,0 +1,118 @@
+{
+  "contractVersion": "1.0",
+  "batchId": "12000000-0000-4000-8000-000000000001",
+  "installationId": "22000000-0000-4000-8000-000000000001",
+  "locationId": "32000000-0000-4000-8000-000000000001",
+  "installationTimezone": "Africa/Douala",
+  "desktopApplicationVersion": "0.15.0",
+  "desktopSchemaVersion": 15,
+  "createdAt": "2026-08-27T11:00:00.000Z",
+  "actors": [
+    {
+      "localActorId": "62000000-0000-4000-8000-000000000001",
+      "displayName": "Synthetic Nurse",
+      "role": "NURSE",
+      "active": true,
+      "updatedAt": "2026-08-20T14:00:00.000Z"
+    },
+    {
+      "localActorId": "62000000-0000-4000-8000-000000000002",
+      "displayName": "Synthetic Local Administrator",
+      "role": "LOCAL_ADMIN",
+      "active": true,
+      "updatedAt": "2026-08-20T14:05:00.000Z"
+    }
+  ],
+  "records": [
+    {
+      "recordId": "c2000000-0000-4000-8000-000000000001",
+      "resourceType": "REFERRAL",
+      "localResourceId": "b2000000-0000-4000-8000-000000000001",
+      "sourceRevision": 1,
+      "schemaVersion": "referral.v1",
+      "operation": "UPSERT",
+      "capturedAt": "2026-08-20T15:40:00.000Z",
+      "sourceActorLocalId": "62000000-0000-4000-8000-000000000001",
+      "payload": {
+        "localPatientId": "52000000-0000-4000-8000-000000000001",
+        "localEncounterId": "92000000-0000-4000-8000-000000000001",
+        "localProtocolVersionId": "82000000-0000-4000-8000-000000000001",
+        "reasonCodes": ["BP_SCREENING_REFERRAL"],
+        "reasonText": null,
+        "urgency": "STANDARD",
+        "destinationName": null,
+        "dueDate": "2026-08-27",
+        "status": "OPEN",
+        "createdByLocalActorId": "62000000-0000-4000-8000-000000000001",
+        "createdAt": "2026-08-20T15:40:00.000Z",
+        "updatedByLocalActorId": "62000000-0000-4000-8000-000000000001",
+        "updatedAt": "2026-08-20T15:40:00.000Z",
+        "closedByLocalActorId": null,
+        "closedAt": null,
+        "closureReason": null
+      }
+    },
+    {
+      "recordId": "c2000000-0000-4000-8000-000000000002",
+      "resourceType": "REFERRAL_STATUS",
+      "localResourceId": "b2000000-0000-4000-8000-000000000002",
+      "sourceRevision": 1,
+      "schemaVersion": "referral-status.v1",
+      "operation": "UPSERT",
+      "capturedAt": "2026-08-20T15:40:00.000Z",
+      "sourceActorLocalId": "62000000-0000-4000-8000-000000000001",
+      "payload": {
+        "localReferralId": "b2000000-0000-4000-8000-000000000001",
+        "sequenceNumber": 1,
+        "fromStatus": null,
+        "toStatus": "OPEN",
+        "changeReason": "AUTOMATIC_SCREENING_REFERRAL",
+        "changedByLocalActorId": "62000000-0000-4000-8000-000000000001",
+        "changedAt": "2026-08-20T15:40:00.000Z"
+      }
+    },
+    {
+      "recordId": "c2000000-0000-4000-8000-000000000003",
+      "resourceType": "REFERRAL_FOLLOWUP",
+      "localResourceId": "b2000000-0000-4000-8000-000000000003",
+      "sourceRevision": 1,
+      "schemaVersion": "referral-followup.v1",
+      "operation": "UPSERT",
+      "capturedAt": "2026-08-27T10:30:00.000Z",
+      "sourceActorLocalId": "62000000-0000-4000-8000-000000000001",
+      "payload": {
+        "localReferralId": "b2000000-0000-4000-8000-000000000001",
+        "contactDate": "2026-08-26",
+        "contactMethod": "PHONE",
+        "informationSource": "PATIENT",
+        "providerSeen": true,
+        "facilityName": "Synthetic clinic",
+        "dateSeen": "2026-08-25",
+        "reportedOutcome": "Patient reports seeing provider",
+        "reportedMedicationsOrAdvice": null,
+        "nextAction": null,
+        "nextFollowupDate": null,
+        "sourceType": "PATIENT_REPORTED",
+        "recordedByLocalActorId": "62000000-0000-4000-8000-000000000001",
+        "recordedAt": "2026-08-27T10:30:00.000Z",
+        "treatmentActions": [
+          {
+            "localActionId": "d2000000-0000-4000-8000-000000000001",
+            "sequenceNumber": 1,
+            "actionCode": "NEW_MEDICATION"
+          }
+        ],
+        "medicationChanges": [
+          {
+            "localMedicationChangeId": "e2000000-0000-4000-8000-000000000001",
+            "sequenceNumber": 1,
+            "changeType": "NEW_MEDICATION",
+            "medicationName": "Reported medicine",
+            "dosage": null,
+            "frequency": null
+          }
+        ]
+      }
+    }
+  ]
+}

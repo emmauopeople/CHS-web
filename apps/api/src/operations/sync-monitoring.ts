@@ -63,7 +63,10 @@ export type SyncBatchOutcomeCount = Readonly<{
     | 'VITALS'
     | 'LIFESTYLE'
     | 'FOOD'
-    | 'OTC';
+    | 'OTC'
+    | 'REFERRAL'
+    | 'REFERRAL_STATUS'
+    | 'REFERRAL_FOLLOWUP';
   status:
     | 'PROCESSING'
     | 'ACCEPTED'

@@ -45,6 +45,7 @@ test(
         '0011_lifestyle_ingestion.sql',
         '0012_food_otc_ingestion.sql',
         '0013_clinical_screening_time.sql',
+        '0014_referral_ingestion.sql',
       ]);
       assert.deepEqual(secondRun.applied, []);
 
@@ -56,7 +57,7 @@ test(
         [schema],
       );
       const tableNames = tableResult.rows.map((row) => row.table_name);
-      assert.equal(tableNames.length, 49);
+      assert.equal(tableNames.length, 55);
       assert.ok(tableNames.includes('schema_migrations'));
       assert.ok(tableNames.includes('screening_encounters'));
       assert.ok(tableNames.includes('vital_readings'));
@@ -76,6 +77,12 @@ test(
       assert.ok(tableNames.includes('lifestyle_tobacco_products'));
       assert.ok(tableNames.includes('lifestyle_physical_activities'));
       assert.ok(tableNames.includes('lifestyle_other_activities'));
+      assert.ok(tableNames.includes('referral_resources'));
+      assert.ok(tableNames.includes('referral_snapshots'));
+      assert.ok(tableNames.includes('referral_status_events'));
+      assert.ok(tableNames.includes('referral_followups'));
+      assert.ok(tableNames.includes('referral_treatment_actions'));
+      assert.ok(tableNames.includes('referral_medication_changes'));
 
       const lifestyleColumns = await client.query(
         `SELECT table_name, column_name, data_type

@@ -3,6 +3,7 @@ import type { Pool, PoolClient } from 'pg';
 import { validateSyncBatchResponse } from '../../../../packages/contracts/src/sync-validation.mjs';
 
 import { beginSyncBatch } from './batch-intake.js';
+import { processReferralRecord } from './referrals.js';
 import { processReportedIntakeRecord } from './reported-intake.js';
 import { processLifestyleRecord } from './lifestyle.js';
 import { processPatientRecord } from './patient-identity.js';
@@ -72,6 +73,9 @@ const resourcePriority: Readonly<Record<SyncRecordSnapshot['resourceType'], numb
   LIFESTYLE: 4,
   FOOD: 5,
   OTC: 6,
+  REFERRAL: 7,
+  REFERRAL_STATUS: 8,
+  REFERRAL_FOLLOWUP: 9,
 };
 
 export function orderSyncRecords(
@@ -133,6 +137,10 @@ function processorFor(
     case 'FOOD':
     case 'OTC':
       return processReportedIntakeRecord as Processor;
+    case 'REFERRAL':
+    case 'REFERRAL_STATUS':
+    case 'REFERRAL_FOLLOWUP':
+      return processReferralRecord as Processor;
   }
 }
 
@@ -151,6 +159,10 @@ function typedRecord(record: SyncRecordSnapshot): never {
     case 'FOOD':
     case 'OTC':
       return record as ReportedIntakeRecord as never;
+    case 'REFERRAL':
+    case 'REFERRAL_STATUS':
+    case 'REFERRAL_FOLLOWUP':
+      return record as never;
   }
 }
 

@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chs.example/contracts/sync/v1/referral-status.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "localReferralId",
+    "sequenceNumber",
+    "fromStatus",
+    "toStatus",
+    "changeReason",
+    "changedByLocalActorId",
+    "changedAt"
+  ],
+  "properties": {
+    "localReferralId": {
+      "$ref": "common.schema.json#/$defs/uuid"
+    },
+    "sequenceNumber": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "fromStatus": {
+      "oneOf": [
+        {
+          "enum": ["OPEN", "CONTACTED", "SEEN", "UNABLE_TO_CONFIRM", "CLOSED"]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "toStatus": {
+      "enum": ["OPEN", "CONTACTED", "SEEN", "UNABLE_TO_CONFIRM", "CLOSED"]
+    },
+    "changeReason": {
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000,
+          "pattern": "\\S"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "changedByLocalActorId": {
+      "$ref": "common.schema.json#/$defs/uuid"
+    },
+    "changedAt": {
+      "$ref": "common.schema.json#/$defs/utcTimestamp"
+    }
+  }
+}

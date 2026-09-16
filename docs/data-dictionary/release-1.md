@@ -3,7 +3,7 @@
 ## Purpose and authority
 
 This dictionary describes the PostgreSQL schema after migrations `0001` through
-`0013`. PostgreSQL constraints and the approved synchronization contracts remain
+`0014`. PostgreSQL constraints and the approved synchronization contracts remain
 the executable authority for field types and accepted values. The companion
 [`release-1.json`](release-1.json) catalog is checked against every `CREATE
 TABLE` statement and the migration ledger table during tests, so undocumented
@@ -127,3 +127,14 @@ tables.
 | `reported_intake_assessments` | Immutable completed Food and OTC assessments with encounter ownership and source provenance. | CLINICAL | NONE |
 | `reported_food_rows` | Finalized patient-reported food items with optional frequency and preparation notes. | CLINICAL | NONE |
 | `reported_otc_rows` | Finalized patient-reported OTC products, reasons and medication-use details. | CLINICAL | NONE |
+
+## Referral synchronization extension
+
+| Table | Purpose | Classification | Viewer boundary |
+| --- | --- | --- | --- |
+| `referral_resources` | Source-scoped referral snapshot and history identities, revisions, hashes, and receipt times. | OPERATIONAL | NONE |
+| `referral_snapshots` | Current normalized referral state linked to the canonical encounter and person. | CLINICAL | NONE |
+| `referral_status_events` | Immutable ordered referral status history with practitioner attribution. | CLINICAL | NONE |
+| `referral_followups` | Immutable referral follow-up contacts with source and recording provenance. | CLINICAL | NONE |
+| `referral_treatment_actions` | Ordered treatment actions reported during a referral follow-up. | CLINICAL | NONE |
+| `referral_medication_changes` | Ordered medication details associated with reported treatment actions. | CLINICAL | NONE |

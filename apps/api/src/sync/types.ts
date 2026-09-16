@@ -15,7 +15,10 @@ export type SyncResourceType =
   | 'VITALS'
   | 'LIFESTYLE'
   | 'FOOD'
-  | 'OTC';
+  | 'OTC'
+  | 'REFERRAL'
+  | 'REFERRAL_STATUS'
+  | 'REFERRAL_FOLLOWUP';
 
 export type SyncRecordSnapshot = Readonly<{
   recordId: string;
@@ -484,7 +487,8 @@ export type SyncRecordOutcome =
   | ScreeningEncounterRecordOutcome
   | VitalsRecordOutcome
   | LifestyleRecordOutcome
-  | ReportedIntakeOutcome;
+  | ReportedIntakeOutcome
+  | ReferralOutcome;
 
 export type SyncBatchStatus = 'ACCEPTED' | 'PARTIAL' | 'REJECTED';
 
@@ -542,3 +546,81 @@ export type ReportedIntakeRecord = Omit<
   Readonly<{ resourceType: 'FOOD' | 'OTC'; payload: ReportedIntakePayload }>;
 export type ReportedIntakeOutcome = Omit<VitalsRecordOutcome, 'resourceType'> &
   Readonly<{ resourceType: 'FOOD' | 'OTC' }>;
+
+export type ReferralPayload = Readonly<{
+  localPatientId: string;
+  localEncounterId: string;
+  localProtocolVersionId: string;
+  reasonCodes: readonly string[];
+  reasonText: string | null;
+  urgency: 'STANDARD' | 'URGENT';
+  destinationName: string | null;
+  dueDate: string | null;
+  status: 'OPEN' | 'CONTACTED' | 'SEEN' | 'UNABLE_TO_CONFIRM' | 'CLOSED';
+  createdByLocalActorId: string;
+  createdAt: string;
+  updatedByLocalActorId: string;
+  updatedAt: string;
+  closedByLocalActorId: string | null;
+  closedAt: string | null;
+  closureReason: string | null;
+}>;
+
+export type ReferralStatusPayload = Readonly<{
+  localReferralId: string;
+  sequenceNumber: number;
+  fromStatus:
+    'OPEN' | 'CONTACTED' | 'SEEN' | 'UNABLE_TO_CONFIRM' | 'CLOSED' | null;
+  toStatus: 'OPEN' | 'CONTACTED' | 'SEEN' | 'UNABLE_TO_CONFIRM' | 'CLOSED';
+  changeReason: string | null;
+  changedByLocalActorId: string;
+  changedAt: string;
+}>;
+
+export type ReferralFollowupPayload = Readonly<{
+  localReferralId: string;
+  contactDate: string;
+  contactMethod: string;
+  informationSource: string;
+  providerSeen: boolean | null;
+  facilityName: string | null;
+  dateSeen: string | null;
+  reportedOutcome: string | null;
+  reportedMedicationsOrAdvice: string | null;
+  nextAction: string | null;
+  nextFollowupDate: string | null;
+  sourceType: string;
+  recordedByLocalActorId: string;
+  recordedAt: string;
+  treatmentActions: readonly Readonly<{
+    localActionId: string;
+    sequenceNumber: number;
+    actionCode: 'TREATMENT_INITIATED' | 'TREATMENT_MODIFIED' | 'NEW_MEDICATION';
+  }>[];
+  medicationChanges: readonly Readonly<{
+    localMedicationChangeId: string;
+    sequenceNumber: number;
+    changeType: 'NEW_MEDICATION' | 'TREATMENT_MODIFIED';
+    medicationName: string;
+    dosage: string | null;
+    frequency: string | null;
+  }>[];
+}>;
+
+export type ReferralRecord = Omit<
+  SyncRecordSnapshot,
+  'payload' | 'resourceType'
+> &
+  (
+    | Readonly<{ resourceType: 'REFERRAL'; payload: ReferralPayload }>
+    | Readonly<{
+        resourceType: 'REFERRAL_STATUS';
+        payload: ReferralStatusPayload;
+      }>
+    | Readonly<{
+        resourceType: 'REFERRAL_FOLLOWUP';
+        payload: ReferralFollowupPayload;
+      }>
+  );
+export type ReferralOutcome = Omit<VitalsRecordOutcome, 'resourceType'> &
+  Readonly<{ resourceType: ReferralRecord['resourceType'] }>;

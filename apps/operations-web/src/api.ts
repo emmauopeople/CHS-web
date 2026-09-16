@@ -2,6 +2,7 @@ import type {
   PatientAccessReason,
   PatientDetail,
   PatientListPage,
+  PatientReferralDetail,
   MedicalIdRecoveryRevealResult,
   MedicalIdRecoverySearchResult,
   IdentityReviewCaseDetail,
@@ -39,6 +40,18 @@ export type PatientDetailInput = Readonly<{
   personId: string;
   page?: number;
   pageSize?: number;
+  referralPage?: number;
+  referralPageSize?: number;
+}>;
+
+export type PatientReferralDetailInput = Readonly<{
+  reasonCode: PatientAccessReason;
+  personId: string;
+  referralId: string;
+  statusPage?: number;
+  statusPageSize?: number;
+  followupPage?: number;
+  followupPageSize?: number;
 }>;
 
 export type MedicalIdRecoverySearchInput = Readonly<{
@@ -153,6 +166,18 @@ const tobaccoProductTypes = [
   'VAPE',
   'OTHER',
 ];
+const referralStatuses = [
+  'OPEN',
+  'CONTACTED',
+  'SEEN',
+  'UNABLE_TO_CONFIRM',
+  'CLOSED',
+];
+const referralTreatmentActions = [
+  'TREATMENT_INITIATED',
+  'TREATMENT_MODIFIED',
+  'NEW_MEDICATION',
+];
 
 function safeCount(value: unknown): value is number {
   return Number.isSafeInteger(value) && Number(value) >= 0;
@@ -182,6 +207,10 @@ function boundedString(value: unknown, maximum = 200): value is string {
 
 function nullableLocalDate(value: unknown): boolean {
   return value === null || (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value));
+}
+
+function localDate(value: unknown): value is string {
+  return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value);
 }
 
 function enumValue(value: unknown, values: readonly string[]): boolean {
@@ -357,6 +386,126 @@ function listPage(value: unknown): value is PatientListPage {
   );
 }
 
+function boundedPage(
+  value: unknown,
+  itemValidator: (item: unknown) => boolean,
+): boolean {
+  if (!object(value)) return false;
+  if (
+    !Number.isSafeInteger(value.page) || Number(value.page) < 1 ||
+    !Number.isSafeInteger(value.pageSize) ||
+      Number(value.pageSize) < 1 || Number(value.pageSize) > 100 ||
+    !safeCount(value.totalItems) ||
+    !safeCount(value.totalPages) ||
+    Number(value.totalPages) !==
+      (Number(value.totalItems) === 0
+        ? 0
+        : Math.ceil(Number(value.totalItems) / Number(value.pageSize))) ||
+    !Array.isArray(value.items) ||
+    value.items.length > Number(value.pageSize)
+  ) return false;
+  return value.items.every(itemValidator);
+}
+
+function referralView(value: unknown): boolean {
+  return (
+    object(value) &&
+    typeof value.referralId === 'string' && uuidPattern.test(value.referralId) &&
+    typeof value.encounterId === 'string' && uuidPattern.test(value.encounterId) &&
+    enumValue(value.encounterStatus, ['DRAFT', 'COMPLETED', 'AMENDED', 'VOID']) &&
+    boundedString(value.organizationName) &&
+    boundedString(value.locationName) &&
+    Array.isArray(value.reasonCodes) &&
+    value.reasonCodes.length >= 1 && value.reasonCodes.length <= 20 &&
+    value.reasonCodes.every((reason) => boundedString(reason)) &&
+    nullableString(value.reasonText, 2_000) &&
+    enumValue(value.urgency, ['STANDARD', 'URGENT']) &&
+    nullableString(value.destinationName) &&
+    nullableLocalDate(value.dueDate) &&
+    enumValue(value.status, referralStatuses) &&
+    validInstant(value.createdAt) &&
+    validInstant(value.updatedAt) &&
+    (value.closedAt === null || validInstant(value.closedAt)) &&
+    nullableString(value.closureReason, 2_000) &&
+    boundedString(value.createdByPractitionerName) &&
+    boundedString(value.updatedByPractitionerName) &&
+    (value.closedByPractitionerName === null ||
+      boundedString(value.closedByPractitionerName)) &&
+    safeCount(value.statusEventCount) &&
+    safeCount(value.followupCount) &&
+    (value.lastFollowupAt === null || validInstant(value.lastFollowupAt)) &&
+    Number.isSafeInteger(value.sourceRevision) &&
+    Number(value.sourceRevision) >= 1 &&
+    validInstant(value.lastReceivedAt)
+  );
+}
+
+function referralStatusEvent(value: unknown): boolean {
+  return (
+    object(value) &&
+    typeof value.statusEventId === 'string' && uuidPattern.test(value.statusEventId) &&
+    Number.isSafeInteger(value.sequenceNumber) && Number(value.sequenceNumber) >= 1 &&
+    (value.fromStatus === null || enumValue(value.fromStatus, referralStatuses)) &&
+    enumValue(value.toStatus, referralStatuses) &&
+    nullableString(value.changeReason, 2_000) &&
+    boundedString(value.changedByPractitionerName) &&
+    validInstant(value.changedAt)
+  );
+}
+
+function referralFollowup(value: unknown): boolean {
+  return (
+    object(value) &&
+    typeof value.followupId === 'string' && uuidPattern.test(value.followupId) &&
+    localDate(value.contactDate) &&
+    boundedString(value.contactMethod) &&
+    boundedString(value.informationSource) &&
+    (value.providerSeen === null || typeof value.providerSeen === 'boolean') &&
+    nullableString(value.facilityName) &&
+    nullableLocalDate(value.dateSeen) &&
+    nullableString(value.reportedOutcome, 2_000) &&
+    nullableString(value.reportedMedicationsOrAdvice, 2_000) &&
+    nullableString(value.nextAction, 2_000) &&
+    nullableLocalDate(value.nextFollowupDate) &&
+    boundedString(value.sourceType) &&
+    boundedString(value.recordedByPractitionerName) &&
+    validInstant(value.recordedAt) &&
+    Array.isArray(value.treatmentActions) &&
+    value.treatmentActions.length <= 3 &&
+    value.treatmentActions.every(
+      (action) =>
+        object(action) &&
+        Number.isSafeInteger(action.sequenceNumber) &&
+        Number(action.sequenceNumber) >= 1 &&
+        enumValue(action.actionCode, referralTreatmentActions),
+    ) &&
+    Array.isArray(value.medicationChanges) &&
+    value.medicationChanges.length <= 20 &&
+    value.medicationChanges.every(
+      (medication) =>
+        object(medication) &&
+        Number.isSafeInteger(medication.sequenceNumber) &&
+        Number(medication.sequenceNumber) >= 1 &&
+        enumValue(medication.changeType, [
+          'TREATMENT_MODIFIED',
+          'NEW_MEDICATION',
+        ]) &&
+        boundedString(medication.medicationName) &&
+        nullableString(medication.dosage) &&
+        nullableString(medication.frequency),
+    )
+  );
+}
+
+function patientReferralDetail(value: unknown): value is PatientReferralDetail {
+  return (
+    object(value) &&
+    referralView(value.referral) &&
+    boundedPage(value.statusHistory, referralStatusEvent) &&
+    boundedPage(value.followupHistory, referralFollowup)
+  );
+}
+
 function patientDetail(value: unknown): value is PatientDetail {
   if (
     !object(value) ||
@@ -408,7 +557,8 @@ function patientDetail(value: unknown): value is PatientDetail {
     value.screeningHistory.items.every((screening) =>
       object(screening) &&
       (screening.lifestyle === null || lifestyleAssessment(screening.lifestyle))
-    )
+    ) &&
+    boundedPage(value.referralHistory, referralView)
   );
 }
 
@@ -706,6 +856,16 @@ export function createOperationsApi(
         accessToken,
         input,
         patientDetail,
+        fetchImplementation,
+      );
+    },
+    getPatientReferralDetail(input: PatientReferralDetailInput) {
+      return post(
+        apiBaseUrl,
+        '/api/v1/operations/patients/referrals/detail',
+        accessToken,
+        input,
+        patientReferralDetail,
         fetchImplementation,
       );
     },

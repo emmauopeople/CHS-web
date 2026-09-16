@@ -8,7 +8,7 @@ verified. Each increment follows branch, local verification, review, and merge.
 | HSW-019A | Finalized Food and OTC uploads, normalized PostgreSQL persistence and historical backfill | Implemented on review branches; verify PostgreSQL server and Windows |
 | HSW-019B | Referral snapshots, append-only status/follow-up histories, treatment actions and medication changes | Implemented on review branches; verify PostgreSQL server, Windows backfill, late follow-up and exact replay |
 | HSW-019C | Immutable addenda and review-flag lifecycle history | Preserve original encounter, author, time and closure/reopening semantics; retain void history |
-| HSW-019D | Protected, bounded central patient-history retrieval including all synchronized domains | Confirmed local-to-central identity link, explicit access reason, authenticated originating installation and server-side sharing scope |
+| HSW-019D | Protected, bounded central patient-history retrieval including all synchronized domains | Referral browser-viewer slice implemented; authenticated installation retrieval and remaining synchronized domains are still pending |
 | HSW-019E | Desktop read-only history cache, retrieval interface and origin labels | Separate imported data from local clinical tables/outbox; show last refresh and support pagination/restart |
 | HSW-019F | Combined acceptance, operational status and rollout | Two installations, offline capture/restart, reconnect, late follow-up, exact replay, identity review, cache refresh, denied/revoked access |
 

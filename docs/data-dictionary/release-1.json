@@ -53,11 +53,11 @@
     {"name": "reported_intake_assessments", "domain": "clinical", "classification": "CLINICAL", "viewerAccess": "NONE", "purpose": "Immutable completed Food and OTC assessments with encounter ownership and source provenance."},
     {"name": "reported_food_rows", "domain": "clinical", "classification": "CLINICAL", "viewerAccess": "NONE", "purpose": "Finalized patient-reported food items with optional frequency and preparation notes."},
     {"name": "reported_otc_rows", "domain": "clinical", "classification": "CLINICAL", "viewerAccess": "NONE", "purpose": "Finalized patient-reported OTC products, reasons and medication-use details."},
-    {"name": "referral_resources", "domain": "sync", "classification": "OPERATIONAL", "viewerAccess": "NONE", "purpose": "Source-scoped referral snapshot and history identities, revisions, hashes, and receipt times."},
-    {"name": "referral_snapshots", "domain": "clinical", "classification": "CLINICAL", "viewerAccess": "NONE", "purpose": "Current normalized referral state linked to the canonical encounter and person."},
-    {"name": "referral_status_events", "domain": "clinical", "classification": "CLINICAL", "viewerAccess": "NONE", "purpose": "Immutable ordered referral status history with practitioner attribution."},
-    {"name": "referral_followups", "domain": "clinical", "classification": "CLINICAL", "viewerAccess": "NONE", "purpose": "Immutable referral follow-up contacts with source and recording provenance."},
-    {"name": "referral_treatment_actions", "domain": "clinical", "classification": "CLINICAL", "viewerAccess": "NONE", "purpose": "Ordered treatment actions reported during a referral follow-up."},
-    {"name": "referral_medication_changes", "domain": "clinical", "classification": "CLINICAL", "viewerAccess": "NONE", "purpose": "Ordered medication details associated with reported treatment actions."}
+    {"name": "referral_resources", "domain": "sync", "classification": "OPERATIONAL", "viewerAccess": "CANONICAL_PATIENT", "purpose": "Source-scoped referral snapshot and history identities, revisions, hashes, and receipt times."},
+    {"name": "referral_snapshots", "domain": "clinical", "classification": "CLINICAL", "viewerAccess": "CANONICAL_PATIENT", "purpose": "Current normalized referral state linked to the canonical encounter and person."},
+    {"name": "referral_status_events", "domain": "clinical", "classification": "CLINICAL", "viewerAccess": "CANONICAL_PATIENT", "purpose": "Immutable ordered referral status history with practitioner attribution."},
+    {"name": "referral_followups", "domain": "clinical", "classification": "CLINICAL", "viewerAccess": "CANONICAL_PATIENT", "purpose": "Immutable referral follow-up contacts with source and recording provenance."},
+    {"name": "referral_treatment_actions", "domain": "clinical", "classification": "CLINICAL", "viewerAccess": "CANONICAL_PATIENT", "purpose": "Ordered treatment actions reported during a referral follow-up."},
+    {"name": "referral_medication_changes", "domain": "clinical", "classification": "CLINICAL", "viewerAccess": "CANONICAL_PATIENT", "purpose": "Ordered medication details associated with reported treatment actions."}
   ]
 }

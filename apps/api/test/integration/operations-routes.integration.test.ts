@@ -217,6 +217,61 @@ runIntegration('audited operations patient routes', () => {
     });
   });
 
+  it('keeps referral identifiers out of URLs and audits a bounded targeted read', async () => {
+    const referralId = '51000000-0000-4000-8000-000000000001';
+    const response = await app.inject({
+      method: 'POST',
+      url: '/api/v1/operations/patients/referrals/detail',
+      headers: { authorization: 'Bearer org-token' },
+      payload: {
+        reasonCode: 'CARE_COORDINATION',
+        personId: patient1,
+        referralId,
+        statusPage: 1,
+        statusPageSize: 10,
+        followupPage: 1,
+        followupPageSize: 5,
+      },
+    });
+    expect(response.statusCode).toBe(404);
+    expect(response.headers['cache-control']).toBe('no-store');
+    expect(response.json()).toMatchObject({
+      code: 'PATIENT_REFERRAL_NOT_FOUND',
+    });
+
+    const getAttempt = await app.inject({
+      method: 'GET',
+      url: `/api/v1/operations/patients/referrals/detail?referralId=${referralId}`,
+    });
+    expect(getAttempt.statusCode).toBe(404);
+
+    const audit = await servicePool.query<{
+      action_code: string;
+      entity_type: string;
+      entity_id: string;
+      outcome_code: string;
+      metadata: Record<string, unknown>;
+    }>(
+      `SELECT action_code, entity_type, entity_id, outcome_code, metadata
+       FROM audit_events
+       WHERE request_id = $1`,
+      [response.headers['x-request-id']],
+    );
+    expect(audit.rows[0]).toMatchObject({
+      action_code: 'PATIENT_REFERRAL_DETAIL_VIEW',
+      entity_type: 'REFERRAL',
+      entity_id: referralId,
+      outcome_code: 'NOT_FOUND',
+      metadata: {
+        statusPage: 1,
+        statusPageSize: 10,
+        followupPage: 1,
+        followupPageSize: 5,
+      },
+    });
+    expect(JSON.stringify(audit.rows[0]?.metadata)).not.toContain(patient1);
+  });
+
   it('allows an explicit global grant without accepting client-provided scope', async () => {
     const response = await app.inject({
       method: 'POST',

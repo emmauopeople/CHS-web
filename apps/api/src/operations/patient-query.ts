@@ -44,6 +44,15 @@ export type PatientListQuery = Readonly<{
 export type PatientHistoryQuery = Readonly<{
   page?: number;
   pageSize?: number;
+  referralPage?: number;
+  referralPageSize?: number;
+}>;
+
+export type PatientReferralHistoryQuery = Readonly<{
+  statusPage?: number;
+  statusPageSize?: number;
+  followupPage?: number;
+  followupPageSize?: number;
 }>;
 
 export type PatientListItem = Readonly<{
@@ -204,6 +213,98 @@ export type PatientScreeningView = Readonly<{
   lifestyle: LifestyleAssessmentView | null;
 }>;
 
+export type ReferralStatus =
+  | 'OPEN'
+  | 'CONTACTED'
+  | 'SEEN'
+  | 'UNABLE_TO_CONFIRM'
+  | 'CLOSED';
+
+export type PatientReferralView = Readonly<{
+  referralId: string;
+  encounterId: string;
+  encounterStatus: 'DRAFT' | 'COMPLETED' | 'AMENDED' | 'VOID';
+  organizationName: string;
+  locationName: string;
+  reasonCodes: readonly string[];
+  reasonText: string | null;
+  urgency: 'STANDARD' | 'URGENT';
+  destinationName: string | null;
+  dueDate: string | null;
+  status: ReferralStatus;
+  createdAt: string;
+  updatedAt: string;
+  closedAt: string | null;
+  closureReason: string | null;
+  createdByPractitionerName: string;
+  updatedByPractitionerName: string;
+  closedByPractitionerName: string | null;
+  statusEventCount: number;
+  followupCount: number;
+  lastFollowupAt: string | null;
+  sourceRevision: number;
+  lastReceivedAt: string;
+}>;
+
+export type PatientReferralStatusEventView = Readonly<{
+  statusEventId: string;
+  sequenceNumber: number;
+  fromStatus: ReferralStatus | null;
+  toStatus: ReferralStatus;
+  changeReason: string | null;
+  changedByPractitionerName: string;
+  changedAt: string;
+}>;
+
+export type PatientReferralFollowupView = Readonly<{
+  followupId: string;
+  contactDate: string;
+  contactMethod: string;
+  informationSource: string;
+  providerSeen: boolean | null;
+  facilityName: string | null;
+  dateSeen: string | null;
+  reportedOutcome: string | null;
+  reportedMedicationsOrAdvice: string | null;
+  nextAction: string | null;
+  nextFollowupDate: string | null;
+  sourceType: string;
+  recordedByPractitionerName: string;
+  recordedAt: string;
+  treatmentActions: readonly Readonly<{
+    sequenceNumber: number;
+    actionCode:
+      | 'TREATMENT_INITIATED'
+      | 'TREATMENT_MODIFIED'
+      | 'NEW_MEDICATION';
+  }>[];
+  medicationChanges: readonly Readonly<{
+    sequenceNumber: number;
+    changeType: 'TREATMENT_MODIFIED' | 'NEW_MEDICATION';
+    medicationName: string;
+    dosage: string | null;
+    frequency: string | null;
+  }>[];
+}>;
+
+export type PatientReferralDetail = Readonly<{
+  referral: PatientReferralView;
+  statusHistory: Readonly<{
+    page: number;
+    pageSize: number;
+    totalItems: number;
+    totalPages: number;
+    items: readonly PatientReferralStatusEventView[];
+  }>;
+  followupHistory: Readonly<{
+    page: number;
+    pageSize: number;
+    totalItems: number;
+    totalPages: number;
+    items: readonly PatientReferralFollowupView[];
+  }>;
+}>;
+
 export type PatientDetail = Readonly<{
   personId: string;
   chsMedicalId: string;
@@ -247,6 +348,13 @@ export type PatientDetail = Readonly<{
     totalPages: number;
     items: readonly PatientScreeningView[];
   }>;
+  referralHistory: Readonly<{
+    page: number;
+    pageSize: number;
+    totalItems: number;
+    totalPages: number;
+    items: readonly PatientReferralView[];
+  }>;
 }>;
 
 export type PatientQueryErrorCode =
@@ -255,6 +363,7 @@ export type PatientQueryErrorCode =
   | 'INVALID_PAGE'
   | 'INVALID_PAGE_SIZE'
   | 'INVALID_PATIENT_ID'
+  | 'INVALID_REFERRAL_ID'
   | 'INVALID_PATIENT_STATUS'
   | 'INVALID_SEARCH';
 
@@ -434,6 +543,74 @@ type SourceProvenanceRow = Readonly<{
   last_observed_at: Date;
 }>;
 
+type ReferralRow = Readonly<{
+  referral_id: string;
+  encounter_id: string;
+  encounter_status: PatientReferralView['encounterStatus'];
+  organization_name: string;
+  location_name: string;
+  reason_codes: string[];
+  reason_text: string | null;
+  urgency: PatientReferralView['urgency'];
+  destination_name: string | null;
+  due_date: string | null;
+  referral_status: ReferralStatus;
+  created_at: Date;
+  updated_at: Date;
+  closed_at: Date | null;
+  closure_reason: string | null;
+  created_by_practitioner_name: string;
+  updated_by_practitioner_name: string;
+  closed_by_practitioner_name: string | null;
+  status_event_count: number;
+  followup_count: number;
+  last_followup_at: Date | null;
+  source_revision: number;
+  last_received_at: Date;
+}>;
+
+type ReferralStatusEventRow = Readonly<{
+  status_event_id: string;
+  sequence_number: number;
+  from_status: ReferralStatus | null;
+  to_status: ReferralStatus;
+  change_reason: string | null;
+  changed_by_practitioner_name: string;
+  changed_at: Date;
+}>;
+
+type ReferralFollowupRow = Readonly<{
+  followup_id: string;
+  contact_date: string;
+  contact_method: string;
+  information_source: string;
+  provider_seen: boolean | null;
+  facility_name: string | null;
+  date_seen: string | null;
+  reported_outcome: string | null;
+  reported_medications_or_advice: string | null;
+  next_action: string | null;
+  next_followup_date: string | null;
+  source_type: string;
+  recorded_by_practitioner_name: string;
+  recorded_at: Date;
+}>;
+
+type ReferralTreatmentActionRow = Readonly<{
+  followup_id: string;
+  sequence_number: number;
+  action_code: PatientReferralFollowupView['treatmentActions'][number]['actionCode'];
+}>;
+
+type ReferralMedicationChangeRow = Readonly<{
+  followup_id: string;
+  sequence_number: number;
+  change_type: PatientReferralFollowupView['medicationChanges'][number]['changeType'];
+  medication_name: string;
+  dosage: string | null;
+  frequency: string | null;
+}>;
+
 const uuidPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const localDatePattern = /^\d{4}-\d{2}-\d{2}$/;
@@ -451,7 +628,10 @@ function prepareScope(scope: PatientAccessScope): PreparedScope {
 }
 
 function preparePagination(
-  query: PatientHistoryQuery,
+  query: Readonly<{
+    page?: number | undefined;
+    pageSize?: number | undefined;
+  }>,
   defaultPageSize: number,
 ): PreparedPagination {
   const page = query.page ?? 1;
@@ -665,6 +845,34 @@ function patientDetailFromRow(row: PatientRow) {
   } as const;
 }
 
+function referralViewFromRow(row: ReferralRow): PatientReferralView {
+  return {
+    referralId: row.referral_id,
+    encounterId: row.encounter_id,
+    encounterStatus: row.encounter_status,
+    organizationName: row.organization_name,
+    locationName: row.location_name,
+    reasonCodes: row.reason_codes,
+    reasonText: row.reason_text,
+    urgency: row.urgency,
+    destinationName: row.destination_name,
+    dueDate: row.due_date,
+    status: row.referral_status,
+    createdAt: row.created_at.toISOString(),
+    updatedAt: row.updated_at.toISOString(),
+    closedAt: toTimestamp(row.closed_at),
+    closureReason: row.closure_reason,
+    createdByPractitionerName: row.created_by_practitioner_name,
+    updatedByPractitionerName: row.updated_by_practitioner_name,
+    closedByPractitionerName: row.closed_by_practitioner_name,
+    statusEventCount: row.status_event_count,
+    followupCount: row.followup_count,
+    lastFollowupAt: toTimestamp(row.last_followup_at),
+    sourceRevision: row.source_revision,
+    lastReceivedAt: row.last_received_at.toISOString(),
+  };
+}
+
 export async function getCanonicalPatientDetail(
   database: QueryDatabase,
   scope: PatientAccessScope,
@@ -676,6 +884,13 @@ export async function getCanonicalPatientDetail(
   }
   const preparedScope = prepareScope(scope);
   const pagination = preparePagination(historyQuery, 20);
+  const referralPagination = preparePagination(
+    {
+      page: historyQuery.referralPage,
+      pageSize: historyQuery.referralPageSize,
+    },
+    10,
+  );
   const client = await database.connect();
 
   try {
@@ -995,6 +1210,81 @@ export async function getCanonicalPatientDetail(
            ORDER BY lifestyle_assessment_id, sequence_number`,
           [lifestyleIds],
         );
+    const referralParameters = [
+      preparedScope.global,
+      preparedScope.organizationIds,
+      personId,
+    ];
+    const referralCountResult = await client.query<{ total: number }>(
+      `SELECT count(*)::integer AS total
+       FROM referral_snapshots referral
+       JOIN screening_encounters encounter
+         ON encounter.id = referral.encounter_id
+       WHERE referral.person_id = $3
+         AND ($1::boolean OR encounter.organization_id = ANY($2::uuid[]))`,
+      referralParameters,
+    );
+    const referralTotal = referralCountResult.rows[0]?.total ?? 0;
+    const referralResult = await client.query<ReferralRow>(
+      `SELECT
+         referral.id AS referral_id,
+         referral.encounter_id,
+         encounter.status AS encounter_status,
+         organization.name AS organization_name,
+         location.name AS location_name,
+         referral.reason_codes,
+         referral.reason_text,
+         referral.urgency,
+         referral.destination_name,
+         to_char(referral.due_date, 'YYYY-MM-DD') AS due_date,
+         referral.status AS referral_status,
+         referral.created_at,
+         referral.updated_at,
+         referral.closed_at,
+         referral.closure_reason,
+         created_by.display_name AS created_by_practitioner_name,
+         updated_by.display_name AS updated_by_practitioner_name,
+         closed_by.display_name AS closed_by_practitioner_name,
+         (
+           SELECT count(*)::integer
+           FROM referral_status_events status_event
+           WHERE status_event.referral_id = referral.id
+         ) AS status_event_count,
+         (
+           SELECT count(*)::integer
+           FROM referral_followups followup
+           WHERE followup.referral_id = referral.id
+         ) AS followup_count,
+         (
+           SELECT max(followup.recorded_at)
+           FROM referral_followups followup
+           WHERE followup.referral_id = referral.id
+         ) AS last_followup_at,
+         resource.source_revision,
+         resource.received_at AS last_received_at
+       FROM referral_snapshots referral
+       JOIN referral_resources resource ON resource.id = referral.id
+       JOIN screening_encounters encounter
+         ON encounter.id = referral.encounter_id
+       JOIN organizations organization
+         ON organization.id = encounter.organization_id
+       JOIN locations location ON location.id = encounter.location_id
+       JOIN practitioners created_by
+         ON created_by.id = referral.created_by_practitioner_id
+       JOIN practitioners updated_by
+         ON updated_by.id = referral.updated_by_practitioner_id
+       LEFT JOIN practitioners closed_by
+         ON closed_by.id = referral.closed_by_practitioner_id
+       WHERE referral.person_id = $3
+         AND ($1::boolean OR encounter.organization_id = ANY($2::uuid[]))
+       ORDER BY referral.created_at DESC, referral.id DESC
+       LIMIT $4 OFFSET $5`,
+      [
+        ...referralParameters,
+        referralPagination.pageSize,
+        referralPagination.offset,
+      ],
+    );
     await client.query('COMMIT');
 
     const readingsBySet = new Map<string, VitalReadingView[]>();
@@ -1201,6 +1491,266 @@ export async function getCanonicalPatientDetail(
                 }
               : null,
           lifestyle: lifestylesByEncounter.get(row.encounter_id) ?? null,
+        })),
+      },
+      referralHistory: {
+        page: referralPagination.page,
+        pageSize: referralPagination.pageSize,
+        totalItems: referralTotal,
+        totalPages: totalPages(referralTotal, referralPagination.pageSize),
+        items: referralResult.rows.map(referralViewFromRow),
+      },
+    };
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+export async function getCanonicalPatientReferralDetail(
+  database: QueryDatabase,
+  scope: PatientAccessScope,
+  personId: string,
+  referralId: string,
+  historyQuery: PatientReferralHistoryQuery = {},
+): Promise<PatientReferralDetail | null> {
+  if (!uuidPattern.test(personId)) {
+    throw new PatientQueryError('INVALID_PATIENT_ID');
+  }
+  if (!uuidPattern.test(referralId)) {
+    throw new PatientQueryError('INVALID_REFERRAL_ID');
+  }
+  const preparedScope = prepareScope(scope);
+  const statusPagination = preparePagination(
+    {
+      page: historyQuery.statusPage,
+      pageSize: historyQuery.statusPageSize,
+    },
+    20,
+  );
+  const followupPagination = preparePagination(
+    {
+      page: historyQuery.followupPage,
+      pageSize: historyQuery.followupPageSize,
+    },
+    10,
+  );
+  const client = await database.connect();
+
+  try {
+    await beginReadTransaction(client);
+    const referralResult = await client.query<ReferralRow>(
+      `SELECT
+         referral.id AS referral_id,
+         referral.encounter_id,
+         encounter.status AS encounter_status,
+         organization.name AS organization_name,
+         location.name AS location_name,
+         referral.reason_codes,
+         referral.reason_text,
+         referral.urgency,
+         referral.destination_name,
+         to_char(referral.due_date, 'YYYY-MM-DD') AS due_date,
+         referral.status AS referral_status,
+         referral.created_at,
+         referral.updated_at,
+         referral.closed_at,
+         referral.closure_reason,
+         created_by.display_name AS created_by_practitioner_name,
+         updated_by.display_name AS updated_by_practitioner_name,
+         closed_by.display_name AS closed_by_practitioner_name,
+         (
+           SELECT count(*)::integer
+           FROM referral_status_events status_event
+           WHERE status_event.referral_id = referral.id
+         ) AS status_event_count,
+         (
+           SELECT count(*)::integer
+           FROM referral_followups followup
+           WHERE followup.referral_id = referral.id
+         ) AS followup_count,
+         (
+           SELECT max(followup.recorded_at)
+           FROM referral_followups followup
+           WHERE followup.referral_id = referral.id
+         ) AS last_followup_at,
+         resource.source_revision,
+         resource.received_at AS last_received_at
+       FROM referral_snapshots referral
+       JOIN referral_resources resource ON resource.id = referral.id
+       JOIN screening_encounters encounter
+         ON encounter.id = referral.encounter_id
+       JOIN organizations organization
+         ON organization.id = encounter.organization_id
+       JOIN locations location ON location.id = encounter.location_id
+       JOIN practitioners created_by
+         ON created_by.id = referral.created_by_practitioner_id
+       JOIN practitioners updated_by
+         ON updated_by.id = referral.updated_by_practitioner_id
+       LEFT JOIN practitioners closed_by
+         ON closed_by.id = referral.closed_by_practitioner_id
+       WHERE referral.id = $4
+         AND referral.person_id = $3
+         AND ($1::boolean OR encounter.organization_id = ANY($2::uuid[]))`,
+      [
+        preparedScope.global,
+        preparedScope.organizationIds,
+        personId,
+        referralId,
+      ],
+    );
+    const referral = referralResult.rows[0];
+    if (!referral) {
+      await client.query('COMMIT');
+      return null;
+    }
+
+    const statusResult = await client.query<ReferralStatusEventRow>(
+      `SELECT
+         status_event.id AS status_event_id,
+         status_event.sequence_number,
+         status_event.from_status,
+         status_event.to_status,
+         status_event.change_reason,
+         practitioner.display_name AS changed_by_practitioner_name,
+         status_event.changed_at
+       FROM referral_status_events status_event
+       JOIN practitioners practitioner
+         ON practitioner.id = status_event.changed_by_practitioner_id
+       WHERE status_event.referral_id = $1
+       ORDER BY status_event.sequence_number DESC, status_event.id DESC
+       LIMIT $2 OFFSET $3`,
+      [referralId, statusPagination.pageSize, statusPagination.offset],
+    );
+    const followupResult = await client.query<ReferralFollowupRow>(
+      `SELECT
+         followup.id AS followup_id,
+         to_char(followup.contact_date, 'YYYY-MM-DD') AS contact_date,
+         followup.contact_method,
+         followup.information_source,
+         followup.provider_seen,
+         followup.facility_name,
+         to_char(followup.date_seen, 'YYYY-MM-DD') AS date_seen,
+         followup.reported_outcome,
+         followup.reported_medications_or_advice,
+         followup.next_action,
+         to_char(followup.next_followup_date, 'YYYY-MM-DD') AS next_followup_date,
+         followup.source_type,
+         practitioner.display_name AS recorded_by_practitioner_name,
+         followup.recorded_at
+       FROM referral_followups followup
+       JOIN practitioners practitioner
+         ON practitioner.id = followup.recorded_by_practitioner_id
+       WHERE followup.referral_id = $1
+       ORDER BY followup.recorded_at DESC, followup.id DESC
+       LIMIT $2 OFFSET $3`,
+      [referralId, followupPagination.pageSize, followupPagination.offset],
+    );
+    const followupIds = followupResult.rows.map((row) => row.followup_id);
+    const actionResult = followupIds.length === 0
+      ? { rows: [] as ReferralTreatmentActionRow[] }
+      : await client.query<ReferralTreatmentActionRow>(
+          `SELECT
+             followup_id,
+             sequence_number,
+             action_code
+           FROM referral_treatment_actions
+           WHERE followup_id = ANY($1::uuid[])
+           ORDER BY followup_id, sequence_number`,
+          [followupIds],
+        );
+    const medicationResult = followupIds.length === 0
+      ? { rows: [] as ReferralMedicationChangeRow[] }
+      : await client.query<ReferralMedicationChangeRow>(
+          `SELECT
+             followup_id,
+             sequence_number,
+             change_type,
+             medication_name,
+             dosage,
+             frequency
+           FROM referral_medication_changes
+           WHERE followup_id = ANY($1::uuid[])
+           ORDER BY followup_id, sequence_number`,
+          [followupIds],
+        );
+    await client.query('COMMIT');
+
+    const actionsByFollowup = new Map<
+      string,
+      PatientReferralFollowupView['treatmentActions'][number][]
+    >();
+    for (const row of actionResult.rows) {
+      const actions = actionsByFollowup.get(row.followup_id) ?? [];
+      actions.push({
+        sequenceNumber: row.sequence_number,
+        actionCode: row.action_code,
+      });
+      actionsByFollowup.set(row.followup_id, actions);
+    }
+    const medicationsByFollowup = new Map<
+      string,
+      PatientReferralFollowupView['medicationChanges'][number][]
+    >();
+    for (const row of medicationResult.rows) {
+      const medications = medicationsByFollowup.get(row.followup_id) ?? [];
+      medications.push({
+        sequenceNumber: row.sequence_number,
+        changeType: row.change_type,
+        medicationName: row.medication_name,
+        dosage: row.dosage,
+        frequency: row.frequency,
+      });
+      medicationsByFollowup.set(row.followup_id, medications);
+    }
+
+    return {
+      referral: referralViewFromRow(referral),
+      statusHistory: {
+        page: statusPagination.page,
+        pageSize: statusPagination.pageSize,
+        totalItems: referral.status_event_count,
+        totalPages: totalPages(
+          referral.status_event_count,
+          statusPagination.pageSize,
+        ),
+        items: statusResult.rows.map((row) => ({
+          statusEventId: row.status_event_id,
+          sequenceNumber: row.sequence_number,
+          fromStatus: row.from_status,
+          toStatus: row.to_status,
+          changeReason: row.change_reason,
+          changedByPractitionerName: row.changed_by_practitioner_name,
+          changedAt: row.changed_at.toISOString(),
+        })),
+      },
+      followupHistory: {
+        page: followupPagination.page,
+        pageSize: followupPagination.pageSize,
+        totalItems: referral.followup_count,
+        totalPages: totalPages(
+          referral.followup_count,
+          followupPagination.pageSize,
+        ),
+        items: followupResult.rows.map((row) => ({
+          followupId: row.followup_id,
+          contactDate: row.contact_date,
+          contactMethod: row.contact_method,
+          informationSource: row.information_source,
+          providerSeen: row.provider_seen,
+          facilityName: row.facility_name,
+          dateSeen: row.date_seen,
+          reportedOutcome: row.reported_outcome,
+          reportedMedicationsOrAdvice: row.reported_medications_or_advice,
+          nextAction: row.next_action,
+          nextFollowupDate: row.next_followup_date,
+          sourceType: row.source_type,
+          recordedByPractitionerName: row.recorded_by_practitioner_name,
+          recordedAt: row.recorded_at.toISOString(),
+          treatmentActions: actionsByFollowup.get(row.followup_id) ?? [],
+          medicationChanges: medicationsByFollowup.get(row.followup_id) ?? [],
         })),
       },
     };

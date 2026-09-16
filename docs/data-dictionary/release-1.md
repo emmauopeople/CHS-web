@@ -132,9 +132,14 @@ tables.
 
 | Table | Purpose | Classification | Viewer boundary |
 | --- | --- | --- | --- |
-| `referral_resources` | Source-scoped referral snapshot and history identities, revisions, hashes, and receipt times. | OPERATIONAL | NONE |
-| `referral_snapshots` | Current normalized referral state linked to the canonical encounter and person. | CLINICAL | NONE |
-| `referral_status_events` | Immutable ordered referral status history with practitioner attribution. | CLINICAL | NONE |
-| `referral_followups` | Immutable referral follow-up contacts with source and recording provenance. | CLINICAL | NONE |
-| `referral_treatment_actions` | Ordered treatment actions reported during a referral follow-up. | CLINICAL | NONE |
-| `referral_medication_changes` | Ordered medication details associated with reported treatment actions. | CLINICAL | NONE |
+| `referral_resources` | Source-scoped referral snapshot and history identities, revisions, hashes, and receipt times. | OPERATIONAL | CANONICAL_PATIENT |
+| `referral_snapshots` | Current normalized referral state linked to the canonical encounter and person. | CLINICAL | CANONICAL_PATIENT |
+| `referral_status_events` | Immutable ordered referral status history with practitioner attribution. | CLINICAL | CANONICAL_PATIENT |
+| `referral_followups` | Immutable referral follow-up contacts with source and recording provenance. | CLINICAL | CANONICAL_PATIENT |
+| `referral_treatment_actions` | Ordered treatment actions reported during a referral follow-up. | CLINICAL | CANONICAL_PATIENT |
+| `referral_medication_changes` | Ordered medication details associated with reported treatment actions. | CLINICAL | CANONICAL_PATIENT |
+
+The patient viewer exposes only bounded normalized referral fields. Installation-
+local identifiers, content hashes, raw synchronization payloads, and rejected
+records remain server-side. Referral detail access requires `PATIENT_READ`, an
+explicit reason, server-derived organization scope, and an access audit.

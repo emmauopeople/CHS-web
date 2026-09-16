@@ -22,7 +22,8 @@ code.
 The browser intercepts only these same-origin requests:
 
 - `POST /api/v1/operations/patients/search`;
-- `POST /api/v1/operations/patients/detail`.
+- `POST /api/v1/operations/patients/detail`;
+- `POST /api/v1/operations/patients/referrals/detail`.
 
 Responses are typed synthetic canonical fixtures. The application still builds
 the request, sends the Bearer header, validates the response, manages state, and
@@ -43,9 +44,12 @@ The browser suite proves that:
 - the initial, loading, empty-result, and bounded service-error states render;
 - a result opens the canonical patient detail without a route containing patient
   data;
-- CHS Medical ID, screening history, vitals, finalized Lifestyle, identity-review
-  warning, acknowledgment state, and approved source provenance render from the
-  validated detail response.
+- CHS Medical ID, screening history, vitals, finalized Lifestyle, paginated
+  referral summaries, immutable status/follow-up history, reported treatment
+  actions and medication changes, identity-review warning, acknowledgment state,
+  and approved source provenance render from validated responses;
+- referral and patient identifiers remain in POST bodies and do not enter the
+  browser URL.
 
 Failed CI runs retain traces, screenshots, and an HTML report as a short-lived
 GitHub Actions artifact. Successful runs do not retain browser artifacts.

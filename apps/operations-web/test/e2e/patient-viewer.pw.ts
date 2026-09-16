@@ -4,6 +4,7 @@ import {
   emptyPatientListPage,
   patientDetail,
   patientListPage,
+  patientReferralDetail,
   syntheticPersonId,
 } from './fixtures';
 
@@ -52,6 +53,7 @@ test('requires an access reason and completes the canonical patient workflow', a
 
   let searchRequest: Request | null = null;
   let detailRequest: Request | null = null;
+  let referralRequest: Request | null = null;
   await page.route('**/api/v1/operations/patients/search', async (route) => {
     searchRequest = route.request();
     await new Promise((resolve) => setTimeout(resolve, 150));
@@ -61,6 +63,11 @@ test('requires an access reason and completes the canonical patient workflow', a
     detailRequest = route.request();
     await new Promise((resolve) => setTimeout(resolve, 150));
     await fulfillJson(route, patientDetail);
+  });
+  await page.route('**/api/v1/operations/patients/referrals/detail', async (route) => {
+    referralRequest = route.request();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    await fulfillJson(route, patientReferralDetail);
   });
 
   await page.goto('/');
@@ -103,6 +110,9 @@ test('requires an access reason and completes the canonical patient workflow', a
   await expect(panel.getByRole('heading', { name: 'Alpha Example' })).toBeVisible();
   await expect(panel.getByText('Identity review required')).toBeVisible();
   await expect(panel.getByText('Acknowledgment: Acknowledged')).toBeVisible();
+  await expect(panel.getByRole('heading', { name: 'Referral history' })).toBeVisible();
+  await expect(panel.getByText('Bp Screening Referral')).toBeVisible();
+  await expect(panel.getByText('North District Clinic')).toBeVisible();
   await expect(panel.getByRole('heading', { name: 'Screening history' })).toBeVisible();
   await expect(panel.getByText(/122\/78/)).toBeVisible();
   await expect(panel.getByRole('heading', { name: 'Lifestyle' })).toBeVisible();
@@ -114,6 +124,13 @@ test('requires an access reason and completes the canonical patient workflow', a
   await expect(panel.getByText('Source updated').first()).toBeVisible();
   await expect(panel.getByText('Last received').first()).toBeVisible();
 
+  await panel.getByRole('button', { name: 'View history' }).click();
+  await expect(panel.getByRole('status').filter({ hasText: 'Loading referral history…' })).toBeVisible();
+  await expect(panel.getByRole('heading', { name: 'Status history' })).toBeVisible();
+  await expect(panel.getByText('Patient reached by phone')).toBeVisible();
+  await expect(panel.getByRole('heading', { name: 'Follow-up history' })).toBeVisible();
+  await expect(panel.getByText('Amlodipine')).toBeVisible();
+
   expect(detailRequest).not.toBeNull();
   expect(detailRequest!.method()).toBe('POST');
   expect(detailRequest!.headers().authorization).toBe('Bearer browser-test-token');
@@ -122,9 +139,24 @@ test('requires an access reason and completes the canonical patient workflow', a
     personId: syntheticPersonId,
     page: 1,
     pageSize: 10,
+    referralPage: 1,
+    referralPageSize: 5,
+  });
+  expect(referralRequest).not.toBeNull();
+  expect(referralRequest!.method()).toBe('POST');
+  expect(referralRequest!.headers().authorization).toBe('Bearer browser-test-token');
+  await expect.poll(async () => jsonBody(referralRequest!)).toEqual({
+    reasonCode: 'CARE_COORDINATION',
+    personId: syntheticPersonId,
+    referralId: '44000000-0000-4000-8000-000000000001',
+    statusPage: 1,
+    statusPageSize: 10,
+    followupPage: 1,
+    followupPageSize: 5,
   });
   expect(page.url()).not.toContain('Alpha');
   expect(page.url()).not.toContain(syntheticPersonId);
+  expect(page.url()).not.toContain('44000000');
 });
 
 test('renders bounded empty and service-error states', async ({ page }) => {

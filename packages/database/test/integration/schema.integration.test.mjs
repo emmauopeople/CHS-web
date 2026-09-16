@@ -44,6 +44,7 @@ test(
         '0010_identity_resolution_delivery.sql',
         '0011_lifestyle_ingestion.sql',
         '0012_food_otc_ingestion.sql',
+        '0013_clinical_screening_time.sql',
       ]);
       assert.deepEqual(secondRun.applied, []);
 

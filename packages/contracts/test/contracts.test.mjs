@@ -86,3 +86,18 @@ test('Food/OTC represent explicit negative answers and unknown legacy metadata w
   }
   assert.equal(validateSyncBatchRequest(request).valid, true)
 })
+
+
+test('clinical time is an optional strict encounter extension while legacy payloads remain valid', () => {
+  const request = JSON.parse(readFileSync(new URL('../fixtures/sync/v1/valid/batch-request.json', import.meta.url), 'utf8'))
+  assert.equal(validateSyncBatchRequest(request).valid, true)
+  const encounter = request.records.find(r => r.resourceType === 'SCREENING_ENCOUNTER')
+  encounter.payload.clinicalTime = {localDate:'2026-08-17',localTime:'09:15',timezone:'Africa/Douala'}
+  encounter.payload.startedAt = '2026-08-17T08:15:00.000Z'
+  assert.equal(validateSyncBatchRequest(request).valid, true)
+  encounter.payload.clinicalTime.extra = 'unexpected'
+  assert.equal(validateSyncBatchRequest(request).valid, false)
+  delete encounter.payload.clinicalTime.extra
+  encounter.payload.clinicalTime.localTime = '25:00'
+  assert.equal(validateSyncBatchRequest(request).valid, false)
+})

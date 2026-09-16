@@ -120,6 +120,7 @@ export type ScreeningSessionRecordOutcome = Readonly<{
 }>;
 
 export type ScreeningEncounterPayload = Readonly<{
+  clinicalTime?: Readonly<{localDate: string; localTime: string; timezone: string}>;
   localPatientId: string;
   localScreeningSessionId: string;
   localLocationId: string;

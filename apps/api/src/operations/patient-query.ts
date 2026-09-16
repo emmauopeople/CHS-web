@@ -180,6 +180,8 @@ export type LifestyleAssessmentView = Readonly<{
 export type PatientScreeningView = Readonly<{
   encounterId: string;
   status: 'DRAFT' | 'COMPLETED' | 'AMENDED';
+  clinicalTime?: {localDate: string; localTime: string; timezone: string};
+  documentationStartedAt?: string;
   startedAt: string;
   completedAt: string | null;
   sessionDate: string;
@@ -305,6 +307,8 @@ type PatientListRow = PatientRow &
 type ScreeningRow = Readonly<{
   encounter_id: string;
   encounter_status: PatientScreeningView['status'];
+  clinical_time: {localDate: string; localTime: string; timezone: string} | null;
+  source_created_at: Date;
   started_at: Date;
   completed_at: Date | null;
   session_date: string;
@@ -777,8 +781,9 @@ export async function getCanonicalPatientDetail(
          encounter.id AS encounter_id,
          encounter.status AS encounter_status,
          encounter.started_at,
+         encounter.clinical_time, encounter.source_created_at,
          encounter.completed_at,
-         to_char(session.session_date, 'YYYY-MM-DD') AS session_date,
+         COALESCE(encounter.clinical_time->>'localDate', to_char(session.session_date, 'YYYY-MM-DD')) AS session_date,
          organization.name AS organization_name,
          location.name AS location_name,
          protocol.protocol_key,
@@ -1173,6 +1178,7 @@ export async function getCanonicalPatientDetail(
           encounterId: row.encounter_id,
           status: row.encounter_status,
           startedAt: row.started_at.toISOString(),
+          ...(row.clinical_time == null ? {} : {clinicalTime: row.clinical_time, documentationStartedAt: row.source_created_at.toISOString()}),
           completedAt: toTimestamp(row.completed_at),
           sessionDate: row.session_date,
           organizationName: row.organization_name,

@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { Pool, PoolClient } from 'pg';
 
+import { localMeasurementTimeToInstant } from './measurement-time.js';
 import { canonicalJsonSha256 } from './canonical-json.js';
 import type {
   InstallationContext,
@@ -63,6 +64,7 @@ type ExistingEncounterRow = Readonly<{
   source_location_id: string;
   source_protocol_version_id: string;
   status: 'DRAFT' | 'COMPLETED' | 'AMENDED' | 'VOID';
+  clinical_time: ScreeningEncounterSyncRecord['payload']['clinicalTime'] | null;
   started_at: Date;
   completed_at: Date | null;
   recorded_by_practitioner_id: string;
@@ -306,6 +308,7 @@ function identityConflict(
     existing.recorded_by_practitioner_id !== recordedByPractitionerId ||
     existing.source_type !== payload.sourceType ||
     existing.amendment_of_encounter_id !== amendmentTargetId ||
+    canonicalJsonSha256(existing.clinical_time ?? null) !== canonicalJsonSha256(payload.clinicalTime ?? null) ||
     !sameInstant(existing.started_at, payload.startedAt) ||
     !sameInstant(existing.source_created_at, payload.createdAt)
   );
@@ -593,10 +596,41 @@ export async function processScreeningEncounterRecord(
         retryRecordId,
       );
     }
+    const clinical = record.payload.clinicalTime;
+    if (clinical !== undefined) {
+      let valid = false;
+      try {
+        const converted = localMeasurementTimeToInstant(
+          clinical.localDate,
+          clinical.localTime,
+          clinical.timezone,
+        );
+        valid = clinical.timezone === context.timezone && converted.kind === 'EXACT'
+          && converted.instant === new Date(record.payload.startedAt).toISOString()
+          && new Date(record.payload.startedAt) <= new Date(record.payload.createdAt)
+          && (record.payload.completedAt === null || (
+            new Date(record.payload.completedAt) >= new Date(record.payload.createdAt)
+            && new Date(record.payload.completedAt) <= new Date(record.payload.updatedAt)
+          ));
+      } catch (error) {
+        if (!(error instanceof RangeError)) throw error;
+      }
+      if (!valid) {
+        return finish(
+          client, context, batchInternalId, mutationActor.id, record, recordHash,
+          rejectedOutcome(record, 'ENCOUNTER_PERIOD_INVALID', '/payload/clinicalTime'),
+          processedAt, retryRecordId,
+        );
+      }
+    }
+    // The daily session owns documentation, which may be entered after care occurred.
+    const documentationStartedAt = clinical === undefined
+      ? record.payload.startedAt
+      : record.payload.createdAt;
     if (
-      new Date(record.payload.startedAt) < session.opened_at ||
+      new Date(documentationStartedAt) < session.opened_at ||
       (session.closed_at !== null &&
-        (new Date(record.payload.startedAt) > session.closed_at ||
+        (new Date(documentationStartedAt) > session.closed_at ||
           (record.payload.completedAt !== null &&
             new Date(record.payload.completedAt) > session.closed_at)))
     ) {
@@ -680,7 +714,7 @@ export async function processScreeningEncounterRecord(
       `SELECT
          id, person_id, screening_session_id, organization_id, location_id,
          protocol_id, source_location_id, source_protocol_version_id, status,
-         started_at, completed_at, recorded_by_practitioner_id, source_type,
+         clinical_time, started_at, completed_at, recorded_by_practitioner_id, source_type,
          amendment_of_encounter_id, amendment_reason, void_reason,
          source_revision, source_created_at
        FROM screening_encounters
@@ -785,10 +819,10 @@ export async function processScreeningEncounterRecord(
          recorded_by_practitioner_id, practitioner_role_id, source_type,
          amendment_of_encounter_id, amendment_reason, void_reason,
          source_revision, source_content_hash, source_created_at,
-         source_updated_at, created_at, updated_at
+         source_updated_at, created_at, updated_at, clinical_time
        ) VALUES (
          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13,
-         $14, NULL, $15, $16, $17, $18, $19, $20, $21, $22, $23, $23
+         $14, NULL, $15, $16, $17, $18, $19, $20, $21, $22, $23, $23, $24
        )`,
       [
         encounterId,
@@ -814,6 +848,7 @@ export async function processScreeningEncounterRecord(
         record.payload.createdAt,
         record.payload.updatedAt,
         processedAt,
+        record.payload.clinicalTime ?? null,
       ],
     );
     return finish(

@@ -232,6 +232,8 @@ type LifestyleTobaccoProductType =
 export type PatientScreeningView = Readonly<{
   encounterId: string;
   status: 'DRAFT' | 'COMPLETED' | 'AMENDED';
+  clinicalTime?: {localDate: string; localTime: string; timezone: string};
+  documentationStartedAt?: string;
   startedAt: string;
   completedAt: string | null;
   sessionDate: string;

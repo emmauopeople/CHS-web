@@ -128,3 +128,7 @@ draft or completing it out of order.
 This task does not complete sync batches, expose the Fastify sync routes,
 implement the desktop sync worker, map or submit FHIR resources, create verified
 practitioner roles, or build the React patient viewer.
+
+## Clinical-time extension (HSW-021)
+
+For new encounters with `clinicalTime`, encounter start represents entered care time, not chart opening. See [HSW-021](HSW-021-clinical-screening-time.md) for documentation-session bounds, late entry, per-reading dates, rollout order, and legacy behavior.

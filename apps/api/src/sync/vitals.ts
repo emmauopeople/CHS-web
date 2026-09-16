@@ -38,6 +38,7 @@ type EncounterRow = Readonly<{
   organization_id: string;
   location_id: string;
   status: 'DRAFT' | 'COMPLETED' | 'AMENDED' | 'VOID';
+  clinical_time: {localDate: string; localTime: string; timezone: string} | null;
   started_at: Date;
   completed_at: Date | null;
   recorded_by_practitioner_id: string;
@@ -383,10 +384,14 @@ function prepareReadings(
     }
 
     const instant = new Date(converted.instant).getTime();
+    const start = encounter.clinical_time === null
+      ? encounter.started_at.getTime()
+      : Math.floor(encounter.started_at.getTime() / 60000) * 60000;
     if (
-      instant < encounter.started_at.getTime() ||
+      instant < start ||
       (encounter.completed_at !== null &&
         instant > encounter.completed_at.getTime()) ||
+      (encounter.clinical_time !== null && instant > new Date(record.payload.updatedAt).getTime()) ||
       (priorInstant !== null && instant < priorInstant)
     ) {
       return { code: 'MEASUREMENT_PERIOD_INVALID', path: basePath };
@@ -704,7 +709,7 @@ export async function processVitalsRecord(
 
     const encounterResult = await client.query<EncounterRow>(
       `SELECT
-         id, person_id, organization_id, location_id, status, started_at,
+         id, person_id, organization_id, location_id, status, clinical_time, started_at,
          completed_at, recorded_by_practitioner_id
        FROM screening_encounters
        WHERE installation_id = $1 AND local_encounter_id = $2

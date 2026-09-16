@@ -61,6 +61,28 @@ runIntegration('screening encounter processing with PostgreSQL', () => {
     await administrationPool.end();
   });
 
+  it('accepts earlier clinical care in the current documentation session and replays it unchanged', async () => {
+    const base = encounterRecord({localResourceId: randomUUID(), recordId: randomUUID(), status:'COMPLETED'});
+    const clinicalTime = {localDate:'2026-08-18',localTime:'10:15',timezone:context.timezone};
+    const record = {...base, payload:{...base.payload, clinicalTime, startedAt:'2026-08-18T09:15:00.000Z'}};
+    const batch = await startBatch(servicePool, record);
+    const result = await processScreeningEncounterRecord(servicePool,context,batch,record,now);
+    expect(result.status).toBe('ACCEPTED');
+    await expect(
+      processScreeningEncounterRecord(servicePool, context, batch, record, now),
+    ).resolves.toEqual({ ...result, status: 'UNCHANGED' });
+    const stored = await servicePool.query('SELECT clinical_time, started_at, source_created_at FROM screening_encounters WHERE id = $1',[result.canonicalResourceId]);
+    expect(stored.rows[0]).toEqual({clinical_time:clinicalTime, started_at:new Date(record.payload.startedAt),source_created_at:new Date(base.payload.createdAt)});
+  });
+
+  it('rejects a timezone mismatch or UTC instant inconsistent with the entered clinical time', async () => {
+    for (const timezone of ['America/Chicago', context.timezone]) {
+      const base = encounterRecord({localResourceId:randomUUID(),recordId:randomUUID()});
+      const record = {...base,payload:{...base.payload, clinicalTime:{localDate:'2026-08-18',localTime:'10:15',timezone}}};
+      expect(await processScreeningEncounterRecord(servicePool,context,await startBatch(servicePool,record),record,now)).toMatchObject({status:'REJECTED',errors:[{code:'ENCOUNTER_PERIOD_INVALID',path:'/payload/clinicalTime'}]});
+    }
+  });
+
   it('creates an encounter with patient, session, protocol, location, and clinical attribution', async () => {
     const record = encounterRecord({
       localResourceId: '91000000-0000-4000-8000-000000000101',

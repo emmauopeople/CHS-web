@@ -279,7 +279,7 @@ async function main() {
     const restoredSnapshot = await databaseSnapshot(restoreUrl);
     assert.deepEqual(restoredSnapshot, sourceSnapshot);
     assert.equal(sourceSnapshot.tables.length, 49);
-    assert.equal(restoredMigrationCount, 12);
+    assert.equal(restoredMigrationCount, sourceSnapshot.migrations.length);
     assert.equal(sourceSnapshot.organizations.length, 1);
 
     const sourceFingerprint = snapshotFingerprint(sourceSnapshot);

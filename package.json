@@ -31,6 +31,11 @@
     "test:e2e": "pnpm --filter @chs/operations-web test:e2e",
     "test:load": "pnpm --filter @chs/api test:load",
     "test:recovery": "pnpm --filter @chs/api test:recovery",
-    "typecheck": "pnpm --recursive typecheck"
+    "typecheck": "pnpm --recursive typecheck",
+    "local:auth:setup": "node scripts/local-auth/setup.mjs",
+    "local:auth:up": "docker compose -f compose.yaml -f compose.local-auth.yaml up -d keycloak",
+    "local:auth:grant": "pnpm --filter @chs/api local:auth:grant",
+    "local:auth:test": "node --test scripts/local-auth/setup.test.mjs scripts/local-auth/repair.test.mjs",
+    "local:auth:repair": "node scripts/local-auth/repair.mjs"
   }
 }

@@ -104,6 +104,7 @@ export class OperationsAccessProvisioningError extends Error {
 export function parseOperationsAccessProvisioningInput(
   value: unknown,
   now: Date = new Date(),
+  environment: string = 'production',
 ): OperationsAccessProvisioningInput {
   const input = strictObject(value, rootFields, 'operations access');
   const rawGrants = input.grants;
@@ -128,7 +129,7 @@ export function parseOperationsAccessProvisioningInput(
 
   grants.sort((left, right) => grantKey(left).localeCompare(grantKey(right)));
   return {
-    oidcIssuer: requiredOidcIssuer(input),
+    oidcIssuer: requiredOidcIssuer(input, environment),
     oidcSubject: requiredText(input, 'oidcSubject', 255),
     displayName: requiredText(input, 'displayName', 200),
     email: optionalEmail(input),
@@ -400,7 +401,7 @@ function parseGrant(
   };
 }
 
-function requiredOidcIssuer(value: Record<string, unknown>): string {
+function requiredOidcIssuer(value: Record<string, unknown>, environment: string): string {
   const raw = requiredText(value, 'oidcIssuer', 500);
   let issuer: URL;
   try {
@@ -408,8 +409,11 @@ function requiredOidcIssuer(value: Record<string, unknown>): string {
   } catch {
     invalid('oidcIssuer must be an absolute HTTPS URL');
   }
+  const localDevelopmentIssuer =
+    environment === 'development' &&
+    issuer.href === 'http://127.0.0.1:18080/realms/chs-local';
   if (
-    issuer.protocol !== 'https:' ||
+    (issuer.protocol !== 'https:' && !localDevelopmentIssuer) ||
     issuer.username !== '' ||
     issuer.password !== '' ||
     issuer.search !== '' ||

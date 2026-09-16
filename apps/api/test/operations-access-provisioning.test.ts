@@ -31,6 +31,39 @@ const validInput = {
 };
 
 describe('operations access provisioning input', () => {
+  it('allows only the exact local Docker issuer in explicit development mode', () => {
+    const local = {
+      ...validInput,
+      oidcIssuer: 'http://127.0.0.1:18080/realms/chs-local',
+    };
+    expect(
+      parseOperationsAccessProvisioningInput(local, now, 'development').oidcIssuer,
+    ).toBe(local.oidcIssuer);
+    expect(() => parseOperationsAccessProvisioningInput(local, now)).toThrow();
+    for (const environment of ['production', 'test', '']) {
+      expect(() =>
+        parseOperationsAccessProvisioningInput(local, now, environment),
+      ).toThrow();
+    }
+    for (const oidcIssuer of [
+      'http://192.168.1.10:18080/realms/chs-local',
+      'http://identity.example.test',
+      'http://127.0.0.1:8080/realms/chs-local',
+      'http://127.0.0.1:18081/realms/chs-local',
+      'http://127.0.0.1:18080/realms/other',
+      'http://127.0.0.1:18080/realms/chs-local?test=true',
+      'http://user:pass@127.0.0.1:18080/realms/chs-local',
+    ]) {
+      expect(() =>
+        parseOperationsAccessProvisioningInput(
+          { ...local, oidcIssuer },
+          now,
+          'development',
+        ),
+      ).toThrow();
+    }
+  });
+
   it('normalizes the OIDC principal and deterministically orders grants', () => {
     expect(parseOperationsAccessProvisioningInput(validInput, now)).toEqual({
       oidcIssuer: 'https://identity.example.test/',

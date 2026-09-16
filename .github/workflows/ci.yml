@@ -50,6 +50,9 @@ jobs:
       - name: Type-check
         run: pnpm typecheck
 
+      - name: Test local sign-in setup
+        run: pnpm local:auth:test
+
       - name: Test
         run: pnpm test
 

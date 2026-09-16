@@ -93,6 +93,11 @@ proxies `/api` to the local API. See
 [HSD-OPS-002A](docs/operations/HSD-OPS-002A.md) for identity-provider and
 redirect-URI requirements.
 
+If you do not have an identity provider, follow
+[local operations sign-in with Docker](docs/administration/local-operations-sign-in.md).
+It supplies a local Keycloak realm, public PKCE client, and organization-scoped
+reviewer provisioning without replacing your existing database configuration.
+
 ## Operational endpoints
 
 - `GET /health/live` — process liveness

@@ -39,6 +39,11 @@ Obtain the exact OIDC issuer and stable subject from the configured identity
 provider. Do not guess the subject from an email address, and do not put an
 access token in this file.
 
+The local Docker setup has one development-only exception to HTTPS issuer
+validation: `http://127.0.0.1:18080/realms/chs-local`, with explicit
+`NODE_ENV=development`. Default and production validation require HTTPS. See
+[local operations sign-in](local-operations-sign-in.md) for setup and scoped grants.
+
 ```json
 {
   "oidcIssuer": "https://identity.example.org/",

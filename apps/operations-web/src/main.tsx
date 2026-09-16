@@ -2,7 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import App from './App';
-import { loadConfig } from './config';
+import { loadConfig, LocalPortalAddressError } from './config';
 import './styles.css';
 
 function ConfigurationError() {
@@ -24,6 +24,14 @@ const root = createRoot(rootElement);
 try {
   const config = loadConfig();
   root.render(<StrictMode><App config={config} /></StrictMode>);
-} catch {
-  root.render(<StrictMode><ConfigurationError /></StrictMode>);
+} catch (error) {
+  root.render(error instanceof LocalPortalAddressError ? (
+    <main className="sign-in-page">
+      <section className="sign-in-card">
+        <h1>Open the local operations portal</h1>
+        <p>Local sign-in requires this registered address:</p>
+        <a href={error.portalUrl}>{error.portalUrl}</a>
+      </section>
+    </main>
+  ) : <StrictMode><ConfigurationError /></StrictMode>);
 }

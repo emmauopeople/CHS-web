@@ -68,7 +68,9 @@ runIntegration('screening encounter processing with PostgreSQL', () => {
     const batch = await startBatch(servicePool, record);
     const result = await processScreeningEncounterRecord(servicePool,context,batch,record,now);
     expect(result.status).toBe('ACCEPTED');
-    expect(await processScreeningEncounterRecord(servicePool,context,batch,record,now)).toEqual(result);
+    await expect(
+      processScreeningEncounterRecord(servicePool, context, batch, record, now),
+    ).resolves.toEqual({ ...result, status: 'UNCHANGED' });
     const stored = await servicePool.query('SELECT clinical_time, started_at, source_created_at FROM screening_encounters WHERE id = $1',[result.canonicalResourceId]);
     expect(stored.rows[0]).toEqual({clinical_time:clinicalTime, started_at:new Date(record.payload.startedAt),source_created_at:new Date(base.payload.createdAt)});
   });

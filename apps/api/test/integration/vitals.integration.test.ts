@@ -66,7 +66,7 @@ runIntegration('vitals processing with PostgreSQL', () => {
     await administrationPool.end();
   });
 
-  it('accepts care documented the next day, preserving midnight readings and exact replay', async () => {
+  it('accepts care documented the next day, preserving midnight readings and idempotent replay', async () => {
     const canonical = randomUUID(), local = randomUUID();
     await insertEncounter(servicePool, canonical, local, 'DRAFT');
     await servicePool.query(`UPDATE screening_encounters SET clinical_time=$1, started_at=$2, completed_at=$3, status='COMPLETED' WHERE id=$4`,[
@@ -78,7 +78,9 @@ runIntegration('vitals processing with PostgreSQL', () => {
     const batch = await startBatch(servicePool,record);
     const result = await processVitalsRecord(servicePool,context,batch,record,now);
     expect(result.status).toBe('ACCEPTED');
-    expect(await processVitalsRecord(servicePool,context,batch,record,now)).toEqual(result);
+    await expect(
+      processVitalsRecord(servicePool, context, batch, record, now),
+    ).resolves.toEqual({ ...result, status: 'UNCHANGED' });
     const persisted = await servicePool.query('SELECT measured_at FROM vital_readings WHERE vital_set_id=$1 ORDER BY sequence_number',[result.canonicalResourceId]);
     expect(persisted.rows.map(r=>r.measured_at.toISOString())).toEqual(['2026-08-18T22:55:00.000Z','2026-08-18T23:05:00.000Z']);
   });

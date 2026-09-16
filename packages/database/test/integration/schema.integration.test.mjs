@@ -45,6 +45,7 @@ test(
         '0011_lifestyle_ingestion.sql',
         '0012_food_otc_ingestion.sql',
         '0013_clinical_screening_time.sql',
+        '0014_referral_ingestion.sql',
       ]);
       assert.deepEqual(secondRun.applied, []);
 

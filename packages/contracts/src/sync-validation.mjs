@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs'
+import { referralActorReferences, referralSemanticIssues } from './referral-validation.mjs'
 
 import Ajv2020 from 'ajv/dist/2020.js'
 import addFormats from 'ajv-formats'
@@ -14,6 +15,9 @@ const schemaPaths = Object.freeze([
   'schemas/sync/v1/lifestyle.schema.json',
   'schemas/sync/v1/food.schema.json',
   'schemas/sync/v1/otc.schema.json',
+  'schemas/sync/v1/referral.schema.json',
+  'schemas/sync/v1/referral-status.schema.json',
+  'schemas/sync/v1/referral-followup.schema.json',
   'schemas/sync/v1/sync-batch-request.schema.json',
   'schemas/sync/v1/sync-batch-response.schema.json'
 ])
@@ -423,6 +427,14 @@ function semanticRequestIssues(request) {
           path: `/records/${recordIndex}/payload/rows`
         })
       }
+    } else if (record.resourceType.startsWith('REFERRAL')) {
+      actorReferences.push(...referralActorReferences(record))
+      issues.push(
+        ...referralSemanticIssues(record).map((issue) => ({
+          ...issue,
+          path: `/records/${recordIndex}${issue.path}`
+        }))
+      )
     } else if (record.resourceType === 'LIFESTYLE') {
       actorReferences.push(...lifestyleActorReferences(record.payload))
       issues.push(...lifestyleSemanticIssues(request, record, recordIndex))

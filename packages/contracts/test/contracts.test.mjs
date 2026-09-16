@@ -5,8 +5,8 @@ import { validateContracts } from './validate-contracts.mjs'
 
 test('HSD-SYNC-001 and HSD-SYNC-005B contracts remain compatible', () => {
   assert.deepEqual(validateContracts(), {
-    schemas: 13,
-    validFixtures: 14,
+    schemas: 16,
+    validFixtures: 15,
     invalidFixtures: 46,
     openApiOperations: 5,
     lifestyleResponseBranches: 37

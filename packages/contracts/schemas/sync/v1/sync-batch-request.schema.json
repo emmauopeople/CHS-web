@@ -50,7 +50,10 @@
           { "$ref": "#/$defs/vitalsRecord" },
           { "$ref": "#/$defs/lifestyleRecord" },
           { "$ref": "#/$defs/foodRecord" },
-          { "$ref": "#/$defs/otcRecord" }
+          { "$ref": "#/$defs/otcRecord" },
+          { "$ref": "#/$defs/referralRecord" },
+          { "$ref": "#/$defs/referralstatusRecord" },
+          { "$ref": "#/$defs/referralfollowupRecord" }
         ]
       }
     }
@@ -84,7 +87,7 @@
       "properties": {
         "recordId": { "$ref": "common.schema.json#/$defs/uuid" },
         "resourceType": {
-          "enum": ["PATIENT", "SCREENING_SESSION", "SCREENING_ENCOUNTER", "VITALS", "LIFESTYLE", "FOOD", "OTC"]
+          "enum": ["PATIENT", "SCREENING_SESSION", "SCREENING_ENCOUNTER", "VITALS", "LIFESTYLE", "FOOD", "OTC", "REFERRAL", "REFERRAL_STATUS", "REFERRAL_FOLLOWUP"]
         },
         "localResourceId": { "$ref": "common.schema.json#/$defs/uuid" },
         "sourceRevision": { "type": "integer", "minimum": 1 },
@@ -209,6 +212,78 @@
             },
             "payload": {
               "$ref": "otc.schema.json"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "referralRecord": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/recordBase"
+        },
+        {
+          "properties": {
+            "resourceType": {
+              "const": "REFERRAL"
+            },
+            "schemaVersion": {
+              "const": "referral.v1"
+            },
+            "payload": {
+              "$ref": "referral.schema.json"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "referralstatusRecord": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/recordBase"
+        },
+        {
+          "properties": {
+            "resourceType": {
+              "const": "REFERRAL_STATUS"
+            },
+            "schemaVersion": {
+              "const": "referral-status.v1"
+            },
+            "payload": {
+              "$ref": "referral-status.schema.json"
+            },
+            "sourceRevision": {
+              "const": 1
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "referralfollowupRecord": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/recordBase"
+        },
+        {
+          "properties": {
+            "resourceType": {
+              "const": "REFERRAL_FOLLOWUP"
+            },
+            "schemaVersion": {
+              "const": "referral-followup.v1"
+            },
+            "payload": {
+              "$ref": "referral-followup.schema.json"
+            },
+            "sourceRevision": {
+              "const": 1
             }
           }
         }

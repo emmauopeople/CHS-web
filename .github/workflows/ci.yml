@@ -32,7 +32,7 @@ jobs:
           --health-retries 10
     steps:
       - name: Check out source
-        uses: actions/checkout@v6.0.3
+        uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
 

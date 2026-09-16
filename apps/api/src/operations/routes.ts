@@ -18,10 +18,12 @@ import {
 } from './audit.js';
 import {
   getCanonicalPatientDetail,
+  getCanonicalPatientReferralDetail,
   listCanonicalPatients,
   PatientQueryError,
   type PatientHistoryQuery,
   type PatientListQuery,
+  type PatientReferralHistoryQuery,
 } from './patient-query.js';
 
 type OperationsRouteDependencies = Readonly<{
@@ -36,6 +38,13 @@ type PatientDetailBody = PatientHistoryQuery &
   Readonly<{
     reasonCode: PatientAccessReason;
     personId: string;
+  }>;
+
+type PatientReferralDetailBody = PatientReferralHistoryQuery &
+  Readonly<{
+    reasonCode: PatientAccessReason;
+    personId: string;
+    referralId: string;
   }>;
 
 const reasonCodes = [
@@ -82,6 +91,33 @@ const patientDetailSchema = {
           '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$',
       },
       ...paginationProperties,
+      referralPage: { type: 'integer', minimum: 1, maximum: 10_000 },
+      referralPageSize: { type: 'integer', minimum: 1, maximum: 100 },
+    },
+  },
+} as const;
+
+const patientReferralDetailSchema = {
+  body: {
+    type: 'object',
+    additionalProperties: false,
+    required: ['reasonCode', 'personId', 'referralId'],
+    properties: {
+      reasonCode: { type: 'string', enum: reasonCodes },
+      personId: {
+        type: 'string',
+        pattern:
+          '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$',
+      },
+      referralId: {
+        type: 'string',
+        pattern:
+          '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$',
+      },
+      statusPage: { type: 'integer', minimum: 1, maximum: 10_000 },
+      statusPageSize: { type: 'integer', minimum: 1, maximum: 100 },
+      followupPage: { type: 'integer', minimum: 1, maximum: 10_000 },
+      followupPageSize: { type: 'integer', minimum: 1, maximum: 100 },
     },
   },
 } as const;
@@ -194,7 +230,9 @@ async function authenticateAndAuthorize(
         route:
           action === 'PATIENT_LIST_VIEW'
             ? '/api/v1/operations/patients/search'
-            : '/api/v1/operations/patients/detail',
+            : action === 'PATIENT_REFERRAL_DETAIL_VIEW'
+              ? '/api/v1/operations/patients/referrals/detail'
+              : '/api/v1/operations/patients/detail',
         metadata: { authorizationCode: error.code },
       });
     }
@@ -310,6 +348,8 @@ export async function registerOperationsRoutes(
           metadata: {
             historyPage: historyQuery.page ?? 1,
             historyPageSize: historyQuery.pageSize ?? 20,
+            referralHistoryPage: historyQuery.referralPage ?? 1,
+            referralHistoryPageSize: historyQuery.referralPageSize ?? 10,
           },
         });
         if (!result) {
@@ -335,6 +375,79 @@ export async function registerOperationsRoutes(
             ...requestContext(request),
             ...identityAuditFields(principal.identity),
             route: '/api/v1/operations/patients/detail',
+          });
+        }
+        return handleKnownError(error, request, reply);
+      }
+    },
+  );
+
+  app.post<{ Body: PatientReferralDetailBody }>(
+    '/api/v1/operations/patients/referrals/detail',
+    {
+      schema: patientReferralDetailSchema,
+      onRequest: preventPatientResponseCaching,
+    },
+    async (request, reply) => {
+      let principal: OperationsPrincipal | null = null;
+      let auditAttempted = false;
+      const { reasonCode, personId, referralId, ...historyQuery } = request.body;
+      try {
+        principal = await authenticateAndAuthorize(
+          request,
+          dependencies,
+          'PATIENT_REFERRAL_DETAIL_VIEW',
+          reasonCode,
+          referralId,
+        );
+        const result = await getCanonicalPatientReferralDetail(
+          dependencies.database,
+          principal.patientAccessScope,
+          personId,
+          referralId,
+          historyQuery,
+        );
+        auditAttempted = true;
+        await recordPatientAccessAudit(dependencies.database, {
+          operationsUserId: principal.operationsUserId,
+          scope: principal.patientAccessScope,
+          action: 'PATIENT_REFERRAL_DETAIL_VIEW',
+          outcome: result ? 'SUCCESS' : 'NOT_FOUND',
+          entityId: referralId,
+          reason: reasonCode,
+          ...requestContext(request),
+          ...identityAuditFields(principal.identity),
+          route: '/api/v1/operations/patients/referrals/detail',
+          metadata: {
+            statusPage: historyQuery.statusPage ?? 1,
+            statusPageSize: historyQuery.statusPageSize ?? 20,
+            followupPage: historyQuery.followupPage ?? 1,
+            followupPageSize: historyQuery.followupPageSize ?? 10,
+          },
+        });
+        if (!result) {
+          return sendProblem(
+            request,
+            reply,
+            404,
+            'PATIENT_REFERRAL_NOT_FOUND',
+            'Patient referral was not found',
+          );
+        }
+        return reply.code(200).send(result);
+      } catch (error) {
+        if (principal && !auditAttempted) {
+          auditAttempted = true;
+          await recordPatientAccessAudit(dependencies.database, {
+            operationsUserId: principal.operationsUserId,
+            scope: principal.patientAccessScope,
+            action: 'PATIENT_REFERRAL_DETAIL_VIEW',
+            outcome: error instanceof PatientQueryError ? 'DENIED' : 'ERROR',
+            entityId: referralId,
+            reason: reasonCode,
+            ...requestContext(request),
+            ...identityAuditFields(principal.identity),
+            route: '/api/v1/operations/patients/referrals/detail',
           });
         }
         return handleKnownError(error, request, reply);

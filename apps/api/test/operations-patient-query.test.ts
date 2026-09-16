@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   getCanonicalPatientDetail,
+  getCanonicalPatientReferralDetail,
   listCanonicalPatients,
 } from '../src/operations/patient-query.js';
 
@@ -56,5 +57,14 @@ describe('canonical patient query validation', () => {
         'not-a-person-id',
       ),
     ).rejects.toMatchObject({ code: 'INVALID_PATIENT_ID' });
+
+    await expect(
+      getCanonicalPatientReferralDetail(
+        unavailableDatabase,
+        { kind: 'GLOBAL' },
+        '40000000-0000-4000-8000-000000000001',
+        'not-a-referral-id',
+      ),
+    ).rejects.toMatchObject({ code: 'INVALID_REFERRAL_ID' });
   });
 });

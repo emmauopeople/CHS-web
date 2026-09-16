@@ -16,6 +16,7 @@ export type PatientAccessReason =
 export type PatientAuditAction =
   | 'PATIENT_LIST_VIEW'
   | 'PATIENT_DETAIL_VIEW'
+  | 'PATIENT_REFERRAL_DETAIL_VIEW'
   | 'MEDICAL_ID_RECOVERY_SEARCH'
   | 'MEDICAL_ID_RECOVERY_REVEAL'
   | 'IDENTITY_REVIEW_LIST_VIEW'
@@ -77,15 +78,17 @@ export async function recordPatientAccessAudit(
     ...event.metadata,
   };
   const entityType =
-    event.action === 'PATIENT_DETAIL_VIEW'
-      ? 'PERSON'
-      : event.action === 'PATIENT_LIST_VIEW'
-        ? 'PATIENT_SEARCH'
-        : event.action.startsWith('IDENTITY_REVIEW_')
-          ? 'IDENTITY_REVIEW_CASE'
-        : event.action.startsWith('MEDICAL_ID_RECOVERY_')
-          ? 'MEDICAL_ID_RECOVERY'
-          : 'SYNC_BATCH';
+    event.action === 'PATIENT_REFERRAL_DETAIL_VIEW'
+      ? 'REFERRAL'
+      : event.action === 'PATIENT_DETAIL_VIEW'
+        ? 'PERSON'
+        : event.action === 'PATIENT_LIST_VIEW'
+          ? 'PATIENT_SEARCH'
+          : event.action.startsWith('IDENTITY_REVIEW_')
+            ? 'IDENTITY_REVIEW_CASE'
+            : event.action.startsWith('MEDICAL_ID_RECOVERY_')
+              ? 'MEDICAL_ID_RECOVERY'
+              : 'SYNC_BATCH';
 
   await database.query(
     `INSERT INTO audit_events (

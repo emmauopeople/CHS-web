@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { ApiError, createOperationsApi } from '../src/api';
+import { patientReferralDetail } from './e2e/fixtures';
 import { lifestyleAssessmentFixture } from './lifestyle-fixture';
 import { patientAssuranceFixture } from './patient-assurance-fixture';
 
@@ -104,6 +105,13 @@ describe('operations API client', () => {
       screeningHistory: {
         items: [{ lifestyle: lifestyleAssessmentFixture }],
       },
+      referralHistory: {
+        page: 1,
+        pageSize: 10,
+        totalItems: 0,
+        totalPages: 0,
+        items: [],
+      },
     };
     const validFetch = vi.fn<typeof fetch>().mockResolvedValue(
       new Response(JSON.stringify(patient), { status: 200 }),
@@ -150,6 +158,13 @@ describe('operations API client', () => {
       displayName: 'Alpha Example',
       ...patientAssuranceFixture,
       screeningHistory: { items: [] },
+      referralHistory: {
+        page: 1,
+        pageSize: 10,
+        totalItems: 0,
+        totalPages: 0,
+        items: [],
+      },
     };
     const malformedAssuranceFetch = vi.fn<typeof fetch>().mockResolvedValue(
       new Response(JSON.stringify({
@@ -180,6 +195,55 @@ describe('operations API client', () => {
       createOperationsApi('', 'token', malformedProvenanceFetch).getPatientDetail({
         reasonCode: 'CARE_DELIVERY',
         personId: patient.personId,
+      }),
+    ).rejects.toMatchObject({ status: 502, code: 'INVALID_API_RESPONSE' });
+  });
+
+  it('posts bounded referral history requests and fails closed on malformed rows', async () => {
+    const fetchImplementation = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(JSON.stringify(patientReferralDetail), { status: 200 }),
+    );
+    const api = createOperationsApi('/internal', 'secret-token', fetchImplementation);
+    const result = await api.getPatientReferralDetail({
+      reasonCode: 'CARE_COORDINATION',
+      personId: '40000000-0000-4000-8000-000000000001',
+      referralId: '44000000-0000-4000-8000-000000000001',
+      statusPage: 1,
+      statusPageSize: 10,
+      followupPage: 1,
+      followupPageSize: 5,
+    });
+    expect(result.followupHistory.items[0]?.medicationChanges[0]?.medicationName)
+      .toBe('Amlodipine');
+    const [url, init] = fetchImplementation.mock.calls[0]!;
+    expect(url).toBe('/internal/api/v1/operations/patients/referrals/detail');
+    expect(String(url)).not.toContain('44000000');
+    expect(init?.headers).toMatchObject({ authorization: 'Bearer secret-token' });
+    expect(JSON.parse(String(init?.body))).toMatchObject({
+      referralId: '44000000-0000-4000-8000-000000000001',
+      followupPageSize: 5,
+    });
+
+    const malformedFetch = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(JSON.stringify({
+        ...patientReferralDetail,
+        followupHistory: {
+          ...patientReferralDetail.followupHistory,
+          items: [{
+            ...patientReferralDetail.followupHistory.items[0],
+            medicationChanges: [{
+              ...patientReferralDetail.followupHistory.items[0]!.medicationChanges[0],
+              medicationName: '',
+            }],
+          }],
+        },
+      }), { status: 200 }),
+    );
+    await expect(
+      createOperationsApi('', 'token', malformedFetch).getPatientReferralDetail({
+        reasonCode: 'CARE_DELIVERY',
+        personId: '40000000-0000-4000-8000-000000000001',
+        referralId: '44000000-0000-4000-8000-000000000001',
       }),
     ).rejects.toMatchObject({ status: 502, code: 'INVALID_API_RESPONSE' });
   });

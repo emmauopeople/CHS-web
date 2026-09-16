@@ -23,6 +23,7 @@ import type {
   PatientDetail,
   PatientListItem,
   PatientListPage,
+  PatientReferralDetail,
   PersonStatus,
 } from './types';
 
@@ -54,6 +55,9 @@ function friendlyError(error: unknown): string {
   }
   if (error.status === 401) return 'Your session has expired. Sign in again.';
   if (error.status === 403) return 'Your account does not have access to this patient data.';
+  if (error.code === 'PATIENT_REFERRAL_NOT_FOUND') {
+    return 'The referral was not found within your authorized locations.';
+  }
   if (error.status === 404) return 'The patient was not found within your authorized locations.';
   if (error.status === 503) return 'The patient service is temporarily unavailable.';
   const reference = error.requestId ? ` Reference: ${error.requestId}.` : '';
@@ -241,15 +245,17 @@ function Pagination({
   totalPages,
   onPage,
   busy,
+  ariaLabel = 'Patient results pages',
 }: Readonly<{
   page: number;
   totalPages: number;
   onPage: (page: number) => void;
   busy: boolean;
+  ariaLabel?: string;
 }>) {
   if (totalPages <= 1) return null;
   return (
-    <nav className="pagination" aria-label="Patient results pages">
+    <nav className="pagination" aria-label={ariaLabel}>
       <button className="button button-quiet" disabled={busy || page <= 1} onClick={() => onPage(page - 1)}>
         Previous
       </button>
@@ -320,18 +326,232 @@ function Vitals({ detail }: Readonly<{ detail: PatientDetail }>) {
   );
 }
 
+function ReferralDetailHistory({
+  detail,
+  busy,
+  error,
+  onStatusPage,
+  onFollowupPage,
+}: Readonly<{
+  detail: PatientReferralDetail | null;
+  busy: boolean;
+  error: string | null;
+  onStatusPage: (page: number) => void;
+  onFollowupPage: (page: number) => void;
+}>) {
+  if (busy) {
+    return <div className="referral-loading" role="status">Loading referral history…</div>;
+  }
+  if (error) return <div className="alert alert-error" role="alert">{error}</div>;
+  if (!detail) return null;
+
+  return (
+    <div className="referral-detail">
+      <section aria-labelledby={`status-history-${detail.referral.referralId}`}>
+        <div className="referral-subheading">
+          <h5 id={`status-history-${detail.referral.referralId}`}>Status history</h5>
+          <span>{detail.statusHistory.totalItems} event{detail.statusHistory.totalItems === 1 ? '' : 's'}</span>
+        </div>
+        {detail.statusHistory.items.length === 0 ? (
+          <div className="empty-inline">No status events are available.</div>
+        ) : (
+          <ol className="referral-status-list">
+            {detail.statusHistory.items.map((event) => (
+              <li key={event.statusEventId}>
+                <div>
+                  <strong>{humanize(event.toStatus)}</strong>
+                  <span>{event.fromStatus ? `From ${humanize(event.fromStatus)}` : 'Referral opened'}</span>
+                </div>
+                <p>{displayValue(event.changeReason)}</p>
+                <small>{formatInstant(event.changedAt)} · {event.changedByPractitionerName}</small>
+              </li>
+            ))}
+          </ol>
+        )}
+        <Pagination
+          page={detail.statusHistory.page}
+          totalPages={detail.statusHistory.totalPages}
+          onPage={onStatusPage}
+          busy={busy}
+          ariaLabel="Referral status history pages"
+        />
+      </section>
+
+      <section aria-labelledby={`followup-history-${detail.referral.referralId}`}>
+        <div className="referral-subheading">
+          <h5 id={`followup-history-${detail.referral.referralId}`}>Follow-up history</h5>
+          <span>{detail.followupHistory.totalItems} follow-up{detail.followupHistory.totalItems === 1 ? '' : 's'}</span>
+        </div>
+        {detail.followupHistory.items.length === 0 ? (
+          <div className="empty-inline">No follow-ups are available.</div>
+        ) : (
+          <div className="referral-followups">
+            {detail.followupHistory.items.map((followup) => (
+              <article key={followup.followupId}>
+                <header>
+                  <div>
+                    <strong>{formatDate(followup.contactDate)}</strong>
+                    <span>{humanize(followup.contactMethod)} · {humanize(followup.informationSource)}</span>
+                  </div>
+                  <small>{humanize(followup.sourceType)}</small>
+                </header>
+                <dl className="referral-detail-grid">
+                  <div><dt>Provider seen</dt><dd>{followup.providerSeen === null ? '—' : followup.providerSeen ? 'Yes' : 'No'}</dd></div>
+                  <div><dt>Facility</dt><dd>{displayValue(followup.facilityName)}</dd></div>
+                  <div><dt>Date seen</dt><dd>{formatDate(followup.dateSeen)}</dd></div>
+                  <div><dt>Outcome</dt><dd>{displayValue(followup.reportedOutcome)}</dd></div>
+                  <div><dt>Reported advice</dt><dd>{displayValue(followup.reportedMedicationsOrAdvice)}</dd></div>
+                  <div><dt>Next action</dt><dd>{displayValue(followup.nextAction)}</dd></div>
+                  <div><dt>Next follow-up</dt><dd>{formatDate(followup.nextFollowupDate)}</dd></div>
+                  <div><dt>Recorded by</dt><dd>{followup.recordedByPractitionerName}</dd></div>
+                  <div><dt>Recorded at</dt><dd>{formatInstant(followup.recordedAt)}</dd></div>
+                </dl>
+                {followup.treatmentActions.length > 0 ? (
+                  <div className="referral-reported-items">
+                    <strong>Treatment actions</strong>
+                    <ul>{followup.treatmentActions.map((action) => <li key={action.sequenceNumber}>{humanize(action.actionCode)}</li>)}</ul>
+                  </div>
+                ) : null}
+                {followup.medicationChanges.length > 0 ? (
+                  <div className="referral-reported-items">
+                    <strong>Medication changes</strong>
+                    <ul>
+                      {followup.medicationChanges.map((medication) => (
+                        <li key={medication.sequenceNumber}>
+                          {humanize(medication.changeType)}: {medication.medicationName}
+                          {medication.dosage ? ` · ${medication.dosage}` : ''}
+                          {medication.frequency ? ` · ${medication.frequency}` : ''}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+              </article>
+            ))}
+          </div>
+        )}
+        <Pagination
+          page={detail.followupHistory.page}
+          totalPages={detail.followupHistory.totalPages}
+          onPage={onFollowupPage}
+          busy={busy}
+          ariaLabel="Referral follow-up history pages"
+        />
+      </section>
+    </div>
+  );
+}
+
+export function ReferralHistory({
+  patient,
+  selectedReferralId,
+  referralDetail,
+  referralBusy,
+  referralError,
+  onOpen,
+  onStatusPage,
+  onFollowupPage,
+}: Readonly<{
+  patient: PatientDetail;
+  selectedReferralId: string | null;
+  referralDetail: PatientReferralDetail | null;
+  referralBusy: boolean;
+  referralError: string | null;
+  onOpen: (referralId: string) => void;
+  onStatusPage: (page: number) => void;
+  onFollowupPage: (page: number) => void;
+}>) {
+  if (patient.referralHistory.items.length === 0) {
+    return <div className="empty-inline">No canonical referrals are available.</div>;
+  }
+
+  return (
+    <div className="referral-list">
+      {patient.referralHistory.items.map((referral) => {
+        const selected = selectedReferralId === referral.referralId;
+        return (
+          <article className="referral-card" key={referral.referralId}>
+            <header>
+              <div>
+                <p className="eyebrow">Created {formatInstant(referral.createdAt)}</p>
+                <h4>{referral.reasonCodes.map(humanize).join(', ')}</h4>
+                <p>{referral.locationName} · {referral.organizationName}</p>
+              </div>
+              <div className="referral-badges">
+                {referral.urgency === 'URGENT' ? <span className="status status-urgent">Urgent</span> : null}
+                <span className={`status status-${referral.status.toLowerCase()}`}>{humanize(referral.status)}</span>
+              </div>
+            </header>
+            <dl className="referral-summary-grid">
+              <div><dt>Destination</dt><dd>{displayValue(referral.destinationName)}</dd></div>
+              <div><dt>Due date</dt><dd>{formatDate(referral.dueDate)}</dd></div>
+              <div><dt>Encounter</dt><dd>{humanize(referral.encounterStatus)}</dd></div>
+              <div><dt>Created by</dt><dd>{referral.createdByPractitionerName}</dd></div>
+              <div><dt>Last updated</dt><dd>{formatInstant(referral.updatedAt)}</dd></div>
+              <div><dt>Follow-ups</dt><dd>{referral.followupCount}</dd></div>
+            </dl>
+            {referral.reasonText ? <p className="referral-note">{referral.reasonText}</p> : null}
+            {referral.encounterStatus === 'VOID' ? (
+              <p className="referral-warning">The originating encounter is void. The referral history remains available for continuity and audit.</p>
+            ) : null}
+            {referral.status === 'CLOSED' ? (
+              <p className="referral-closure"><strong>Closed:</strong> {displayValue(referral.closureReason)} · {formatInstant(referral.closedAt)}</p>
+            ) : null}
+            <div className="referral-actions">
+              <button
+                className="button button-quiet"
+                type="button"
+                disabled={selected && referralBusy}
+                onClick={() => onOpen(referral.referralId)}
+              >
+                {selected && referralDetail ? 'Refresh history' : 'View history'}
+              </button>
+              <span>{referral.statusEventCount} status event{referral.statusEventCount === 1 ? '' : 's'}</span>
+            </div>
+            {selected ? (
+              <ReferralDetailHistory
+                detail={referralDetail?.referral.referralId === referral.referralId ? referralDetail : null}
+                busy={referralBusy}
+                error={referralError}
+                onStatusPage={onStatusPage}
+                onFollowupPage={onFollowupPage}
+              />
+            ) : null}
+          </article>
+        );
+      })}
+    </div>
+  );
+}
+
 function PatientPanel({
   detail,
   busy,
   error,
+  selectedReferralId,
+  referralDetail,
+  referralBusy,
+  referralError,
   onClose,
   onHistoryPage,
+  onReferralPage,
+  onReferralOpen,
+  onReferralStatusPage,
+  onReferralFollowupPage,
 }: Readonly<{
   detail: PatientDetail | null;
   busy: boolean;
   error: string | null;
+  selectedReferralId: string | null;
+  referralDetail: PatientReferralDetail | null;
+  referralBusy: boolean;
+  referralError: string | null;
   onClose: () => void;
   onHistoryPage: (page: number) => void;
+  onReferralPage: (page: number) => void;
+  onReferralOpen: (referralId: string) => void;
+  onReferralStatusPage: (page: number) => void;
+  onReferralFollowupPage: (page: number) => void;
 }>) {
   if (!detail && !busy && !error) return null;
   return (
@@ -367,6 +587,29 @@ function PatientPanel({
               <div><dt>Alternate phone</dt><dd>{displayValue(detail.alternateContactPhone)}</dd></div>
             </dl>
           </section>
+          <section className="detail-section referral-history">
+            <div className="section-heading">
+              <div><p className="eyebrow">Accepted canonical data only</p><h3>Referral history</h3></div>
+              <span>{detail.referralHistory.totalItems} referral{detail.referralHistory.totalItems === 1 ? '' : 's'}</span>
+            </div>
+            <ReferralHistory
+              patient={detail}
+              selectedReferralId={selectedReferralId}
+              referralDetail={referralDetail}
+              referralBusy={referralBusy}
+              referralError={referralError}
+              onOpen={onReferralOpen}
+              onStatusPage={onReferralStatusPage}
+              onFollowupPage={onReferralFollowupPage}
+            />
+            <Pagination
+              page={detail.referralHistory.page}
+              totalPages={detail.referralHistory.totalPages}
+              onPage={onReferralPage}
+              busy={busy}
+              ariaLabel="Patient referral history pages"
+            />
+          </section>
           <section className="detail-section clinical-history">
             <div className="section-heading">
               <div><p className="eyebrow">Accepted canonical data only</p><h3>Screening history</h3></div>
@@ -401,7 +644,12 @@ export default function App({ config }: AppProps) {
   const [detail, setDetail] = useState<PatientDetail | null>(null);
   const [detailBusy, setDetailBusy] = useState(false);
   const [detailError, setDetailError] = useState<string | null>(null);
+  const [selectedReferralId, setSelectedReferralId] = useState<string | null>(null);
+  const [referralDetail, setReferralDetail] = useState<PatientReferralDetail | null>(null);
+  const [referralBusy, setReferralBusy] = useState(false);
+  const [referralError, setReferralError] = useState<string | null>(null);
   const requestSequence = useRef(0);
+  const referralRequestSequence = useRef(0);
   const signInCompletion = useRef<Promise<AuthSession> | null>(null);
 
   const api = useMemo(
@@ -442,6 +690,11 @@ export default function App({ config }: AppProps) {
     setSearchError(null);
     setDetail(null);
     setSelectedId(null);
+    referralRequestSequence.current += 1;
+    setSelectedReferralId(null);
+    setReferralDetail(null);
+    setReferralError(null);
+    setReferralBusy(false);
     try {
       const result = await api.searchPatients({
         reasonCode: reason,
@@ -463,19 +716,30 @@ export default function App({ config }: AppProps) {
     }
   }
 
-  async function openPatient(patient: PatientListItem, page = 1): Promise<void> {
+  async function openPatient(
+    patient: PatientListItem,
+    page = 1,
+    referralPage = 1,
+  ): Promise<void> {
     if (!api || !reason) return;
     const sequence = ++requestSequence.current;
+    referralRequestSequence.current += 1;
     setSelectedId(patient.personId);
     setDetailBusy(true);
     setDetailError(null);
-    if (page === 1) setDetail(null);
+    setSelectedReferralId(null);
+    setReferralDetail(null);
+    setReferralError(null);
+    setReferralBusy(false);
+    if (page === 1 && referralPage === 1) setDetail(null);
     try {
       const patientDetail = await api.getPatientDetail({
         reasonCode: reason,
         personId: patient.personId,
         page,
         pageSize: 10,
+        referralPage,
+        referralPageSize: 5,
       });
       if (sequence === requestSequence.current) setDetail(patientDetail);
     } catch (error) {
@@ -486,14 +750,51 @@ export default function App({ config }: AppProps) {
     }
   }
 
+  async function openReferral(
+    referralId: string,
+    statusPage = 1,
+    followupPage = 1,
+  ): Promise<void> {
+    if (!api || !reason || !selectedId) return;
+    const sequence = ++referralRequestSequence.current;
+    setSelectedReferralId(referralId);
+    setReferralBusy(true);
+    setReferralError(null);
+    if (statusPage === 1 && followupPage === 1) setReferralDetail(null);
+    try {
+      const result = await api.getPatientReferralDetail({
+        reasonCode: reason,
+        personId: selectedId,
+        referralId,
+        statusPage,
+        statusPageSize: 10,
+        followupPage,
+        followupPageSize: 5,
+      });
+      if (sequence === referralRequestSequence.current) setReferralDetail(result);
+    } catch (error) {
+      handleUnauthorized(error);
+      if (sequence === referralRequestSequence.current) {
+        setReferralError(friendlyError(error));
+      }
+    } finally {
+      if (sequence === referralRequestSequence.current) setReferralBusy(false);
+    }
+  }
+
   function clearPatientData(): void {
     requestSequence.current += 1;
+    referralRequestSequence.current += 1;
     setResults(null);
     setSubmittedForm(null);
     setSelectedId(null);
     setDetail(null);
     setSearchError(null);
     setDetailError(null);
+    setSelectedReferralId(null);
+    setReferralDetail(null);
+    setReferralError(null);
+    setReferralBusy(false);
   }
 
   if (!session) {
@@ -697,16 +998,48 @@ export default function App({ config }: AppProps) {
           detail={detail}
           busy={detailBusy}
           error={detailError}
+          selectedReferralId={selectedReferralId}
+          referralDetail={referralDetail}
+          referralBusy={referralBusy}
+          referralError={referralError}
           onClose={() => {
             requestSequence.current += 1;
+            referralRequestSequence.current += 1;
             setSelectedId(null);
             setDetail(null);
             setDetailError(null);
             setDetailBusy(false);
+            setSelectedReferralId(null);
+            setReferralDetail(null);
+            setReferralError(null);
+            setReferralBusy(false);
           }}
           onHistoryPage={(page) => {
             const patient = results?.items.find((item) => item.personId === selectedId);
-            if (patient) void openPatient(patient, page);
+            if (patient) void openPatient(patient, page, detail?.referralHistory.page ?? 1);
+          }}
+          onReferralPage={(page) => {
+            const patient = results?.items.find((item) => item.personId === selectedId);
+            if (patient) void openPatient(patient, detail?.screeningHistory.page ?? 1, page);
+          }}
+          onReferralOpen={(referralId) => void openReferral(referralId)}
+          onReferralStatusPage={(page) => {
+            if (selectedReferralId) {
+              void openReferral(
+                selectedReferralId,
+                page,
+                referralDetail?.followupHistory.page ?? 1,
+              );
+            }
+          }}
+          onReferralFollowupPage={(page) => {
+            if (selectedReferralId) {
+              void openReferral(
+                selectedReferralId,
+                referralDetail?.statusHistory.page ?? 1,
+                page,
+              );
+            }
           }}
         />
       ) : null}

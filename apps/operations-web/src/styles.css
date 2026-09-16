@@ -198,6 +198,8 @@ td small { margin-top: 4px; color: var(--muted); font-size: .72rem; }
 .status-inactive, .status-draft { color: #785716; background: #fff4d9; }
 .status-deceased { color: #5e6264; background: #eceff0; }
 .status-amended { color: #735229; background: #f5e9d9; }
+.status-urgent { color: #8a2424; background: #fee7e7; }
+.status-closed, .status-unable_to_confirm { color: #5e6264; background: #eceff0; }
 
 .patient-assurance { padding: 22px 28px; border-bottom: 1px solid var(--line); background: #fbfdfc; }
 .patient-assurance-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 13px; }
@@ -237,6 +239,7 @@ dl div { min-width: 0; }
 dt { margin-bottom: 6px; color: var(--muted); font-size: .71rem; font-weight: 700; text-transform: uppercase; letter-spacing: .045em; }
 dd { margin: 0; overflow-wrap: anywhere; font-size: .87rem; font-weight: 650; }
 .clinical-history { background: #f7faf9; }
+.referral-history { background: #f3f8f7; }
 .section-heading { display: flex; align-items: end; justify-content: space-between; gap: 20px; margin-bottom: 16px; }
 .section-heading h3 { margin: 0; }
 .section-heading > span { color: var(--muted); font-size: .75rem; }
@@ -260,6 +263,45 @@ dd { margin: 0; overflow-wrap: anywhere; font-size: .87rem; font-weight: 650; }
 .reading-row small { color: var(--muted); font-weight: 500; }
 .empty-inline { margin: 12px 20px 18px; padding: 14px; border-radius: 8px; color: var(--muted); background: var(--surface-soft); font-size: .78rem; text-align: center; }
 .amendment-note { margin: 0 20px 15px; padding: 10px 12px; border-radius: 7px; color: #6d4d22; background: #fff6e9; font-size: .76rem; }
+
+.referral-list { display: grid; gap: 14px; }
+.referral-card { overflow: hidden; border: 1px solid var(--line); border-radius: 13px; background: white; }
+.referral-card > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding: 17px 19px; border-bottom: 1px solid #e4ecea; }
+.referral-card h4 { margin: 0 0 4px; font-size: .98rem; }
+.referral-card header p:last-child { margin: 0; color: var(--muted); font-size: .73rem; }
+.referral-badges { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+.referral-summary-grid, .referral-detail-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin: 0; padding: 15px 19px; }
+.referral-summary-grid dd, .referral-detail-grid dd { font-size: .76rem; }
+.referral-note, .referral-warning, .referral-closure { margin: 0 19px 12px; padding: 10px 12px; border-radius: 7px; font-size: .74rem; line-height: 1.5; }
+.referral-note { color: #315e57; background: #eef7f4; }
+.referral-warning { color: #785716; background: #fff4d9; }
+.referral-closure { color: #4f5a58; background: #f0f3f2; }
+.referral-actions { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 19px 16px; }
+.referral-actions > span { color: var(--muted); font-size: .7rem; }
+.referral-loading { margin: 0 19px 17px; padding: 16px; border-radius: 8px; color: var(--muted); background: var(--surface-soft); font-size: .76rem; text-align: center; }
+.referral-card > .alert { margin: 0 19px 17px; }
+.referral-detail { display: grid; gap: 20px; padding: 18px 19px 20px; border-top: 1px solid #dce7e4; background: #f7faf9; }
+.referral-detail > section + section { padding-top: 19px; border-top: 1px solid #dce7e4; }
+.referral-subheading { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 11px; }
+.referral-subheading h5 { margin: 0; font-size: .84rem; }
+.referral-subheading span { color: var(--muted); font-size: .68rem; }
+.referral-status-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.referral-status-list li { padding: 11px 12px; border: 1px solid #dde7e4; border-radius: 8px; background: white; }
+.referral-status-list li > div { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.referral-status-list strong { font-size: .77rem; }
+.referral-status-list span, .referral-status-list small { color: var(--muted); font-size: .66rem; }
+.referral-status-list p { margin: 5px 0; font-size: .72rem; }
+.referral-followups { display: grid; gap: 10px; }
+.referral-followups > article { overflow: hidden; border: 1px solid #dce6e3; border-radius: 9px; background: white; }
+.referral-followups header { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; padding: 12px 14px; border-bottom: 1px solid #e8eeec; }
+.referral-followups header strong, .referral-followups header span { display: block; }
+.referral-followups header strong { font-size: .8rem; }
+.referral-followups header span, .referral-followups header small { color: var(--muted); font-size: .66rem; }
+.referral-detail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 13px 14px; }
+.referral-reported-items { margin: 0 14px 13px; padding: 10px 12px; border-radius: 7px; background: var(--surface-soft); font-size: .71rem; }
+.referral-reported-items > strong { display: block; margin-bottom: 5px; color: var(--primary-dark); }
+.referral-reported-items ul { margin: 0; padding-left: 18px; }
+.referral-reported-items li + li { margin-top: 3px; }
 
 .lifestyle-assessment { padding: 19px 20px 20px; border-top: 1px solid #dce7e4; background: #f5f9f8; }
 .lifestyle-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
@@ -434,7 +476,7 @@ dd { margin: 0; overflow-wrap: anywhere; font-size: .87rem; font-weight: 650; }
   .workspace-nav button { flex: 1; }
   .topbar { flex-wrap: wrap; }
   .secure-indicator { display: none; }
-  .detail-grid, .screening-meta { grid-template-columns: repeat(2, 1fr); }
+  .detail-grid, .screening-meta, .referral-summary-grid { grid-template-columns: repeat(2, 1fr); }
   .sync-summary { grid-template-columns: repeat(3, 1fr); }
   .sync-context-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .identity-evidence-grid, .candidate-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -456,6 +498,9 @@ dd { margin: 0; overflow-wrap: anywhere; font-size: .87rem; font-weight: 650; }
   .source-provenance-item dl { grid-template-columns: 1fr; }
   .detail-section { padding: 23px 18px; }
   .detail-grid, .screening-meta { grid-template-columns: 1fr 1fr; }
+  .referral-card > header, .referral-actions { align-items: flex-start; flex-direction: column; }
+  .referral-badges { justify-content: flex-start; }
+  .referral-summary-grid, .referral-detail-grid { grid-template-columns: 1fr; }
   .measurements { grid-template-columns: 1fr; }
   .measurements > div { border-right: 0; border-bottom: 1px solid #e7edeb; }
   .measurements > div:last-child { border-bottom: 0; }

@@ -45,7 +45,8 @@ audit evidence.
 | `POST /api/v1/sync/identity-resolutions/pull` | Installation bearer | Pull pending central identity decisions. |
 | `POST /api/v1/sync/identity-resolutions/acknowledge` | Installation bearer | Acknowledge a durable desktop identity update. |
 | `POST /api/v1/operations/patients/search` | OIDC + `PATIENT_READ` | Reason-gated paginated canonical patient search. |
-| `POST /api/v1/operations/patients/detail` | OIDC + `PATIENT_READ` | Canonical timeline, vitals, Lifestyle, assurance, and provenance. |
+| `POST /api/v1/operations/patients/detail` | OIDC + `PATIENT_READ` | Canonical timeline, paginated referral summaries, vitals, Lifestyle, assurance, and provenance. |
+| `POST /api/v1/operations/patients/referrals/detail` | OIDC + `PATIENT_READ` | Separately paginated status events and follow-ups for one scoped referral. |
 | `POST /api/v1/operations/medical-id-recovery/search` | OIDC + `MEDICAL_ID_RECOVER` | Create an expiring case and return masked candidates. |
 | `POST /api/v1/operations/medical-id-recovery/reveal` | OIDC + `MEDICAL_ID_RECOVER` | Reveal one verified existing ID once. |
 | `POST /api/v1/operations/identity-reviews/search` | OIDC + `IDENTITY_REVIEW` | Search scoped review cases. |
@@ -64,6 +65,12 @@ Release 1 HTTP endpoint.
   validation.
 - Operations list routes use server-side pagination with bounded page sizes;
   the browser never downloads the full patient or support dataset.
+- Referral summaries paginate independently from screenings. One referral's
+  immutable status events and follow-ups also paginate independently, while
+  each follow-up's treatment actions and medication rows are schema-bounded.
+- Referral history remains visible when its originating encounter is voided;
+  the response carries the encounter lifecycle state instead of presenting the
+  voided encounter as an active screening.
 - Operations POST bodies carry filters and reason codes so patient values do not
   enter URLs, proxy logs, or browser history.
 - Every response sets `Cache-Control: no-store`; sensitive operations responses

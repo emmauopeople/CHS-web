@@ -256,6 +256,98 @@ export type PatientScreeningView = Readonly<{
   lifestyle: LifestyleAssessmentView | null;
 }>;
 
+export type ReferralStatus =
+  | 'OPEN'
+  | 'CONTACTED'
+  | 'SEEN'
+  | 'UNABLE_TO_CONFIRM'
+  | 'CLOSED';
+
+export type PatientReferralView = Readonly<{
+  referralId: string;
+  encounterId: string;
+  encounterStatus: 'DRAFT' | 'COMPLETED' | 'AMENDED' | 'VOID';
+  organizationName: string;
+  locationName: string;
+  reasonCodes: readonly string[];
+  reasonText: string | null;
+  urgency: 'STANDARD' | 'URGENT';
+  destinationName: string | null;
+  dueDate: string | null;
+  status: ReferralStatus;
+  createdAt: string;
+  updatedAt: string;
+  closedAt: string | null;
+  closureReason: string | null;
+  createdByPractitionerName: string;
+  updatedByPractitionerName: string;
+  closedByPractitionerName: string | null;
+  statusEventCount: number;
+  followupCount: number;
+  lastFollowupAt: string | null;
+  sourceRevision: number;
+  lastReceivedAt: string;
+}>;
+
+export type PatientReferralStatusEventView = Readonly<{
+  statusEventId: string;
+  sequenceNumber: number;
+  fromStatus: ReferralStatus | null;
+  toStatus: ReferralStatus;
+  changeReason: string | null;
+  changedByPractitionerName: string;
+  changedAt: string;
+}>;
+
+export type PatientReferralFollowupView = Readonly<{
+  followupId: string;
+  contactDate: string;
+  contactMethod: string;
+  informationSource: string;
+  providerSeen: boolean | null;
+  facilityName: string | null;
+  dateSeen: string | null;
+  reportedOutcome: string | null;
+  reportedMedicationsOrAdvice: string | null;
+  nextAction: string | null;
+  nextFollowupDate: string | null;
+  sourceType: string;
+  recordedByPractitionerName: string;
+  recordedAt: string;
+  treatmentActions: readonly Readonly<{
+    sequenceNumber: number;
+    actionCode:
+      | 'TREATMENT_INITIATED'
+      | 'TREATMENT_MODIFIED'
+      | 'NEW_MEDICATION';
+  }>[];
+  medicationChanges: readonly Readonly<{
+    sequenceNumber: number;
+    changeType: 'TREATMENT_MODIFIED' | 'NEW_MEDICATION';
+    medicationName: string;
+    dosage: string | null;
+    frequency: string | null;
+  }>[];
+}>;
+
+export type PatientReferralDetail = Readonly<{
+  referral: PatientReferralView;
+  statusHistory: Readonly<{
+    page: number;
+    pageSize: number;
+    totalItems: number;
+    totalPages: number;
+    items: readonly PatientReferralStatusEventView[];
+  }>;
+  followupHistory: Readonly<{
+    page: number;
+    pageSize: number;
+    totalItems: number;
+    totalPages: number;
+    items: readonly PatientReferralFollowupView[];
+  }>;
+}>;
+
 export type PatientDetail = Readonly<{
   personId: string;
   chsMedicalId: string;
@@ -298,6 +390,13 @@ export type PatientDetail = Readonly<{
     totalItems: number;
     totalPages: number;
     items: readonly PatientScreeningView[];
+  }>;
+  referralHistory: Readonly<{
+    page: number;
+    pageSize: number;
+    totalItems: number;
+    totalPages: number;
+    items: readonly PatientReferralView[];
   }>;
 }>;
 

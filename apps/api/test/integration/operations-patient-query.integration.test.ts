@@ -6,6 +6,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { migrateWithClient } from '../../../../packages/database/src/migration-runner.mjs';
 import {
   getCanonicalPatientDetail,
+  getCanonicalPatientReferralDetail,
   listCanonicalPatients,
 } from '../../src/operations/patient-query.js';
 
@@ -135,6 +136,25 @@ runIntegration('canonical patient query service', () => {
         totalItems: 1,
         totalPages: 1,
       },
+      referralHistory: {
+        totalItems: 1,
+        totalPages: 1,
+        items: [
+          {
+            referralId: '57000000-0000-4000-8000-000000000001',
+            encounterId: '51000000-0000-4000-8000-000000000002',
+            encounterStatus: 'VOID',
+            organizationName: 'Synthetic Program One',
+            locationName: 'Synthetic Site One',
+            reasonCodes: ['BP_SCREENING_REFERRAL'],
+            urgency: 'URGENT',
+            status: 'CONTACTED',
+            statusEventCount: 2,
+            followupCount: 1,
+            sourceRevision: 2,
+          },
+        ],
+      },
     });
     expect(detail?.screeningHistory.items).toEqual([
       expect.objectContaining({
@@ -244,6 +264,9 @@ runIntegration('canonical patient query service', () => {
     expect(serializedDetail).not.toContain(
       '54000000-0000-4000-8000-000000000001',
     );
+    expect(serializedDetail).not.toContain(
+      '57300000-0000-4000-8000-000000000001',
+    );
 
     const otherOrganizationDetail = await getCanonicalPatientDetail(
       servicePool,
@@ -269,6 +292,7 @@ runIntegration('canonical patient query service', () => {
         ],
       },
       screeningHistory: { totalItems: 0, items: [] },
+      referralHistory: { totalItems: 0, items: [] },
     });
 
     await expect(
@@ -300,6 +324,69 @@ runIntegration('canonical patient query service', () => {
         lastSynchronizedAt: '2026-08-20T12:00:00.000Z',
       },
     });
+
+    const referralDetail = await getCanonicalPatientReferralDetail(
+      servicePool,
+      scope,
+      patientA,
+      '57000000-0000-4000-8000-000000000001',
+      { statusPageSize: 1, followupPageSize: 1 },
+    );
+    expect(referralDetail).toMatchObject({
+      referral: {
+        encounterStatus: 'VOID',
+        status: 'CONTACTED',
+        destinationName: 'Synthetic District Clinic',
+      },
+      statusHistory: {
+        page: 1,
+        pageSize: 1,
+        totalItems: 2,
+        totalPages: 2,
+        items: [
+          {
+            sequenceNumber: 2,
+            fromStatus: 'OPEN',
+            toStatus: 'CONTACTED',
+            changedByPractitionerName: 'Synthetic Nurse One',
+          },
+        ],
+      },
+      followupHistory: {
+        page: 1,
+        pageSize: 1,
+        totalItems: 1,
+        totalPages: 1,
+        items: [
+          {
+            contactDate: '2026-08-19',
+            providerSeen: true,
+            facilityName: 'Synthetic District Clinic',
+            treatmentActions: [
+              { sequenceNumber: 1, actionCode: 'NEW_MEDICATION' },
+            ],
+            medicationChanges: [
+              expect.objectContaining({
+                sequenceNumber: 1,
+                changeType: 'NEW_MEDICATION',
+                medicationName: 'Synthetic medicine',
+              }),
+            ],
+          },
+        ],
+      },
+    });
+    expect(JSON.stringify(referralDetail)).not.toContain(
+      '57300000-0000-4000-8000-000000000001',
+    );
+    await expect(
+      getCanonicalPatientReferralDetail(
+        servicePool,
+        { kind: 'ORGANIZATIONS', organizationIds: [org2] },
+        patientA,
+        '57000000-0000-4000-8000-000000000001',
+      ),
+    ).resolves.toBeNull();
   });
 });
 
@@ -573,6 +660,8 @@ async function seedCanonicalViewerData(pool: pg.Pool) {
     completedAt: '2026-08-18T13:30:00.000Z',
   });
 
+  await insertReferralHistory(pool);
+
   await pool.query(
     `INSERT INTO screening_vital_sets (
        id, encounter_id, person_id, installation_id, local_vitals_id, status,
@@ -627,6 +716,96 @@ async function seedCanonicalViewerData(pool: pg.Pool) {
        review_case_id, person_id, score, matched_on, created_at
      ) VALUES ($1, $2, 80, ARRAY['NAME'], $3)`,
     ['54000000-0000-4000-8000-000000000001', patientA, now],
+  );
+}
+
+async function insertReferralHistory(pool: pg.Pool) {
+  const installationId = '20000000-0000-4000-8000-000000000001';
+  const practitionerId = '60000000-0000-4000-8000-000000000001';
+  const referralId = '57000000-0000-4000-8000-000000000001';
+  const firstStatusId = '57100000-0000-4000-8000-000000000001';
+  const secondStatusId = '57100000-0000-4000-8000-000000000002';
+  const followupId = '57200000-0000-4000-8000-000000000001';
+
+  for (const resource of [
+    { id: referralId, type: 'REFERRAL', localId: '57010000-0000-4000-8000-000000000001', revision: 2 },
+    { id: firstStatusId, type: 'REFERRAL_STATUS', localId: '57110000-0000-4000-8000-000000000001', revision: 1 },
+    { id: secondStatusId, type: 'REFERRAL_STATUS', localId: '57110000-0000-4000-8000-000000000002', revision: 1 },
+    { id: followupId, type: 'REFERRAL_FOLLOWUP', localId: '57210000-0000-4000-8000-000000000001', revision: 1 },
+  ]) {
+    await pool.query(
+      `INSERT INTO referral_resources (
+         id, installation_id, resource_type, local_resource_id,
+         source_revision, source_content_hash, received_at
+       ) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [
+        resource.id,
+        installationId,
+        resource.type,
+        resource.localId,
+        resource.revision,
+        hash,
+        '2026-08-19T10:01:00.000Z',
+      ],
+    );
+  }
+
+  await pool.query(
+    `INSERT INTO referral_snapshots (
+       id, installation_id, encounter_id, person_id,
+       created_by_practitioner_id, updated_by_practitioner_id,
+       closed_by_practitioner_id, reason_codes, reason_text, urgency,
+       destination_name, due_date, status, created_at, updated_at,
+       closed_at, closure_reason
+     ) VALUES (
+       $1, $2, '51000000-0000-4000-8000-000000000002', $3,
+       $4, $4, NULL, ARRAY['BP_SCREENING_REFERRAL'],
+       'Elevated blood pressure requires provider assessment.', 'URGENT',
+       'Synthetic District Clinic', '2026-08-20', 'CONTACTED',
+       '2026-08-18T12:20:00.000Z', '2026-08-19T10:00:00.000Z',
+       NULL, NULL
+     )`,
+    [referralId, installationId, patientA, practitionerId],
+  );
+  await pool.query(
+    `INSERT INTO referral_status_events (
+       id, installation_id, referral_id, sequence_number, from_status,
+       to_status, change_reason, changed_by_practitioner_id, changed_at
+     ) VALUES
+       ($1, $3, $4, 1, NULL, 'OPEN', 'AUTOMATIC_SCREENING_REFERRAL', $5,
+        '2026-08-18T12:20:00.000Z'),
+       ($2, $3, $4, 2, 'OPEN', 'CONTACTED', 'Patient reached by phone', $5,
+        '2026-08-19T10:00:00.000Z')`,
+    [firstStatusId, secondStatusId, installationId, referralId, practitionerId],
+  );
+  await pool.query(
+    `INSERT INTO referral_followups (
+       id, installation_id, referral_id, contact_date, contact_method,
+       information_source, provider_seen, facility_name, date_seen,
+       reported_outcome, reported_medications_or_advice, next_action,
+       next_followup_date, source_type, recorded_by_practitioner_id, recorded_at
+     ) VALUES (
+       $1, $2, $3, '2026-08-19', 'PHONE', 'PATIENT', true,
+       'Synthetic District Clinic', '2026-08-19',
+       'Patient reports provider assessment completed.',
+       'Reduce salt and continue monitoring.',
+       'Confirm blood pressure at next visit.', '2026-08-26',
+       'PATIENT_REPORTED', $4, '2026-08-19T10:00:00.000Z'
+     )`,
+    [followupId, installationId, referralId, practitionerId],
+  );
+  await pool.query(
+    `INSERT INTO referral_treatment_actions (
+       followup_id, local_action_id, sequence_number, action_code
+     ) VALUES ($1, $2, 1, 'NEW_MEDICATION')`,
+    [followupId, '57300000-0000-4000-8000-000000000001'],
+  );
+  await pool.query(
+    `INSERT INTO referral_medication_changes (
+       followup_id, local_medication_change_id, sequence_number, change_type,
+       medication_name, dosage, frequency
+     ) VALUES ($1, $2, 1, 'NEW_MEDICATION', 'Synthetic medicine', '5 mg', 'Daily')`,
+    [followupId, '57400000-0000-4000-8000-000000000001'],
   );
 }
 

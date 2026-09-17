@@ -205,6 +205,7 @@ export function PatientHistory({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(0);
+  const historyHeading = useRef<HTMLHeadingElement>(null);
   const cursors = useRef<(string | undefined)[]>([undefined]);
   const sequence = useRef(0);
   // A component key binds this state to one patient/reason; cleanup also rejects
@@ -223,6 +224,20 @@ export function PatientHistory({
     setPage(0);
     cursors.current = [undefined];
     update();
+  }
+  function backToTop() {
+    historyHeading.current?.focus({ preventScroll: true });
+    historyHeading.current?.scrollIntoView({
+      block: 'start',
+      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        ? 'instant'
+        : 'smooth',
+    });
+  }
+  function closeHistory() {
+    // Invalidate pending pages so a late response cannot reopen closed history.
+    changeQuery(() => {});
+    backToTop();
   }
   async function load(index = 0) {
     const request = ++sequence.current;
@@ -286,7 +301,9 @@ export function PatientHistory({
       <div className="section-heading">
         <div>
           <p className="eyebrow">Accepted canonical data only</p>
-          <h3>Addenda, review, Food and OTC</h3>
+          <h3 ref={historyHeading} tabIndex={-1} className="history-heading">
+            Addenda, review, Food and OTC
+          </h3>
         </div>
       </div>
       <form
@@ -332,7 +349,7 @@ export function PatientHistory({
             ))}
           </select>
         </label>
-        <button type="submit" className="secondary-button" disabled={busy}>
+        <button type="submit" className="button button-primary" disabled={busy}>
           {result || error ? 'Refresh history' : 'Load history'}
         </button>
       </form>
@@ -365,7 +382,7 @@ export function PatientHistory({
           <nav className="history-pages" aria-label="Additional history pages">
             <button
               type="button"
-              className="secondary-button"
+              className="button button-quiet"
               disabled={busy || page === 0}
               onClick={() => void load(page - 1)}
             >
@@ -374,13 +391,29 @@ export function PatientHistory({
             <span>Page {page + 1}</span>
             <button
               type="button"
-              className="secondary-button"
+              className="button button-quiet"
               disabled={busy || !result.nextCursor}
               onClick={() => void load(page + 1)}
             >
               Next
             </button>
           </nav>
+          <div className="history-actions">
+            <button
+              type="button"
+              className="button button-quiet"
+              onClick={backToTop}
+            >
+              <span aria-hidden="true">↑</span> Back to top
+            </button>
+            <button
+              type="button"
+              className="button button-quiet"
+              onClick={closeHistory}
+            >
+              Close history
+            </button>
+          </div>
         </>
       ) : !busy && !error ? (
         <p className="history-empty">

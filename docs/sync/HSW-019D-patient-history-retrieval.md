@@ -77,7 +77,11 @@ synchronization outbox.
 The existing patient, screening and referral views remain. A new section loads
 addenda, review flags/status changes, Food and OTC with date/type filters,
 Previous/Next pages, author/time/source attribution and explicit void/amendment
-labels. It displays each accepted source value, including review resolution
+labels. Bottom controls provide **Back to top** (return to the history filters)
+and **Close history** (collapse the records while keeping the patient and selected
+filters open). Both return keyboard focus to the history heading; scrolling
+respects reduced-motion preferences. Closing also discards pending page results.
+It displays each accepted source value, including review resolution
 reasons and Food/OTC row provenance. Old requests cannot overwrite a newly opened
 patient or a changed filter. A changed/expired traversal offers refresh; no
 clinical history is placed in browser local storage.

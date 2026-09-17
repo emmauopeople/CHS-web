@@ -534,6 +534,8 @@ dd { margin: 0; overflow-wrap: anywhere; font-size: .87rem; font-weight: 650; }
 }
 
 .additional-history { background: #f6faf9; }
+.history-heading { scroll-margin-top: 18px; }
+.history-heading:focus-visible { outline: 2px solid var(--primary); outline-offset: 4px; border-radius: 3px; }
 .history-filters { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; align-items: end; }
 .history-filters label { display: grid; gap: 5px; font-size: .73rem; color: var(--muted); }
 .history-filters input, .history-filters select { width: 100%; min-width: 0; }
@@ -553,4 +555,6 @@ dd { margin: 0; overflow-wrap: anywhere; font-size: .87rem; font-weight: 650; }
 .history-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0; }
 .history-fields dd { overflow-wrap: anywhere; }
 .history-pages { display: flex; align-items: center; justify-content: space-between; margin-top: 15px; font-size: .73rem; }
+.history-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
+.history-filters .button, .history-pages .button, .history-actions .button { font-size: .8rem; }
 @media (max-width: 520px) { .history-filters, .history-fields { grid-template-columns: 1fr; } }

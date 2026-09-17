@@ -643,11 +643,11 @@ async function seedInstallation(
   const location = randomUUID(),
     protocol = randomUUID();
   await pool.query(
-    `INSERT INTO organizations(id,identifier_system,identifier_value,name,organization_type_code,created_at,updated_at) VALUES ($1,'urn:synthetic:org',$1::text,'Synthetic program','PROGRAM',$2,$2) ON CONFLICT DO NOTHING`,
+    `INSERT INTO organizations(id,identifier_system,identifier_value,name,organization_type_code,created_at,updated_at) VALUES ($1::uuid,'urn:synthetic:org',$1::uuid::text,'Synthetic program','PROGRAM',$2,$2) ON CONFLICT DO NOTHING`,
     [organizationId, time],
   );
   await pool.query(
-    `INSERT INTO locations(id,organization_id,identifier_system,identifier_value,name,location_type_code,created_at,updated_at) VALUES ($1,$2,'urn:synthetic:location',$1::text,'Synthetic site','SCREENING_SITE',$3,$3)`,
+    `INSERT INTO locations(id,organization_id,identifier_system,identifier_value,name,location_type_code,created_at,updated_at) VALUES ($1::uuid,$2,'urn:synthetic:location',$1::uuid::text,'Synthetic site','SCREENING_SITE',$3,$3)`,
     [location, organizationId, time],
   );
   await pool.query(

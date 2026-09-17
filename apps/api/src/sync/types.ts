@@ -18,7 +18,10 @@ export type SyncResourceType =
   | 'OTC'
   | 'REFERRAL'
   | 'REFERRAL_STATUS'
-  | 'REFERRAL_FOLLOWUP';
+  | 'REFERRAL_FOLLOWUP'
+  | 'ENCOUNTER_ADDENDUM'
+  | 'ENCOUNTER_REVIEW_FLAG'
+  | 'ENCOUNTER_REVIEW_STATUS';
 
 export type SyncRecordSnapshot = Readonly<{
   recordId: string;
@@ -488,7 +491,8 @@ export type SyncRecordOutcome =
   | VitalsRecordOutcome
   | LifestyleRecordOutcome
   | ReportedIntakeOutcome
-  | ReferralOutcome;
+  | ReferralOutcome
+  | EncounterHistoryOutcome;
 
 export type SyncBatchStatus = 'ACCEPTED' | 'PARTIAL' | 'REJECTED';
 
@@ -624,3 +628,44 @@ export type ReferralRecord = Omit<
   );
 export type ReferralOutcome = Omit<VitalsRecordOutcome, 'resourceType'> &
   Readonly<{ resourceType: ReferralRecord['resourceType'] }>;
+
+export type ReviewFlagStatus = 'OPEN' | 'RESOLVED' | 'DISMISSED';
+export type EncounterHistoryRecord = Omit<
+  SyncRecordSnapshot, 'payload' | 'resourceType'
+> & (
+  | Readonly<{
+      resourceType: 'ENCOUNTER_ADDENDUM';
+      payload: Readonly<{
+        localEncounterId: string;
+        noteText: string;
+        createdByLocalActorId: string;
+        createdAt: string;
+      }>;
+    }>
+  | Readonly<{
+      resourceType: 'ENCOUNTER_REVIEW_FLAG';
+      payload: Readonly<{
+        localEncounterId: string;
+        category: 'POSSIBLE_DATA_ERROR' | 'MISSING_INFORMATION' | 'WRONG_PATIENT'
+          | 'DUPLICATE_ENCOUNTER' | 'OTHER';
+        description: string;
+        openedByLocalActorId: string;
+        openedAt: string;
+      }>;
+    }>
+  | Readonly<{
+      resourceType: 'ENCOUNTER_REVIEW_STATUS';
+      payload: Readonly<{
+        localFlagId: string;
+        sequenceNumber: number;
+        fromStatus: ReviewFlagStatus | null;
+        toStatus: ReviewFlagStatus;
+        changeReason: string | null;
+        changedByLocalActorId: string;
+        changedAt: string;
+      }>;
+    }>
+);
+export type EncounterHistoryOutcome = Omit<VitalsRecordOutcome, 'resourceType'> & {
+  readonly resourceType: EncounterHistoryRecord['resourceType'];
+};

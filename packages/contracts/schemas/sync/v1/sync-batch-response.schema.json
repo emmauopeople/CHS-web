@@ -37,7 +37,7 @@
       "properties": {
         "recordId": { "$ref": "common.schema.json#/$defs/uuid" },
         "resourceType": {
-          "enum": ["PATIENT", "SCREENING_SESSION", "SCREENING_ENCOUNTER", "VITALS", "LIFESTYLE", "FOOD", "OTC", "REFERRAL", "REFERRAL_STATUS", "REFERRAL_FOLLOWUP"]
+          "enum": ["PATIENT", "SCREENING_SESSION", "SCREENING_ENCOUNTER", "VITALS", "LIFESTYLE", "FOOD", "OTC", "REFERRAL", "REFERRAL_STATUS", "REFERRAL_FOLLOWUP", "ENCOUNTER_ADDENDUM", "ENCOUNTER_REVIEW_FLAG", "ENCOUNTER_REVIEW_STATUS"]
         },
         "localResourceId": { "$ref": "common.schema.json#/$defs/uuid" },
         "sourceRevision": { "type": "integer", "minimum": 1 },

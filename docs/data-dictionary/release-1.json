@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "release": "1",
-  "migrationCount": 14,
-  "tableCount": 55,
+  "migrationCount": 15,
+  "tableCount": 59,
   "tables": [
     { "name": "schema_migrations", "domain": "migration", "classification": "METADATA", "viewerAccess": "NONE", "purpose": "Immutable migration version, checksum, and application-time ledger." },
     { "name": "organizations", "domain": "platform", "classification": "OPERATIONAL", "viewerAccess": "CANONICAL_PATIENT", "purpose": "Screening program or organization identity and status." },
@@ -58,6 +58,10 @@
     {"name": "referral_status_events", "domain": "clinical", "classification": "CLINICAL", "viewerAccess": "CANONICAL_PATIENT", "purpose": "Immutable ordered referral status history with practitioner attribution."},
     {"name": "referral_followups", "domain": "clinical", "classification": "CLINICAL", "viewerAccess": "CANONICAL_PATIENT", "purpose": "Immutable referral follow-up contacts with source and recording provenance."},
     {"name": "referral_treatment_actions", "domain": "clinical", "classification": "CLINICAL", "viewerAccess": "CANONICAL_PATIENT", "purpose": "Ordered treatment actions reported during a referral follow-up."},
-    {"name": "referral_medication_changes", "domain": "clinical", "classification": "CLINICAL", "viewerAccess": "CANONICAL_PATIENT", "purpose": "Ordered medication details associated with reported treatment actions."}
+    {"name": "referral_medication_changes", "domain": "clinical", "classification": "CLINICAL", "viewerAccess": "CANONICAL_PATIENT", "purpose": "Ordered medication details associated with reported treatment actions."},
+    {"name": "encounter_history_resources", "domain": "sync", "classification": "METADATA", "viewerAccess": "NONE", "purpose": "Source installation identities, immutable revisions and content hashes for encounter annotations."},
+    {"name": "encounter_addenda", "domain": "clinical", "classification": "CLINICAL", "viewerAccess": "NONE", "purpose": "Immutable encounter addenda with original authors and creation timestamps."},
+    {"name": "encounter_review_flags", "domain": "clinical", "classification": "CLINICAL", "viewerAccess": "NONE", "purpose": "Immutable review flag definitions linked to their original encounters and authors."},
+    {"name": "encounter_review_status_events", "domain": "clinical", "classification": "CLINICAL", "viewerAccess": "NONE", "purpose": "Append-only review opening, resolution, dismissal and reopening history with original authors and timestamps."}
   ]
 }

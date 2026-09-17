@@ -3,6 +3,7 @@ import type { Pool, PoolClient } from 'pg';
 import { validateSyncBatchResponse } from '../../../../packages/contracts/src/sync-validation.mjs';
 
 import { beginSyncBatch } from './batch-intake.js';
+import { processEncounterHistoryRecord } from './encounter-history.js';
 import { processReferralRecord } from './referrals.js';
 import { processReportedIntakeRecord } from './reported-intake.js';
 import { processLifestyleRecord } from './lifestyle.js';
@@ -76,6 +77,9 @@ const resourcePriority: Readonly<Record<SyncRecordSnapshot['resourceType'], numb
   REFERRAL: 7,
   REFERRAL_STATUS: 8,
   REFERRAL_FOLLOWUP: 9,
+  ENCOUNTER_ADDENDUM: 10,
+  ENCOUNTER_REVIEW_FLAG: 11,
+  ENCOUNTER_REVIEW_STATUS: 12,
 };
 
 export function orderSyncRecords(
@@ -124,6 +128,10 @@ function processorFor(
   if (override) return override;
 
   switch (record.resourceType) {
+    case 'ENCOUNTER_ADDENDUM':
+    case 'ENCOUNTER_REVIEW_FLAG':
+    case 'ENCOUNTER_REVIEW_STATUS':
+      return processEncounterHistoryRecord as Processor;
     case 'PATIENT':
       return processPatientRecord as Processor;
     case 'SCREENING_SESSION':
@@ -146,6 +154,10 @@ function processorFor(
 
 function typedRecord(record: SyncRecordSnapshot): never {
   switch (record.resourceType) {
+    case 'ENCOUNTER_ADDENDUM':
+    case 'ENCOUNTER_REVIEW_FLAG':
+    case 'ENCOUNTER_REVIEW_STATUS':
+      return record as never;
     case 'PATIENT':
       return record as PatientSyncRecord as never;
     case 'SCREENING_SESSION':

@@ -131,6 +131,9 @@ const syncResourceTypes = [
   'REFERRAL',
   'REFERRAL_STATUS',
   'REFERRAL_FOLLOWUP',
+  'ENCOUNTER_ADDENDUM',
+  'ENCOUNTER_REVIEW_FLAG',
+  'ENCOUNTER_REVIEW_STATUS',
 ];
 const syncOutcomeStatuses = [
   'PROCESSING',

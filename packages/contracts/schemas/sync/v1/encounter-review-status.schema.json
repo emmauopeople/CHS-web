@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chs.example/contracts/sync/v1/encounter-review-status.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "localFlagId",
+    "sequenceNumber",
+    "fromStatus",
+    "toStatus",
+    "changeReason",
+    "changedByLocalActorId",
+    "changedAt"
+  ],
+  "properties": {
+    "localFlagId": {
+      "$ref": "common.schema.json#/$defs/uuid"
+    },
+    "sequenceNumber": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "fromStatus": {
+      "oneOf": [
+        {
+          "enum": [
+            "OPEN",
+            "RESOLVED",
+            "DISMISSED"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "toStatus": {
+      "enum": [
+        "OPEN",
+        "RESOLVED",
+        "DISMISSED"
+      ]
+    },
+    "changeReason": {
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000,
+          "pattern": "\\S"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "changedByLocalActorId": {
+      "$ref": "common.schema.json#/$defs/uuid"
+    },
+    "changedAt": {
+      "$ref": "common.schema.json#/$defs/utcTimestamp"
+    }
+  }
+}

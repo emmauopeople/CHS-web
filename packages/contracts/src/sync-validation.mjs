@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs'
+import { encounterHistoryActorReferences, encounterHistorySemanticIssues } from './encounter-history-validation.mjs'
 import { referralActorReferences, referralSemanticIssues } from './referral-validation.mjs'
 
 import Ajv2020 from 'ajv/dist/2020.js'
@@ -15,6 +16,9 @@ const schemaPaths = Object.freeze([
   'schemas/sync/v1/lifestyle.schema.json',
   'schemas/sync/v1/food.schema.json',
   'schemas/sync/v1/otc.schema.json',
+  'schemas/sync/v1/encounter-addendum.schema.json',
+  'schemas/sync/v1/encounter-review-flag.schema.json',
+  'schemas/sync/v1/encounter-review-status.schema.json',
   'schemas/sync/v1/referral.schema.json',
   'schemas/sync/v1/referral-status.schema.json',
   'schemas/sync/v1/referral-followup.schema.json',
@@ -427,6 +431,11 @@ function semanticRequestIssues(request) {
           path: `/records/${recordIndex}/payload/rows`
         })
       }
+    } else if (record.resourceType.startsWith('ENCOUNTER_')) {
+      actorReferences.push(...encounterHistoryActorReferences(record))
+      issues.push(...encounterHistorySemanticIssues(record).map((issue) => ({
+        ...issue, path: `/records/${recordIndex}${issue.path}`
+      })))
     } else if (record.resourceType.startsWith('REFERRAL')) {
       actorReferences.push(...referralActorReferences(record))
       issues.push(

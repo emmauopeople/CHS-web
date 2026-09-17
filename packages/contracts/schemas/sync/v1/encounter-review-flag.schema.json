@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chs.example/contracts/sync/v1/encounter-review-flag.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "localEncounterId",
+    "category",
+    "description",
+    "openedByLocalActorId",
+    "openedAt"
+  ],
+  "properties": {
+    "localEncounterId": {
+      "$ref": "common.schema.json#/$defs/uuid"
+    },
+    "category": {
+      "enum": [
+        "POSSIBLE_DATA_ERROR",
+        "MISSING_INFORMATION",
+        "WRONG_PATIENT",
+        "DUPLICATE_ENCOUNTER",
+        "OTHER"
+      ]
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000,
+      "pattern": "\\S"
+    },
+    "openedByLocalActorId": {
+      "$ref": "common.schema.json#/$defs/uuid"
+    },
+    "openedAt": {
+      "$ref": "common.schema.json#/$defs/utcTimestamp"
+    }
+  }
+}

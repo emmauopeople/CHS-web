@@ -53,7 +53,10 @@
           { "$ref": "#/$defs/otcRecord" },
           { "$ref": "#/$defs/referralRecord" },
           { "$ref": "#/$defs/referralstatusRecord" },
-          { "$ref": "#/$defs/referralfollowupRecord" }
+          { "$ref": "#/$defs/referralfollowupRecord" },
+          { "$ref": "#/$defs/encounteraddendumRecord" },
+          { "$ref": "#/$defs/encounterreviewflagRecord" },
+          { "$ref": "#/$defs/encounterreviewstatusRecord" }
         ]
       }
     }
@@ -87,7 +90,7 @@
       "properties": {
         "recordId": { "$ref": "common.schema.json#/$defs/uuid" },
         "resourceType": {
-          "enum": ["PATIENT", "SCREENING_SESSION", "SCREENING_ENCOUNTER", "VITALS", "LIFESTYLE", "FOOD", "OTC", "REFERRAL", "REFERRAL_STATUS", "REFERRAL_FOLLOWUP"]
+          "enum": ["PATIENT", "SCREENING_SESSION", "SCREENING_ENCOUNTER", "VITALS", "LIFESTYLE", "FOOD", "OTC", "REFERRAL", "REFERRAL_STATUS", "REFERRAL_FOLLOWUP", "ENCOUNTER_ADDENDUM", "ENCOUNTER_REVIEW_FLAG", "ENCOUNTER_REVIEW_STATUS"]
         },
         "localResourceId": { "$ref": "common.schema.json#/$defs/uuid" },
         "sourceRevision": { "type": "integer", "minimum": 1 },
@@ -682,6 +685,84 @@
           }
         }
       ]
+    },
+    "encounteraddendumRecord": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/recordBase"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "resourceType": {
+              "const": "ENCOUNTER_ADDENDUM"
+            },
+            "sourceRevision": {
+              "const": 1
+            },
+            "schemaVersion": {
+              "const": "encounter-addendum.v1"
+            },
+            "payload": {
+              "$ref": "encounter-addendum.schema.json"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "encounterreviewflagRecord": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/recordBase"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "resourceType": {
+              "const": "ENCOUNTER_REVIEW_FLAG"
+            },
+            "sourceRevision": {
+              "const": 1
+            },
+            "schemaVersion": {
+              "const": "encounter-review-flag.v1"
+            },
+            "payload": {
+              "$ref": "encounter-review-flag.schema.json"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "encounterreviewstatusRecord": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/recordBase"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "resourceType": {
+              "const": "ENCOUNTER_REVIEW_STATUS"
+            },
+            "sourceRevision": {
+              "const": 1
+            },
+            "schemaVersion": {
+              "const": "encounter-review-status.v1"
+            },
+            "payload": {
+              "$ref": "encounter-review-status.schema.json"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
     }
   }
 }

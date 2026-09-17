@@ -3,7 +3,7 @@
 ## Purpose and authority
 
 This dictionary describes the PostgreSQL schema after migrations `0001` through
-`0014`. PostgreSQL constraints and the approved synchronization contracts remain
+`0015`. PostgreSQL constraints and the approved synchronization contracts remain
 the executable authority for field types and accepted values. The companion
 [`release-1.json`](release-1.json) catalog is checked against every `CREATE
 TABLE` statement and the migration ledger table during tests, so undocumented
@@ -143,3 +143,14 @@ The patient viewer exposes only bounded normalized referral fields. Installation
 local identifiers, content hashes, raw synchronization payloads, and rejected
 records remain server-side. Referral detail access requires `PATIENT_READ`, an
 explicit reason, server-derived organization scope, and an access audit.
+
+### HSW-019C encounter history (migration 0015)
+
+Canonical schema: 15 migrations and 59 tables. These tables are not exposed through Patient Viewer in this increment.
+
+| Table | Ownership and purpose | Viewer access |
+| --- | --- | --- |
+| `encounter_history_resources` | Source installation identities, immutable revisions and content hashes for encounter annotations. | None |
+| `encounter_addenda` | Immutable encounter addenda with original authors and creation timestamps. | None |
+| `encounter_review_flags` | Immutable review flag definitions linked to their original encounters and authors. | None |
+| `encounter_review_status_events` | Append-only review opening, resolution, dismissal and reopening history with original authors and timestamps. | None |

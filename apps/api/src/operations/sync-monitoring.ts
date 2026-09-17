@@ -66,7 +66,10 @@ export type SyncBatchOutcomeCount = Readonly<{
     | 'OTC'
     | 'REFERRAL'
     | 'REFERRAL_STATUS'
-    | 'REFERRAL_FOLLOWUP';
+    | 'REFERRAL_FOLLOWUP'
+    | 'ENCOUNTER_ADDENDUM'
+    | 'ENCOUNTER_REVIEW_FLAG'
+    | 'ENCOUNTER_REVIEW_STATUS';
   status:
     | 'PROCESSING'
     | 'ACCEPTED'

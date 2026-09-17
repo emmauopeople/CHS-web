@@ -46,6 +46,7 @@ test(
         '0012_food_otc_ingestion.sql',
         '0013_clinical_screening_time.sql',
         '0014_referral_ingestion.sql',
+        '0015_encounter_history_ingestion.sql',
       ]);
       assert.deepEqual(secondRun.applied, []);
 
@@ -57,7 +58,7 @@ test(
         [schema],
       );
       const tableNames = tableResult.rows.map((row) => row.table_name);
-      assert.equal(tableNames.length, 55);
+      assert.equal(tableNames.length, 59);
       assert.ok(tableNames.includes('schema_migrations'));
       assert.ok(tableNames.includes('screening_encounters'));
       assert.ok(tableNames.includes('vital_readings'));
@@ -78,6 +79,7 @@ test(
       assert.ok(tableNames.includes('lifestyle_physical_activities'));
       assert.ok(tableNames.includes('lifestyle_other_activities'));
       assert.ok(tableNames.includes('referral_resources'));
+      for (const table of ['encounter_history_resources','encounter_addenda','encounter_review_flags','encounter_review_status_events']) assert.ok(tableNames.includes(table));
       assert.ok(tableNames.includes('referral_snapshots'));
       assert.ok(tableNames.includes('referral_status_events'));
       assert.ok(tableNames.includes('referral_followups'));

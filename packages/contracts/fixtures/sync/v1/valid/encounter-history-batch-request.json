@@ -1,0 +1,99 @@
+{
+  "contractVersion": "1.0",
+  "batchId": "12000000-0000-4000-8000-000000000001",
+  "installationId": "22000000-0000-4000-8000-000000000001",
+  "locationId": "32000000-0000-4000-8000-000000000001",
+  "installationTimezone": "Africa/Douala",
+  "desktopApplicationVersion": "0.15.0",
+  "desktopSchemaVersion": 25,
+  "createdAt": "2026-08-27T11:00:00.000Z",
+  "actors": [
+    {
+      "localActorId": "62000000-0000-4000-8000-000000000001",
+      "displayName": "Synthetic Nurse",
+      "role": "NURSE",
+      "active": true,
+      "updatedAt": "2026-08-20T14:00:00.000Z"
+    },
+    {
+      "localActorId": "62000000-0000-4000-8000-000000000002",
+      "displayName": "Synthetic Local Administrator",
+      "role": "LOCAL_ADMIN",
+      "active": true,
+      "updatedAt": "2026-08-20T14:05:00.000Z"
+    }
+  ],
+  "records": [
+    {
+      "recordId": "c3000000-0000-4000-8000-000000000001",
+      "resourceType": "ENCOUNTER_ADDENDUM",
+      "localResourceId": "b3000000-0000-4000-8000-000000000001",
+      "sourceRevision": 1,
+      "schemaVersion": "encounter-addendum.v1",
+      "operation": "UPSERT",
+      "capturedAt": "2026-08-21T10:00:00.000Z",
+      "sourceActorLocalId": "62000000-0000-4000-8000-000000000001",
+      "payload": {
+        "localEncounterId": "92000000-0000-4000-8000-000000000001",
+        "noteText": "Synthetic late clarification",
+        "createdByLocalActorId": "62000000-0000-4000-8000-000000000001",
+        "createdAt": "2026-08-21T10:00:00.000Z"
+      }
+    },
+    {
+      "recordId": "c3000000-0000-4000-8000-000000000002",
+      "resourceType": "ENCOUNTER_REVIEW_FLAG",
+      "localResourceId": "b3000000-0000-4000-8000-000000000002",
+      "sourceRevision": 1,
+      "schemaVersion": "encounter-review-flag.v1",
+      "operation": "UPSERT",
+      "capturedAt": "2026-08-21T10:00:00.000Z",
+      "sourceActorLocalId": "62000000-0000-4000-8000-000000000001",
+      "payload": {
+        "localEncounterId": "92000000-0000-4000-8000-000000000001",
+        "category": "MISSING_INFORMATION",
+        "description": "Synthetic review request",
+        "openedByLocalActorId": "62000000-0000-4000-8000-000000000001",
+        "openedAt": "2026-08-21T10:00:00.000Z"
+      }
+    },
+    {
+      "recordId": "c3000000-0000-4000-8000-000000000003",
+      "resourceType": "ENCOUNTER_REVIEW_STATUS",
+      "localResourceId": "b3000000-0000-4000-8000-000000000003",
+      "sourceRevision": 1,
+      "schemaVersion": "encounter-review-status.v1",
+      "operation": "UPSERT",
+      "capturedAt": "2026-08-21T10:00:00.000Z",
+      "sourceActorLocalId": "62000000-0000-4000-8000-000000000001",
+      "payload": {
+        "localFlagId": "b3000000-0000-4000-8000-000000000002",
+        "sequenceNumber": 1,
+        "fromStatus": null,
+        "toStatus": "OPEN",
+        "changeReason": null,
+        "changedByLocalActorId": "62000000-0000-4000-8000-000000000001",
+        "changedAt": "2026-08-21T10:00:00.000Z"
+      }
+    },
+    {
+      "recordId": "c3000000-0000-4000-8000-000000000004",
+      "resourceType": "ENCOUNTER_REVIEW_STATUS",
+      "localResourceId": "b3000000-0000-4000-8000-000000000004",
+      "sourceRevision": 1,
+      "schemaVersion": "encounter-review-status.v1",
+      "operation": "UPSERT",
+      "capturedAt": "2026-08-27T10:30:00.000Z",
+      "sourceActorLocalId": "62000000-0000-4000-8000-000000000002",
+      "payload": {
+        "localFlagId": "b3000000-0000-4000-8000-000000000002",
+        "sequenceNumber": 2,
+        "fromStatus": "OPEN",
+        "toStatus": "RESOLVED",
+        "changeReason": "Synthetic clarification reviewed",
+        "changedByLocalActorId": "62000000-0000-4000-8000-000000000002",
+        "changedAt": "2026-08-27T10:30:00.000Z"
+      }
+    }
+  ]
+}

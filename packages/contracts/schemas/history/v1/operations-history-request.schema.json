@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chs.example/schemas/history/v1/operations-history-request.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractVersion",
+    "personId",
+    "reasonCode",
+    "fromDate",
+    "toDate"
+  ],
+  "properties": {
+    "contractVersion": {
+      "const": "1.0"
+    },
+    "personId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "reasonCode": {
+      "enum": [
+        "CARE_DELIVERY",
+        "CARE_COORDINATION",
+        "PATIENT_REQUEST",
+        "QUALITY_IMPROVEMENT",
+        "OPERATIONS_SUPPORT"
+      ]
+    },
+    "fromDate": {
+      "type": "string",
+      "format": "date"
+    },
+    "toDate": {
+      "type": "string",
+      "format": "date"
+    },
+    "resourceTypes": {
+      "type": "array",
+      "maxItems": 11,
+      "items": {
+        "enum": [
+          "SCREENING_ENCOUNTER",
+          "VITALS",
+          "LIFESTYLE",
+          "FOOD",
+          "OTC",
+          "REFERRAL",
+          "REFERRAL_STATUS",
+          "REFERRAL_FOLLOWUP",
+          "ENCOUNTER_ADDENDUM",
+          "ENCOUNTER_REVIEW_FLAG",
+          "ENCOUNTER_REVIEW_STATUS"
+        ]
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 50
+    },
+    "cursor": {
+      "type": "string",
+      "format": "uuid"
+    }
+  }
+}

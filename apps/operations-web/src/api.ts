@@ -1,3 +1,4 @@
+import { isHistoryPage, type HistoryRequest } from '../../../packages/contracts/src/patient-history.mjs';
 import type {
   PatientAccessReason,
   PatientDetail,
@@ -842,6 +843,9 @@ export function createOperationsApi(
   fetchImplementation: typeof fetch = fetch,
 ) {
   return {
+    getPatientHistory(input: HistoryRequest) {
+      return post(apiBaseUrl, '/api/v1/operations/patients/history', accessToken, input, isHistoryPage, fetchImplementation);
+    },
     searchPatients(input: PatientSearchInput) {
       return post(
         apiBaseUrl,

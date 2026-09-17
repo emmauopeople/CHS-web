@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "release": "1",
-  "endpointCount": 19,
+  "endpointCount": 21,
   "endpoints": [
     { "method": "GET", "path": "/health/live", "audience": "platform", "authentication": "NONE", "permission": null, "cache": "NO_STORE", "purpose": "Process liveness without dependency checks." },
     { "method": "GET", "path": "/health/startup", "audience": "platform", "authentication": "NONE", "permission": null, "cache": "NO_STORE", "purpose": "Startup completion state." },
@@ -21,6 +21,8 @@
     { "method": "POST", "path": "/api/v1/operations/identity-reviews/detail", "audience": "operations", "authentication": "OIDC_BEARER", "permission": "IDENTITY_REVIEW", "cache": "NO_STORE", "purpose": "Read bounded minimum-necessary identity-review evidence." },
     { "method": "POST", "path": "/api/v1/operations/identity-reviews/resolve", "audience": "operations", "authentication": "OIDC_BEARER", "permission": "IDENTITY_REVIEW_RESOLVE", "cache": "NO_STORE", "purpose": "Resolve one review case with optimistic concurrency and immutable evidence." },
     { "method": "POST", "path": "/api/v1/operations/sync/batches/search", "audience": "operations", "authentication": "OIDC_BEARER", "permission": "SYNC_MONITOR", "cache": "NO_STORE", "purpose": "Search bounded organization-scoped synchronization metadata." },
-    { "method": "POST", "path": "/api/v1/operations/sync/batches/detail", "audience": "operations", "authentication": "OIDC_BEARER", "permission": "SYNC_MONITOR", "cache": "NO_STORE", "purpose": "Read grouped outcomes and stable safe errors for one batch." }
+    { "method": "POST", "path": "/api/v1/operations/sync/batches/detail", "audience": "operations", "authentication": "OIDC_BEARER", "permission": "SYNC_MONITOR", "cache": "NO_STORE", "purpose": "Read grouped outcomes and stable safe errors for one batch." },
+    { "method": "POST", "path": "/api/v1/sync/patients/history", "audience": "installation", "authentication": "INSTALLATION_BEARER", "permission": null, "cache": "NO_STORE", "purpose": "Retrieve bounded canonical patient history with audited purpose, server-derived scope and stable opaque pagination." },
+    { "method": "POST", "path": "/api/v1/operations/patients/history", "audience": "operations", "authentication": "OIDC_BEARER", "permission": "PATIENT_READ", "cache": "NO_STORE", "purpose": "Retrieve bounded canonical patient history with audited purpose, server-derived scope and stable opaque pagination." }
   ]
 }

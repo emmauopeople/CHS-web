@@ -1,7 +1,7 @@
 # HSW-019D referral Patient Viewer slice
 
-Status: Implemented browser slice; the full HSW-019D installation retrieval
-contract remains pending.
+Status: Implemented browser slice. The remaining installation retrieval contract
+and browser domains are implemented in [HSW-019D retrieval](HSW-019D-patient-history-retrieval.md).
 
 ## Purpose
 

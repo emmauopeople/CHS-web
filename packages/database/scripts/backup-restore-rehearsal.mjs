@@ -278,7 +278,7 @@ async function main() {
     const restoredMigrationCount = await verifyRestoredMigrations(restoreUrl);
     const restoredSnapshot = await databaseSnapshot(restoreUrl);
     assert.deepEqual(restoredSnapshot, sourceSnapshot);
-    assert.equal(sourceSnapshot.tables.length, 59);
+    assert.equal(sourceSnapshot.tables.length, 60);
     assert.equal(restoredMigrationCount, sourceSnapshot.migrations.length);
     assert.equal(sourceSnapshot.organizations.length, 1);
 

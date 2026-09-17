@@ -1,3 +1,4 @@
+import { registerPatientHistoryRoutes } from './history/routes.js';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
 import { randomUUID } from 'node:crypto';
@@ -100,6 +101,8 @@ export async function buildApp(dependencies: BuildAppDependencies) {
     (dependencies.config.operationsOidc
       ? createOidcOperationsTokenVerifier(dependencies.config.operationsOidc)
       : createDisabledOperationsTokenVerifier());
+
+  await registerPatientHistoryRoutes(app, { database: dependencies.database.pool, tokenVerifier: operationsTokenVerifier });
 
   await registerOperationsRoutes(app, {
     database: dependencies.database.pool,

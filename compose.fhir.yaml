@@ -1,0 +1,21 @@
+name: chs-fhir
+
+services:
+  fhir-pgsql:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    env_file:
+      - .local-fhir/postgres.env
+    ports:
+      - "127.0.0.1:5434:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+    volumes:
+      - fhir-postgres-data:/var/lib/postgresql
+
+volumes:
+  fhir-postgres-data:

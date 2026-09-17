@@ -1,3 +1,4 @@
+import { PatientHistory } from './PatientHistory';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { ApiError, createOperationsApi } from './api';
@@ -525,6 +526,7 @@ export function ReferralHistory({
 }
 
 function PatientPanel({
+  historyApi, historyReason, onHistoryUnauthorized,
   detail,
   busy,
   error,
@@ -539,6 +541,9 @@ function PatientPanel({
   onReferralStatusPage,
   onReferralFollowupPage,
 }: Readonly<{
+  historyApi: ReturnType<typeof createOperationsApi> | null;
+  historyReason: PatientAccessReason | '';
+  onHistoryUnauthorized: (error: unknown) => void;
   detail: PatientDetail | null;
   busy: boolean;
   error: string | null;
@@ -587,6 +592,7 @@ function PatientPanel({
               <div><dt>Alternate phone</dt><dd>{displayValue(detail.alternateContactPhone)}</dd></div>
             </dl>
           </section>
+          {historyApi && historyReason ? <PatientHistory key={`${detail.personId}:${historyReason}`} api={historyApi} personId={detail.personId} reason={historyReason} onUnauthorized={onHistoryUnauthorized}/> : null}
           <section className="detail-section referral-history">
             <div className="section-heading">
               <div><p className="eyebrow">Accepted canonical data only</p><h3>Referral history</h3></div>
@@ -995,6 +1001,7 @@ export default function App({ config }: AppProps) {
       </main>
       {workspaceView === 'PATIENTS' ? (
         <PatientPanel
+          historyApi={api} historyReason={reason} onHistoryUnauthorized={handleUnauthorized}
           detail={detail}
           busy={detailBusy}
           error={detailError}

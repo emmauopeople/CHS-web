@@ -1,0 +1,237 @@
+{
+  "contractVersion": "1.0",
+  "personId": "10000000-0000-4000-8000-000000000003",
+  "patient": {
+    "personId": "10000000-0000-4000-8000-000000000003",
+    "chsMedicalId": "CHS-AAAA-BBBB-CCCC",
+    "displayName": "Synthetic Patient",
+    "givenName": "Synthetic",
+    "familyName": "Patient",
+    "otherNames": null,
+    "dateOfBirth": "1988-02-11",
+    "approximateAgeYears": null,
+    "ageAsOfDate": null,
+    "sex": "MALE",
+    "status": "ACTIVE",
+    "acknowledgmentStatus": "ACKNOWLEDGED",
+    "lastUpdatedAt": "2026-09-17T10:00:00.000Z",
+    "phone": null,
+    "alternateContactName": null,
+    "alternateContactPhone": null,
+    "village": null,
+    "quarter": null,
+    "residenceNotes": null
+  },
+  "retrievedAt": "2026-09-17T12:00:00.000Z",
+  "fromDate": "2026-09-01",
+  "toDate": "2026-09-17",
+  "nextCursor": null,
+  "items": [
+    {
+      "resourceType": "ENCOUNTER_ADDENDUM",
+      "resourceId": "10000000-0000-4000-8000-000000000001",
+      "parentResourceId": "10000000-0000-4000-8000-000000000002",
+      "sourceRevision": 1,
+      "occurredAt": "2026-09-17T10:00:00.000Z",
+      "receivedAt": "2026-09-17T10:01:00.000Z",
+      "author": {
+        "practitionerId": "10000000-0000-4000-8000-000000000005",
+        "displayName": "Synthetic Nurse"
+      },
+      "encounter": {
+        "encounterId": "10000000-0000-4000-8000-000000000002",
+        "status": "COMPLETED",
+        "startedAt": "2026-09-16T10:00:00.000Z",
+        "amendmentOfEncounterId": null,
+        "amendmentReason": null,
+        "voidReason": null
+      },
+      "source": {
+        "organizationId": "10000000-0000-4000-8000-000000000006",
+        "organizationName": "Synthetic Program",
+        "locationId": "10000000-0000-4000-8000-000000000007",
+        "locationName": "Synthetic Clinic",
+        "installationId": "10000000-0000-4000-8000-000000000008",
+        "deploymentName": "Synthetic Desktop"
+      },
+      "data": {
+        "noteText": "Synthetic late clarification"
+      }
+    },
+    {
+      "resourceType": "ENCOUNTER_REVIEW_FLAG",
+      "resourceId": "10000000-0000-4000-8000-000000000009",
+      "parentResourceId": "10000000-0000-4000-8000-000000000002",
+      "sourceRevision": 1,
+      "occurredAt": "2026-09-17T10:00:00.000Z",
+      "receivedAt": "2026-09-17T10:01:00.000Z",
+      "author": {
+        "practitionerId": "10000000-0000-4000-8000-000000000005",
+        "displayName": "Synthetic Nurse"
+      },
+      "encounter": {
+        "encounterId": "10000000-0000-4000-8000-000000000002",
+        "status": "COMPLETED",
+        "startedAt": "2026-09-16T10:00:00.000Z",
+        "amendmentOfEncounterId": null,
+        "amendmentReason": null,
+        "voidReason": null
+      },
+      "source": {
+        "organizationId": "10000000-0000-4000-8000-000000000006",
+        "organizationName": "Synthetic Program",
+        "locationId": "10000000-0000-4000-8000-000000000007",
+        "locationName": "Synthetic Clinic",
+        "installationId": "10000000-0000-4000-8000-000000000008",
+        "deploymentName": "Synthetic Desktop"
+      },
+      "data": {
+        "category": "MISSING_INFORMATION",
+        "description": "Confirm measurement position",
+        "currentStatus": "RESOLVED",
+        "latestSequenceNumber": 2,
+        "lastChangedAt": "2026-09-17T11:00:00.000Z",
+        "lastChangedBy": {
+          "practitionerId": "10000000-0000-4000-8000-000000000005",
+          "displayName": "Synthetic Nurse"
+        },
+        "lastChangeReason": "Position confirmed with the author"
+      }
+    },
+    {
+      "resourceType": "ENCOUNTER_REVIEW_STATUS",
+      "resourceId": "10000000-0000-4000-8000-000000000010",
+      "parentResourceId": "10000000-0000-4000-8000-000000000009",
+      "sourceRevision": 1,
+      "occurredAt": "2026-09-17T10:00:00.000Z",
+      "receivedAt": "2026-09-17T10:01:00.000Z",
+      "author": {
+        "practitionerId": "10000000-0000-4000-8000-000000000005",
+        "displayName": "Synthetic Nurse"
+      },
+      "encounter": {
+        "encounterId": "10000000-0000-4000-8000-000000000002",
+        "status": "COMPLETED",
+        "startedAt": "2026-09-16T10:00:00.000Z",
+        "amendmentOfEncounterId": null,
+        "amendmentReason": null,
+        "voidReason": null
+      },
+      "source": {
+        "organizationId": "10000000-0000-4000-8000-000000000006",
+        "organizationName": "Synthetic Program",
+        "locationId": "10000000-0000-4000-8000-000000000007",
+        "locationName": "Synthetic Clinic",
+        "installationId": "10000000-0000-4000-8000-000000000008",
+        "deploymentName": "Synthetic Desktop"
+      },
+      "data": {
+        "category": "MISSING_INFORMATION",
+        "description": "Confirm measurement position",
+        "sequenceNumber": 2,
+        "fromStatus": "OPEN",
+        "toStatus": "RESOLVED",
+        "changeReason": "Position confirmed with the author"
+      }
+    },
+    {
+      "resourceType": "FOOD",
+      "resourceId": "10000000-0000-4000-8000-000000000011",
+      "parentResourceId": "10000000-0000-4000-8000-000000000002",
+      "sourceRevision": 1,
+      "occurredAt": "2026-09-17T10:00:00.000Z",
+      "receivedAt": "2026-09-17T10:01:00.000Z",
+      "author": {
+        "practitionerId": "10000000-0000-4000-8000-000000000005",
+        "displayName": "Synthetic Nurse"
+      },
+      "encounter": {
+        "encounterId": "10000000-0000-4000-8000-000000000002",
+        "status": "COMPLETED",
+        "startedAt": "2026-09-16T10:00:00.000Z",
+        "amendmentOfEncounterId": null,
+        "amendmentReason": null,
+        "voidReason": null
+      },
+      "source": {
+        "organizationId": "10000000-0000-4000-8000-000000000006",
+        "organizationName": "Synthetic Program",
+        "locationId": "10000000-0000-4000-8000-000000000007",
+        "locationName": "Synthetic Clinic",
+        "installationId": "10000000-0000-4000-8000-000000000008",
+        "deploymentName": "Synthetic Desktop"
+      },
+      "data": {
+        "response": "REPORTED",
+        "periodStart": "2026-09-10",
+        "periodEnd": "2026-09-16",
+        "rows": [
+          {
+            "sequenceNumber": 1,
+            "foodName": "Rice",
+            "foodCode": "RICE",
+            "frequencyCode": "2_TO_3_DAYS",
+            "preparationNote": "Boiled",
+            "sourceType": "PATIENT_REPORTED",
+            "author": {
+              "practitionerId": "10000000-0000-4000-8000-000000000005",
+              "displayName": "Synthetic Nurse"
+            },
+            "recordedAt": "2026-09-17T10:00:00.000Z"
+          }
+        ]
+      }
+    },
+    {
+      "resourceType": "OTC",
+      "resourceId": "10000000-0000-4000-8000-000000000012",
+      "parentResourceId": "10000000-0000-4000-8000-000000000002",
+      "sourceRevision": 1,
+      "occurredAt": "2026-09-17T10:00:00.000Z",
+      "receivedAt": "2026-09-17T10:01:00.000Z",
+      "author": {
+        "practitionerId": "10000000-0000-4000-8000-000000000005",
+        "displayName": "Synthetic Nurse"
+      },
+      "encounter": {
+        "encounterId": "10000000-0000-4000-8000-000000000002",
+        "status": "COMPLETED",
+        "startedAt": "2026-09-16T10:00:00.000Z",
+        "amendmentOfEncounterId": null,
+        "amendmentReason": null,
+        "voidReason": null
+      },
+      "source": {
+        "organizationId": "10000000-0000-4000-8000-000000000006",
+        "organizationName": "Synthetic Program",
+        "locationId": "10000000-0000-4000-8000-000000000007",
+        "locationName": "Synthetic Clinic",
+        "installationId": "10000000-0000-4000-8000-000000000008",
+        "deploymentName": "Synthetic Desktop"
+      },
+      "data": {
+        "response": "REPORTED",
+        "periodStart": null,
+        "periodEnd": null,
+        "rows": [
+          {
+            "sequenceNumber": 1,
+            "productName": "Synthetic OTC product",
+            "reasonForUse": "Patient-reported headache",
+            "doseText": "One tablet",
+            "frequencyText": "As needed",
+            "durationText": "Two days",
+            "sourceOfMedication": "Local pharmacy",
+            "currentlyTaking": false,
+            "sourceType": "PATIENT_REPORTED",
+            "author": {
+              "practitionerId": "10000000-0000-4000-8000-000000000005",
+              "displayName": "Synthetic Nurse"
+            },
+            "recordedAt": "2026-09-17T10:00:00.000Z"
+          }
+        ]
+      }
+    }
+  ]
+}

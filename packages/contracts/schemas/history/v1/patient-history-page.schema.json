@@ -1,0 +1,3334 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chs.example/schemas/history/v1/patient-history-page.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "patient",
+    "contractVersion",
+    "personId",
+    "retrievedAt",
+    "fromDate",
+    "toDate",
+    "nextCursor",
+    "items"
+  ],
+  "properties": {
+    "patient": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "personId",
+        "chsMedicalId",
+        "displayName",
+        "givenName",
+        "familyName",
+        "otherNames",
+        "dateOfBirth",
+        "ageAsOfDate",
+        "phone",
+        "alternateContactName",
+        "alternateContactPhone",
+        "village",
+        "quarter",
+        "residenceNotes",
+        "approximateAgeYears",
+        "sex",
+        "status",
+        "acknowledgmentStatus",
+        "lastUpdatedAt"
+      ],
+      "properties": {
+        "personId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "chsMedicalId": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "displayName": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "givenName": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4000
+        },
+        "familyName": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4000
+        },
+        "otherNames": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4000
+        },
+        "dateOfBirth": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4000
+        },
+        "ageAsOfDate": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4000
+        },
+        "phone": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4000
+        },
+        "alternateContactName": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4000
+        },
+        "alternateContactPhone": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4000
+        },
+        "village": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4000
+        },
+        "quarter": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4000
+        },
+        "residenceNotes": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4000
+        },
+        "approximateAgeYears": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "sex": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "status": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "acknowledgmentStatus": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "lastUpdatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "contractVersion": {
+      "const": "1.0"
+    },
+    "personId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "retrievedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "fromDate": {
+      "type": "string",
+      "format": "date"
+    },
+    "toDate": {
+      "type": "string",
+      "format": "date"
+    },
+    "nextCursor": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid"
+    },
+    "items": {
+      "type": "array",
+      "maxItems": 50,
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "resourceId",
+              "parentResourceId",
+              "sourceRevision",
+              "occurredAt",
+              "receivedAt",
+              "author",
+              "encounter",
+              "source",
+              "resourceType",
+              "data"
+            ],
+            "properties": {
+              "resourceId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "parentResourceId": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "uuid"
+              },
+              "sourceRevision": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "occurredAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "receivedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "author": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "practitionerId",
+                  "displayName"
+                ],
+                "properties": {
+                  "practitionerId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "displayName": {
+                    "type": "string",
+                    "maxLength": 4000
+                  }
+                }
+              },
+              "encounter": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "encounterId",
+                  "status",
+                  "startedAt",
+                  "amendmentOfEncounterId",
+                  "amendmentReason",
+                  "voidReason"
+                ],
+                "properties": {
+                  "encounterId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "DRAFT",
+                      "COMPLETED",
+                      "AMENDED",
+                      "VOID"
+                    ]
+                  },
+                  "startedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "amendmentOfEncounterId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "amendmentReason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "voidReason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  }
+                }
+              },
+              "source": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "organizationId",
+                  "organizationName",
+                  "locationId",
+                  "locationName",
+                  "installationId",
+                  "deploymentName"
+                ],
+                "properties": {
+                  "organizationId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "organizationName": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "locationId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "locationName": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "installationId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "deploymentName": {
+                    "type": "string",
+                    "maxLength": 4000
+                  }
+                }
+              },
+              "resourceType": {
+                "const": "SCREENING_ENCOUNTER"
+              },
+              "data": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "startedAt",
+                  "completedAt",
+                  "amendmentOfEncounterId",
+                  "amendmentReason",
+                  "voidReason",
+                  "clinicalTime",
+                  "session",
+                  "protocol"
+                ],
+                "properties": {
+                  "startedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "completedAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  },
+                  "amendmentOfEncounterId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "amendmentReason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "voidReason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "clinicalTime": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "localDate",
+                          "localTime",
+                          "timezone"
+                        ],
+                        "properties": {
+                          "localDate": {
+                            "type": "string",
+                            "format": "date"
+                          },
+                          "localTime": {
+                            "type": "string",
+                            "maxLength": 4000
+                          },
+                          "timezone": {
+                            "type": "string",
+                            "maxLength": 4000
+                          }
+                        }
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "session": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "sessionId",
+                      "sessionDate",
+                      "status"
+                    ],
+                    "properties": {
+                      "sessionId": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "sessionDate": {
+                        "type": "string",
+                        "format": "date"
+                      },
+                      "status": {
+                        "type": "string",
+                        "maxLength": 4000
+                      }
+                    }
+                  },
+                  "protocol": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "protocolId",
+                      "key",
+                      "version"
+                    ],
+                    "properties": {
+                      "protocolId": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "key": {
+                        "type": "string",
+                        "maxLength": 4000
+                      },
+                      "version": {
+                        "type": "string",
+                        "maxLength": 4000
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "resourceId",
+              "parentResourceId",
+              "sourceRevision",
+              "occurredAt",
+              "receivedAt",
+              "author",
+              "encounter",
+              "source",
+              "resourceType",
+              "data"
+            ],
+            "properties": {
+              "resourceId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "parentResourceId": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "uuid"
+              },
+              "sourceRevision": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "occurredAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "receivedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "author": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "practitionerId",
+                  "displayName"
+                ],
+                "properties": {
+                  "practitionerId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "displayName": {
+                    "type": "string",
+                    "maxLength": 4000
+                  }
+                }
+              },
+              "encounter": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "encounterId",
+                  "status",
+                  "startedAt",
+                  "amendmentOfEncounterId",
+                  "amendmentReason",
+                  "voidReason"
+                ],
+                "properties": {
+                  "encounterId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "DRAFT",
+                      "COMPLETED",
+                      "AMENDED",
+                      "VOID"
+                    ]
+                  },
+                  "startedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "amendmentOfEncounterId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "amendmentReason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "voidReason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  }
+                }
+              },
+              "source": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "organizationId",
+                  "organizationName",
+                  "locationId",
+                  "locationName",
+                  "installationId",
+                  "deploymentName"
+                ],
+                "properties": {
+                  "organizationId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "organizationName": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "locationId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "locationName": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "installationId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "deploymentName": {
+                    "type": "string",
+                    "maxLength": 4000
+                  }
+                }
+              },
+              "resourceType": {
+                "const": "VITALS"
+              },
+              "data": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "status",
+                  "weightKg",
+                  "waistCm",
+                  "notes",
+                  "readings"
+                ],
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "DRAFT",
+                      "VITALS_COMPLETE"
+                    ]
+                  },
+                  "weightKg": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "waistCm": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "notes": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "readings": {
+                    "type": "array",
+                    "maxItems": 100,
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "id",
+                        "sequenceNumber",
+                        "systolicMmhg",
+                        "diastolicMmhg",
+                        "pulseBpm",
+                        "measurementSite",
+                        "patientPosition",
+                        "measurementLocalTime",
+                        "measuredAt",
+                        "measurementLocalDate",
+                        "measurementTimezone"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "sequenceNumber": {
+                          "type": "integer",
+                          "minimum": 1
+                        },
+                        "systolicMmhg": {
+                          "type": [
+                            "number",
+                            "null"
+                          ]
+                        },
+                        "diastolicMmhg": {
+                          "type": [
+                            "number",
+                            "null"
+                          ]
+                        },
+                        "pulseBpm": {
+                          "type": [
+                            "number",
+                            "null"
+                          ]
+                        },
+                        "measurementSite": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "maxLength": 4000
+                        },
+                        "patientPosition": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "maxLength": 4000
+                        },
+                        "measurementLocalTime": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "maxLength": 4000
+                        },
+                        "measuredAt": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "maxLength": 4000
+                        },
+                        "measurementLocalDate": {
+                          "type": "string",
+                          "format": "date"
+                        },
+                        "measurementTimezone": {
+                          "type": "string",
+                          "maxLength": 4000
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "resourceId",
+              "parentResourceId",
+              "sourceRevision",
+              "occurredAt",
+              "receivedAt",
+              "author",
+              "encounter",
+              "source",
+              "resourceType",
+              "data"
+            ],
+            "properties": {
+              "resourceId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "parentResourceId": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "uuid"
+              },
+              "sourceRevision": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "occurredAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "receivedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "author": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "practitionerId",
+                  "displayName"
+                ],
+                "properties": {
+                  "practitionerId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "displayName": {
+                    "type": "string",
+                    "maxLength": 4000
+                  }
+                }
+              },
+              "encounter": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "encounterId",
+                  "status",
+                  "startedAt",
+                  "amendmentOfEncounterId",
+                  "amendmentReason",
+                  "voidReason"
+                ],
+                "properties": {
+                  "encounterId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "DRAFT",
+                      "COMPLETED",
+                      "AMENDED",
+                      "VOID"
+                    ]
+                  },
+                  "startedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "amendmentOfEncounterId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "amendmentReason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "voidReason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  }
+                }
+              },
+              "source": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "organizationId",
+                  "organizationName",
+                  "locationId",
+                  "locationName",
+                  "installationId",
+                  "deploymentName"
+                ],
+                "properties": {
+                  "organizationId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "organizationName": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "locationId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "locationName": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "installationId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "deploymentName": {
+                    "type": "string",
+                    "maxLength": 4000
+                  }
+                }
+              },
+              "resourceType": {
+                "const": "LIFESTYLE"
+              },
+              "data": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "status",
+                  "periodStart",
+                  "periodEnd",
+                  "baselines",
+                  "alcohol",
+                  "tobacco",
+                  "physicalActivity",
+                  "work",
+                  "otherActivity"
+                ],
+                "properties": {
+                  "status": {
+                    "const": "COMPLETE"
+                  },
+                  "periodStart": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "periodEnd": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "baselines": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "alcohol",
+                      "tobacco",
+                      "work"
+                    ],
+                    "properties": {
+                      "alcohol": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "id",
+                          "version",
+                          "status",
+                          "everConsumed",
+                          "consumedPast12Months",
+                          "otherBeverageDescription",
+                          "beverageTypes"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "version": {
+                            "type": "integer",
+                            "minimum": 1
+                          },
+                          "status": {
+                            "type": "string",
+                            "maxLength": 4000
+                          },
+                          "everConsumed": {
+                            "type": "string",
+                            "maxLength": 4000
+                          },
+                          "consumedPast12Months": {
+                            "type": "string",
+                            "maxLength": 4000
+                          },
+                          "otherBeverageDescription": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "maxLength": 4000
+                          },
+                          "beverageTypes": {
+                            "type": "array",
+                            "maxItems": 6,
+                            "items": {
+                              "type": "string",
+                              "maxLength": 4000
+                            }
+                          }
+                        }
+                      },
+                      "tobacco": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "id",
+                          "version",
+                          "status",
+                          "everRegularlyUsed",
+                          "currentUseFrequency",
+                          "formerUseApproximateStopDate",
+                          "otherProductDescription",
+                          "productTypes"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "version": {
+                            "type": "integer",
+                            "minimum": 1
+                          },
+                          "status": {
+                            "type": "string",
+                            "maxLength": 4000
+                          },
+                          "everRegularlyUsed": {
+                            "type": "string",
+                            "maxLength": 4000
+                          },
+                          "currentUseFrequency": {
+                            "type": "string",
+                            "maxLength": 4000
+                          },
+                          "formerUseApproximateStopDate": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "maxLength": 4000
+                          },
+                          "otherProductDescription": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "maxLength": 4000
+                          },
+                          "productTypes": {
+                            "type": "array",
+                            "maxItems": 8,
+                            "items": {
+                              "type": "string",
+                              "maxLength": 4000
+                            }
+                          }
+                        }
+                      },
+                      "work": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "id",
+                          "version",
+                          "status",
+                          "occupationJobTitle",
+                          "usualPhysicalDemand",
+                          "shiftPattern",
+                          "description",
+                          "typicalWorkdaysPerWeek",
+                          "typicalHoursPerWorkday"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "version": {
+                            "type": "integer",
+                            "minimum": 1
+                          },
+                          "status": {
+                            "type": "string",
+                            "maxLength": 4000
+                          },
+                          "occupationJobTitle": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "maxLength": 4000
+                          },
+                          "usualPhysicalDemand": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "maxLength": 4000
+                          },
+                          "shiftPattern": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "maxLength": 4000
+                          },
+                          "description": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "maxLength": 4000
+                          },
+                          "typicalWorkdaysPerWeek": {
+                            "type": [
+                              "number",
+                              "null"
+                            ]
+                          },
+                          "typicalHoursPerWorkday": {
+                            "type": [
+                              "number",
+                              "null"
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "alcohol": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "weeklyResponse",
+                      "drinkingDays",
+                      "totalStandardizedDrinks",
+                      "largestOneDayAmount",
+                      "daysAtLargestAmount",
+                      "otherBeverageDescription",
+                      "beverageTypes"
+                    ],
+                    "properties": {
+                      "weeklyResponse": {
+                        "type": "string",
+                        "maxLength": 4000
+                      },
+                      "drinkingDays": {
+                        "type": [
+                          "number",
+                          "null"
+                        ]
+                      },
+                      "totalStandardizedDrinks": {
+                        "type": [
+                          "number",
+                          "null"
+                        ]
+                      },
+                      "largestOneDayAmount": {
+                        "type": [
+                          "number",
+                          "null"
+                        ]
+                      },
+                      "daysAtLargestAmount": {
+                        "type": [
+                          "number",
+                          "null"
+                        ]
+                      },
+                      "otherBeverageDescription": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "maxLength": 4000
+                      },
+                      "beverageTypes": {
+                        "type": "array",
+                        "maxItems": 6,
+                        "items": {
+                          "type": "string",
+                          "maxLength": 4000
+                        }
+                      }
+                    }
+                  },
+                  "tobacco": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "weeklyResponse",
+                      "products"
+                    ],
+                    "properties": {
+                      "weeklyResponse": {
+                        "type": "string",
+                        "maxLength": 4000
+                      },
+                      "products": {
+                        "type": "array",
+                        "maxItems": 100,
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "id",
+                            "sequenceNumber",
+                            "productType",
+                            "unit",
+                            "daysUsed",
+                            "averageQuantityPerUseDay",
+                            "secondhandSmokeExposure",
+                            "otherProductDescription",
+                            "otherUnitDescription"
+                          ],
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid"
+                            },
+                            "sequenceNumber": {
+                              "type": "integer",
+                              "minimum": 1
+                            },
+                            "productType": {
+                              "type": "string",
+                              "maxLength": 4000
+                            },
+                            "unit": {
+                              "type": "string",
+                              "maxLength": 4000
+                            },
+                            "daysUsed": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "averageQuantityPerUseDay": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "secondhandSmokeExposure": {
+                              "type": [
+                                "boolean",
+                                "null"
+                              ]
+                            },
+                            "otherProductDescription": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "maxLength": 4000
+                            },
+                            "otherUnitDescription": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "maxLength": 4000
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "physicalActivity": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "weeklyResponse",
+                      "sedentaryTimeResponse",
+                      "sedentaryMinutesPerDay",
+                      "activities"
+                    ],
+                    "properties": {
+                      "weeklyResponse": {
+                        "type": "string",
+                        "maxLength": 4000
+                      },
+                      "sedentaryTimeResponse": {
+                        "type": "string",
+                        "maxLength": 4000
+                      },
+                      "sedentaryMinutesPerDay": {
+                        "type": [
+                          "number",
+                          "null"
+                        ]
+                      },
+                      "activities": {
+                        "type": "array",
+                        "maxItems": 100,
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "id",
+                            "sequenceNumber",
+                            "activityDomain",
+                            "intensity",
+                            "description",
+                            "daysInPastSevenDays",
+                            "averageMinutesPerActiveDay"
+                          ],
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid"
+                            },
+                            "sequenceNumber": {
+                              "type": "integer",
+                              "minimum": 1
+                            },
+                            "activityDomain": {
+                              "type": "string",
+                              "maxLength": 4000
+                            },
+                            "intensity": {
+                              "type": "string",
+                              "maxLength": 4000
+                            },
+                            "description": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "maxLength": 4000
+                            },
+                            "daysInPastSevenDays": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "averageMinutesPerActiveDay": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "work": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "weeklyResponse"
+                    ],
+                    "properties": {
+                      "weeklyResponse": {
+                        "type": "string",
+                        "maxLength": 4000
+                      }
+                    }
+                  },
+                  "otherActivity": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "weeklyResponse",
+                      "activities"
+                    ],
+                    "properties": {
+                      "weeklyResponse": {
+                        "type": "string",
+                        "maxLength": 4000
+                      },
+                      "activities": {
+                        "type": "array",
+                        "maxItems": 100,
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "id",
+                            "sequenceNumber",
+                            "category",
+                            "description",
+                            "intensity",
+                            "daysInPastSevenDays",
+                            "averageMinutesPerDay"
+                          ],
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid"
+                            },
+                            "sequenceNumber": {
+                              "type": "integer",
+                              "minimum": 1
+                            },
+                            "category": {
+                              "type": "string",
+                              "maxLength": 4000
+                            },
+                            "description": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "maxLength": 4000
+                            },
+                            "intensity": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "maxLength": 4000
+                            },
+                            "daysInPastSevenDays": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "averageMinutesPerDay": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "resourceId",
+              "parentResourceId",
+              "sourceRevision",
+              "occurredAt",
+              "receivedAt",
+              "author",
+              "encounter",
+              "source",
+              "resourceType",
+              "data"
+            ],
+            "properties": {
+              "resourceId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "parentResourceId": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "uuid"
+              },
+              "sourceRevision": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "occurredAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "receivedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "author": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "practitionerId",
+                  "displayName"
+                ],
+                "properties": {
+                  "practitionerId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "displayName": {
+                    "type": "string",
+                    "maxLength": 4000
+                  }
+                }
+              },
+              "encounter": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "encounterId",
+                  "status",
+                  "startedAt",
+                  "amendmentOfEncounterId",
+                  "amendmentReason",
+                  "voidReason"
+                ],
+                "properties": {
+                  "encounterId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "DRAFT",
+                      "COMPLETED",
+                      "AMENDED",
+                      "VOID"
+                    ]
+                  },
+                  "startedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "amendmentOfEncounterId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "amendmentReason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "voidReason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  }
+                }
+              },
+              "source": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "organizationId",
+                  "organizationName",
+                  "locationId",
+                  "locationName",
+                  "installationId",
+                  "deploymentName"
+                ],
+                "properties": {
+                  "organizationId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "organizationName": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "locationId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "locationName": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "installationId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "deploymentName": {
+                    "type": "string",
+                    "maxLength": 4000
+                  }
+                }
+              },
+              "resourceType": {
+                "const": "FOOD"
+              },
+              "data": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "response",
+                  "periodStart",
+                  "periodEnd",
+                  "rows"
+                ],
+                "properties": {
+                  "response": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "periodStart": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "periodEnd": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "rows": {
+                    "type": "array",
+                    "maxItems": 100,
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "sequenceNumber",
+                        "foodName",
+                        "foodCode",
+                        "frequencyCode",
+                        "preparationNote",
+                        "sourceType",
+                        "author",
+                        "recordedAt"
+                      ],
+                      "properties": {
+                        "sequenceNumber": {
+                          "type": "integer",
+                          "minimum": 1
+                        },
+                        "foodName": {
+                          "type": "string",
+                          "maxLength": 4000
+                        },
+                        "foodCode": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "maxLength": 4000
+                        },
+                        "frequencyCode": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "maxLength": 4000
+                        },
+                        "preparationNote": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "maxLength": 4000
+                        },
+                        "sourceType": {
+                          "const": "PATIENT_REPORTED"
+                        },
+                        "author": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "practitionerId",
+                            "displayName"
+                          ],
+                          "properties": {
+                            "practitionerId": {
+                              "type": "string",
+                              "format": "uuid"
+                            },
+                            "displayName": {
+                              "type": "string",
+                              "maxLength": 4000
+                            }
+                          }
+                        },
+                        "recordedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "resourceId",
+              "parentResourceId",
+              "sourceRevision",
+              "occurredAt",
+              "receivedAt",
+              "author",
+              "encounter",
+              "source",
+              "resourceType",
+              "data"
+            ],
+            "properties": {
+              "resourceId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "parentResourceId": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "uuid"
+              },
+              "sourceRevision": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "occurredAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "receivedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "author": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "practitionerId",
+                  "displayName"
+                ],
+                "properties": {
+                  "practitionerId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "displayName": {
+                    "type": "string",
+                    "maxLength": 4000
+                  }
+                }
+              },
+              "encounter": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "encounterId",
+                  "status",
+                  "startedAt",
+                  "amendmentOfEncounterId",
+                  "amendmentReason",
+                  "voidReason"
+                ],
+                "properties": {
+                  "encounterId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "DRAFT",
+                      "COMPLETED",
+                      "AMENDED",
+                      "VOID"
+                    ]
+                  },
+                  "startedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "amendmentOfEncounterId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "amendmentReason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "voidReason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  }
+                }
+              },
+              "source": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "organizationId",
+                  "organizationName",
+                  "locationId",
+                  "locationName",
+                  "installationId",
+                  "deploymentName"
+                ],
+                "properties": {
+                  "organizationId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "organizationName": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "locationId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "locationName": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "installationId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "deploymentName": {
+                    "type": "string",
+                    "maxLength": 4000
+                  }
+                }
+              },
+              "resourceType": {
+                "const": "OTC"
+              },
+              "data": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "response",
+                  "periodStart",
+                  "periodEnd",
+                  "rows"
+                ],
+                "properties": {
+                  "response": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "periodStart": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "periodEnd": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "rows": {
+                    "type": "array",
+                    "maxItems": 100,
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "sequenceNumber",
+                        "productName",
+                        "reasonForUse",
+                        "doseText",
+                        "frequencyText",
+                        "durationText",
+                        "sourceOfMedication",
+                        "currentlyTaking",
+                        "sourceType",
+                        "author",
+                        "recordedAt"
+                      ],
+                      "properties": {
+                        "sequenceNumber": {
+                          "type": "integer",
+                          "minimum": 1
+                        },
+                        "productName": {
+                          "type": "string",
+                          "maxLength": 4000
+                        },
+                        "reasonForUse": {
+                          "type": "string",
+                          "maxLength": 4000
+                        },
+                        "doseText": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "maxLength": 4000
+                        },
+                        "frequencyText": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "maxLength": 4000
+                        },
+                        "durationText": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "maxLength": 4000
+                        },
+                        "sourceOfMedication": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "maxLength": 4000
+                        },
+                        "currentlyTaking": {
+                          "type": [
+                            "boolean",
+                            "null"
+                          ]
+                        },
+                        "sourceType": {
+                          "const": "PATIENT_REPORTED"
+                        },
+                        "author": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "practitionerId",
+                            "displayName"
+                          ],
+                          "properties": {
+                            "practitionerId": {
+                              "type": "string",
+                              "format": "uuid"
+                            },
+                            "displayName": {
+                              "type": "string",
+                              "maxLength": 4000
+                            }
+                          }
+                        },
+                        "recordedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "resourceId",
+              "parentResourceId",
+              "sourceRevision",
+              "occurredAt",
+              "receivedAt",
+              "author",
+              "encounter",
+              "source",
+              "resourceType",
+              "data"
+            ],
+            "properties": {
+              "resourceId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "parentResourceId": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "uuid"
+              },
+              "sourceRevision": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "occurredAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "receivedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "author": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "practitionerId",
+                  "displayName"
+                ],
+                "properties": {
+                  "practitionerId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "displayName": {
+                    "type": "string",
+                    "maxLength": 4000
+                  }
+                }
+              },
+              "encounter": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "encounterId",
+                  "status",
+                  "startedAt",
+                  "amendmentOfEncounterId",
+                  "amendmentReason",
+                  "voidReason"
+                ],
+                "properties": {
+                  "encounterId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "DRAFT",
+                      "COMPLETED",
+                      "AMENDED",
+                      "VOID"
+                    ]
+                  },
+                  "startedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "amendmentOfEncounterId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "amendmentReason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "voidReason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  }
+                }
+              },
+              "source": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "organizationId",
+                  "organizationName",
+                  "locationId",
+                  "locationName",
+                  "installationId",
+                  "deploymentName"
+                ],
+                "properties": {
+                  "organizationId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "organizationName": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "locationId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "locationName": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "installationId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "deploymentName": {
+                    "type": "string",
+                    "maxLength": 4000
+                  }
+                }
+              },
+              "resourceType": {
+                "const": "REFERRAL"
+              },
+              "data": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "reasonCodes",
+                  "reasonText",
+                  "destinationName",
+                  "dueDate",
+                  "closureReason",
+                  "closedAt",
+                  "urgency",
+                  "status",
+                  "createdAt",
+                  "updatedAt",
+                  "createdBy",
+                  "updatedBy",
+                  "closedBy"
+                ],
+                "properties": {
+                  "reasonCodes": {
+                    "type": "array",
+                    "maxItems": 20,
+                    "items": {
+                      "type": "string",
+                      "maxLength": 4000
+                    }
+                  },
+                  "reasonText": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "destinationName": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "dueDate": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "closureReason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "closedAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "urgency": {
+                    "enum": [
+                      "STANDARD",
+                      "URGENT"
+                    ]
+                  },
+                  "status": {
+                    "enum": [
+                      "OPEN",
+                      "CONTACTED",
+                      "SEEN",
+                      "UNABLE_TO_CONFIRM",
+                      "CLOSED"
+                    ]
+                  },
+                  "createdAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "updatedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "createdBy": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "practitionerId",
+                      "displayName"
+                    ],
+                    "properties": {
+                      "practitionerId": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "displayName": {
+                        "type": "string",
+                        "maxLength": 4000
+                      }
+                    }
+                  },
+                  "updatedBy": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "practitionerId",
+                      "displayName"
+                    ],
+                    "properties": {
+                      "practitionerId": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "displayName": {
+                        "type": "string",
+                        "maxLength": 4000
+                      }
+                    }
+                  },
+                  "closedBy": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "practitionerId",
+                          "displayName"
+                        ],
+                        "properties": {
+                          "practitionerId": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "displayName": {
+                            "type": "string",
+                            "maxLength": 4000
+                          }
+                        }
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "resourceId",
+              "parentResourceId",
+              "sourceRevision",
+              "occurredAt",
+              "receivedAt",
+              "author",
+              "encounter",
+              "source",
+              "resourceType",
+              "data"
+            ],
+            "properties": {
+              "resourceId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "parentResourceId": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "uuid"
+              },
+              "sourceRevision": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "occurredAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "receivedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "author": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "practitionerId",
+                  "displayName"
+                ],
+                "properties": {
+                  "practitionerId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "displayName": {
+                    "type": "string",
+                    "maxLength": 4000
+                  }
+                }
+              },
+              "encounter": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "encounterId",
+                  "status",
+                  "startedAt",
+                  "amendmentOfEncounterId",
+                  "amendmentReason",
+                  "voidReason"
+                ],
+                "properties": {
+                  "encounterId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "DRAFT",
+                      "COMPLETED",
+                      "AMENDED",
+                      "VOID"
+                    ]
+                  },
+                  "startedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "amendmentOfEncounterId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "amendmentReason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "voidReason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  }
+                }
+              },
+              "source": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "organizationId",
+                  "organizationName",
+                  "locationId",
+                  "locationName",
+                  "installationId",
+                  "deploymentName"
+                ],
+                "properties": {
+                  "organizationId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "organizationName": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "locationId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "locationName": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "installationId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "deploymentName": {
+                    "type": "string",
+                    "maxLength": 4000
+                  }
+                }
+              },
+              "resourceType": {
+                "const": "REFERRAL_STATUS"
+              },
+              "data": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "sequenceNumber",
+                  "fromStatus",
+                  "toStatus",
+                  "changeReason"
+                ],
+                "properties": {
+                  "sequenceNumber": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "fromStatus": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "toStatus": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "changeReason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  }
+                }
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "resourceId",
+              "parentResourceId",
+              "sourceRevision",
+              "occurredAt",
+              "receivedAt",
+              "author",
+              "encounter",
+              "source",
+              "resourceType",
+              "data"
+            ],
+            "properties": {
+              "resourceId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "parentResourceId": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "uuid"
+              },
+              "sourceRevision": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "occurredAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "receivedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "author": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "practitionerId",
+                  "displayName"
+                ],
+                "properties": {
+                  "practitionerId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "displayName": {
+                    "type": "string",
+                    "maxLength": 4000
+                  }
+                }
+              },
+              "encounter": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "encounterId",
+                  "status",
+                  "startedAt",
+                  "amendmentOfEncounterId",
+                  "amendmentReason",
+                  "voidReason"
+                ],
+                "properties": {
+                  "encounterId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "DRAFT",
+                      "COMPLETED",
+                      "AMENDED",
+                      "VOID"
+                    ]
+                  },
+                  "startedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "amendmentOfEncounterId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "amendmentReason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "voidReason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  }
+                }
+              },
+              "source": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "organizationId",
+                  "organizationName",
+                  "locationId",
+                  "locationName",
+                  "installationId",
+                  "deploymentName"
+                ],
+                "properties": {
+                  "organizationId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "organizationName": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "locationId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "locationName": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "installationId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "deploymentName": {
+                    "type": "string",
+                    "maxLength": 4000
+                  }
+                }
+              },
+              "resourceType": {
+                "const": "REFERRAL_FOLLOWUP"
+              },
+              "data": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "contactDate",
+                  "contactMethod",
+                  "informationSource",
+                  "sourceType",
+                  "providerSeen",
+                  "facilityName",
+                  "dateSeen",
+                  "reportedOutcome",
+                  "reportedMedicationsOrAdvice",
+                  "nextAction",
+                  "nextFollowupDate",
+                  "treatmentActions",
+                  "medicationChanges"
+                ],
+                "properties": {
+                  "contactDate": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "contactMethod": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "informationSource": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "sourceType": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "providerSeen": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  },
+                  "facilityName": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "dateSeen": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "reportedOutcome": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "reportedMedicationsOrAdvice": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "nextAction": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "nextFollowupDate": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "treatmentActions": {
+                    "type": "array",
+                    "maxItems": 3,
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "sequenceNumber",
+                        "actionCode"
+                      ],
+                      "properties": {
+                        "sequenceNumber": {
+                          "type": "integer",
+                          "minimum": 1
+                        },
+                        "actionCode": {
+                          "type": "string",
+                          "maxLength": 4000
+                        }
+                      }
+                    }
+                  },
+                  "medicationChanges": {
+                    "type": "array",
+                    "maxItems": 20,
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "sequenceNumber",
+                        "changeType",
+                        "medicationName",
+                        "dosage",
+                        "frequency"
+                      ],
+                      "properties": {
+                        "sequenceNumber": {
+                          "type": "integer",
+                          "minimum": 1
+                        },
+                        "changeType": {
+                          "type": "string",
+                          "maxLength": 4000
+                        },
+                        "medicationName": {
+                          "type": "string",
+                          "maxLength": 4000
+                        },
+                        "dosage": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "maxLength": 4000
+                        },
+                        "frequency": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "maxLength": 4000
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "resourceId",
+              "parentResourceId",
+              "sourceRevision",
+              "occurredAt",
+              "receivedAt",
+              "author",
+              "encounter",
+              "source",
+              "resourceType",
+              "data"
+            ],
+            "properties": {
+              "resourceId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "parentResourceId": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "uuid"
+              },
+              "sourceRevision": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "occurredAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "receivedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "author": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "practitionerId",
+                  "displayName"
+                ],
+                "properties": {
+                  "practitionerId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "displayName": {
+                    "type": "string",
+                    "maxLength": 4000
+                  }
+                }
+              },
+              "encounter": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "encounterId",
+                  "status",
+                  "startedAt",
+                  "amendmentOfEncounterId",
+                  "amendmentReason",
+                  "voidReason"
+                ],
+                "properties": {
+                  "encounterId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "DRAFT",
+                      "COMPLETED",
+                      "AMENDED",
+                      "VOID"
+                    ]
+                  },
+                  "startedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "amendmentOfEncounterId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "amendmentReason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "voidReason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  }
+                }
+              },
+              "source": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "organizationId",
+                  "organizationName",
+                  "locationId",
+                  "locationName",
+                  "installationId",
+                  "deploymentName"
+                ],
+                "properties": {
+                  "organizationId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "organizationName": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "locationId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "locationName": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "installationId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "deploymentName": {
+                    "type": "string",
+                    "maxLength": 4000
+                  }
+                }
+              },
+              "resourceType": {
+                "const": "ENCOUNTER_ADDENDUM"
+              },
+              "data": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "noteText"
+                ],
+                "properties": {
+                  "noteText": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2000
+                  }
+                }
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "resourceId",
+              "parentResourceId",
+              "sourceRevision",
+              "occurredAt",
+              "receivedAt",
+              "author",
+              "encounter",
+              "source",
+              "resourceType",
+              "data"
+            ],
+            "properties": {
+              "resourceId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "parentResourceId": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "uuid"
+              },
+              "sourceRevision": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "occurredAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "receivedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "author": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "practitionerId",
+                  "displayName"
+                ],
+                "properties": {
+                  "practitionerId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "displayName": {
+                    "type": "string",
+                    "maxLength": 4000
+                  }
+                }
+              },
+              "encounter": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "encounterId",
+                  "status",
+                  "startedAt",
+                  "amendmentOfEncounterId",
+                  "amendmentReason",
+                  "voidReason"
+                ],
+                "properties": {
+                  "encounterId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "DRAFT",
+                      "COMPLETED",
+                      "AMENDED",
+                      "VOID"
+                    ]
+                  },
+                  "startedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "amendmentOfEncounterId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "amendmentReason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "voidReason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  }
+                }
+              },
+              "source": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "organizationId",
+                  "organizationName",
+                  "locationId",
+                  "locationName",
+                  "installationId",
+                  "deploymentName"
+                ],
+                "properties": {
+                  "organizationId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "organizationName": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "locationId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "locationName": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "installationId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "deploymentName": {
+                    "type": "string",
+                    "maxLength": 4000
+                  }
+                }
+              },
+              "resourceType": {
+                "const": "ENCOUNTER_REVIEW_FLAG"
+              },
+              "data": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "category",
+                  "description",
+                  "currentStatus",
+                  "latestSequenceNumber",
+                  "lastChangedAt",
+                  "lastChangedBy",
+                  "lastChangeReason"
+                ],
+                "properties": {
+                  "category": {
+                    "enum": [
+                      "POSSIBLE_DATA_ERROR",
+                      "MISSING_INFORMATION",
+                      "WRONG_PATIENT",
+                      "DUPLICATE_ENCOUNTER",
+                      "OTHER"
+                    ]
+                  },
+                  "description": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 1000
+                  },
+                  "currentStatus": {
+                    "type": "string",
+                    "enum": [
+                      "OPEN",
+                      "RESOLVED",
+                      "DISMISSED"
+                    ]
+                  },
+                  "latestSequenceNumber": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "lastChangedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "lastChangedBy": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "practitionerId",
+                      "displayName"
+                    ],
+                    "properties": {
+                      "practitionerId": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "displayName": {
+                        "type": "string",
+                        "maxLength": 4000
+                      }
+                    }
+                  },
+                  "lastChangeReason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  }
+                }
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "resourceId",
+              "parentResourceId",
+              "sourceRevision",
+              "occurredAt",
+              "receivedAt",
+              "author",
+              "encounter",
+              "source",
+              "resourceType",
+              "data"
+            ],
+            "properties": {
+              "resourceId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "parentResourceId": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "uuid"
+              },
+              "sourceRevision": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "occurredAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "receivedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "author": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "practitionerId",
+                  "displayName"
+                ],
+                "properties": {
+                  "practitionerId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "displayName": {
+                    "type": "string",
+                    "maxLength": 4000
+                  }
+                }
+              },
+              "encounter": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "encounterId",
+                  "status",
+                  "startedAt",
+                  "amendmentOfEncounterId",
+                  "amendmentReason",
+                  "voidReason"
+                ],
+                "properties": {
+                  "encounterId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "DRAFT",
+                      "COMPLETED",
+                      "AMENDED",
+                      "VOID"
+                    ]
+                  },
+                  "startedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "amendmentOfEncounterId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "amendmentReason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "voidReason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  }
+                }
+              },
+              "source": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "organizationId",
+                  "organizationName",
+                  "locationId",
+                  "locationName",
+                  "installationId",
+                  "deploymentName"
+                ],
+                "properties": {
+                  "organizationId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "organizationName": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "locationId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "locationName": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "installationId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "deploymentName": {
+                    "type": "string",
+                    "maxLength": 4000
+                  }
+                }
+              },
+              "resourceType": {
+                "const": "ENCOUNTER_REVIEW_STATUS"
+              },
+              "data": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "category",
+                  "description",
+                  "sequenceNumber",
+                  "fromStatus",
+                  "toStatus",
+                  "changeReason"
+                ],
+                "properties": {
+                  "category": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "description": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "sequenceNumber": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "fromStatus": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "enum": [
+                      null,
+                      "OPEN",
+                      "RESOLVED",
+                      "DISMISSED"
+                    ]
+                  },
+                  "toStatus": {
+                    "type": "string",
+                    "enum": [
+                      "OPEN",
+                      "RESOLVED",
+                      "DISMISSED"
+                    ]
+                  },
+                  "changeReason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

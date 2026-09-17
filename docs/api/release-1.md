@@ -109,3 +109,16 @@ pnpm --filter @chs/api test:integration
 The API integration suite verifies authentication, organization isolation,
 audit behavior, exact replay, recovery, and non-leakage. The documentation gate
 verifies inventory coverage; it is not a substitute for those behavioral tests.
+
+## HSW-019D central patient history
+
+- `POST /api/v1/sync/patients/history` uses an active installation bearer and an active source-attributed nurse/admin. It requires a confirmed installation-local patient / canonical person link, with no unresolved identity conflict. Sharing is limited to the installation's server-derived organization. A Medical ID alone cannot authorize a read.
+- `POST /api/v1/operations/patients/history` uses verified OIDC and an active `PATIENT_READ` grant; every page rechecks scope.
+
+Both require a controlled access reason, `contractVersion: "1.0"`, `personId`, `fromDate`, and `toDate` (inclusive UTC days, at most 366 days). The installation additionally supplies `localPatientId` and `requesterLocalActorId`. Optional `resourceTypes`, `limit` (1–50, default 25) and opaque `cursor` are bound to the request. Identifiers and cursors appear only in POST bodies; responses are `no-store`. Unknown properties, including client-supplied organization scope, are rejected.
+
+The response includes canonical demographics and independent clinical resources, preserving canonical relationships, authors, occurrence/receipt times, source revisions, locations/installations, and void/amendment state. It projects normalized tables only. Source-local identifiers, synchronization hashes, credentials and raw upload payloads are excluded. Responses are bounded to 512 KiB; large histories span pages. The date filter applies to each resource's occurrence/recording time, so a late addendum can be retrieved independently of its older encounter.
+
+Cursors expire after fifteen minutes and are bound to caller, credential (installation), scope, patient, reason, filters and page size. Changes to history in the requested window produce `409 HISTORY_CURSOR_STALE`; clients discard the incomplete traversal and refresh. Exact repeated continuation requests return the same records and next cursor while the data and access remain unchanged. Recheck revocation, identity and scope on every page. Read/audit/cursor operations commit together; audit failure prevents clinical data delivery.
+
+See [HSW-019D](../sync/HSW-019D-patient-history-retrieval.md) for the complete contract and acceptance sequence.

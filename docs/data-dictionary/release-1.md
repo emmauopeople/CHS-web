@@ -3,7 +3,7 @@
 ## Purpose and authority
 
 This dictionary describes the PostgreSQL schema after migrations `0001` through
-`0015`. PostgreSQL constraints and the approved synchronization contracts remain
+`0016`. PostgreSQL constraints and the approved synchronization contracts remain
 the executable authority for field types and accepted values. The companion
 [`release-1.json`](release-1.json) catalog is checked against every `CREATE
 TABLE` statement and the migration ledger table during tests, so undocumented
@@ -124,9 +124,9 @@ tables.
 
 | Table | Purpose | Classification | Viewer boundary |
 | --- | --- | --- | --- |
-| `reported_intake_assessments` | Immutable completed Food and OTC assessments with encounter ownership and source provenance. | CLINICAL | NONE |
-| `reported_food_rows` | Finalized patient-reported food items with optional frequency and preparation notes. | CLINICAL | NONE |
-| `reported_otc_rows` | Finalized patient-reported OTC products, reasons and medication-use details. | CLINICAL | NONE |
+| `reported_intake_assessments` | Immutable completed Food and OTC assessments with encounter ownership and source provenance. | CLINICAL | CANONICAL_PATIENT |
+| `reported_food_rows` | Finalized patient-reported food items with optional frequency and preparation notes. | CLINICAL | CANONICAL_PATIENT |
+| `reported_otc_rows` | Finalized patient-reported OTC products, reasons and medication-use details. | CLINICAL | CANONICAL_PATIENT |
 
 ## Referral synchronization extension
 
@@ -146,11 +146,19 @@ explicit reason, server-derived organization scope, and an access audit.
 
 ### HSW-019C encounter history (migration 0015)
 
-Canonical schema: 15 migrations and 59 tables. These tables are not exposed through Patient Viewer in this increment.
+Introduced at migration 0015. HSW-019D now exposes authorized, bounded read projections of these tables.
 
 | Table | Ownership and purpose | Viewer access |
 | --- | --- | --- |
-| `encounter_history_resources` | Source installation identities, immutable revisions and content hashes for encounter annotations. | None |
-| `encounter_addenda` | Immutable encounter addenda with original authors and creation timestamps. | None |
-| `encounter_review_flags` | Immutable review flag definitions linked to their original encounters and authors. | None |
-| `encounter_review_status_events` | Append-only review opening, resolution, dismissal and reopening history with original authors and timestamps. | None |
+| `encounter_history_resources` | Source installation identities, immutable revisions and content hashes for encounter annotations. | Canonical patient projection |
+| `encounter_addenda` | Immutable encounter addenda with original authors and creation timestamps. | Canonical patient projection |
+| `encounter_review_flags` | Immutable review flag definitions linked to their original encounters and authors. | Canonical patient projection |
+| `encounter_review_status_events` | Append-only review opening, resolution, dismissal and reopening history with original authors and timestamps. | Canonical patient projection |
+
+### HSW-019D history retrieval (migration 0016)
+
+Canonical schema: 16 migrations and 60 tables.
+
+| Table | Purpose and boundary |
+| --- | --- |
+| `patient_history_cursors` | Fifteen-minute opaque pagination state: hashed caller/query bindings, canonical version digest, keyset position and expiry. No clinical payload or patient demographics. Every continuation rechecks authorization and patient linkage. Expired rows are removed in bounded batches during retrieval. |

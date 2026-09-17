@@ -47,6 +47,7 @@ test(
         '0013_clinical_screening_time.sql',
         '0014_referral_ingestion.sql',
         '0015_encounter_history_ingestion.sql',
+        '0016_patient_history_cursors.sql',
       ]);
       assert.deepEqual(secondRun.applied, []);
 
@@ -58,8 +59,9 @@ test(
         [schema],
       );
       const tableNames = tableResult.rows.map((row) => row.table_name);
-      assert.equal(tableNames.length, 59);
+      assert.equal(tableNames.length, 60);
       assert.ok(tableNames.includes('schema_migrations'));
+      assert.ok(tableNames.includes('patient_history_cursors'));
       assert.ok(tableNames.includes('screening_encounters'));
       assert.ok(tableNames.includes('vital_readings'));
       assert.ok(tableNames.includes('sync_batch_actors'));

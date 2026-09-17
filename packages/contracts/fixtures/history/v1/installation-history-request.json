@@ -1,0 +1,10 @@
+{
+  "contractVersion": "1.0",
+  "personId": "10000000-0000-4000-8000-000000000003",
+  "localPatientId": "10000000-0000-4000-8000-000000000004",
+  "requesterLocalActorId": "10000000-0000-4000-8000-000000000005",
+  "reasonCode": "CARE_DELIVERY",
+  "fromDate": "2026-09-01",
+  "toDate": "2026-09-17",
+  "limit": 10
+}

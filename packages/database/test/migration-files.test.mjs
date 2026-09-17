@@ -16,7 +16,7 @@ test('database package uses a cross-platform syntax checker', async () => {
 test('canonical migration is numbered, hashed, and contains the required model', async () => {
   const migrations = await discoverMigrations();
 
-  assert.equal(migrations.length, 15);
+  assert.equal(migrations.length, 16);
   assert.equal(migrations[0].version, '0001');
   assert.equal(
     migrations[0].filename,

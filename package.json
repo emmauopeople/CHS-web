@@ -36,6 +36,10 @@
     "local:auth:up": "docker compose -f compose.yaml -f compose.local-auth.yaml up -d keycloak",
     "local:auth:grant": "pnpm --filter @chs/api local:auth:grant",
     "local:auth:test": "node --test scripts/local-auth/setup.test.mjs scripts/local-auth/repair.test.mjs",
-    "local:auth:repair": "node scripts/local-auth/repair.mjs"
+    "local:auth:repair": "node scripts/local-auth/repair.mjs",
+    "local:fhir:setup": "node scripts/local-fhir/setup.mjs",
+    "local:fhir:up": "docker compose -p chs-fhir -f compose.fhir.yaml up -d --wait --wait-timeout 120 fhir-pgsql",
+    "local:fhir:status": "docker compose -p chs-fhir -f compose.fhir.yaml ps",
+    "local:fhir:stop": "docker compose -p chs-fhir -f compose.fhir.yaml stop fhir-pgsql"
   }
 }

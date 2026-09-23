@@ -68,19 +68,37 @@ versions never rewrite an already accepted weekly assessment.
 
 ## Dependencies and replay
 
-- unavailable patient or encounter: retryable `DEPENDENCY_NOT_AVAILABLE`;
+- unavailable patient or encounter, or a local-root encounter still in draft:
+  retryable `DEPENDENCY_NOT_AVAILABLE`;
 - identical prior delivery or source snapshot: `UNCHANGED`;
 - a stored `RETRY` is reprocessed in the same durable sync-record row after its
   dependency arrives;
 - changed content under an existing delivery/snapshot key:
   `RECORD_PAYLOAD_MISMATCH`;
 - lower source revision: `STALE_SOURCE_REVISION`;
-- mismatched identity/context, invalid encounter state or period, reused
+- mismatched identity/context, voided/amended encounter state or invalid period, reused
   baseline identity/version, or a second assessment for the encounter:
   permanent `REJECTED`;
 - a higher revision with identical completed content may advance the source
   revision, while changed completed clinical content returns
   `LIFESTYLE_TERMINAL_CONFLICT`.
+
+### Recovery of premature uploads
+
+Older desktop versions could upload a completed Lifestyle section before the
+overall encounter completed. Older API versions permanently rejected that case
+with `LIFESTYLE_ENCOUNTER_STATE_INVALID`. A new batch may reconsider that specific
+legacy outcome only for the exact original record hash, with no canonical
+Lifestyle target, one matching non-retryable error at `/payload/localEncounterId`,
+and an installation-scoped local-root encounter currently draft or completed.
+All normal context, provenance, period, baseline and content checks run again.
+A draft remains retryable; a completed valid snapshot is accepted once. A void,
+amendment, other error, or changed record does not qualify for this recovery.
+
+The existing sync-record row is updated transactionally. Historical batch
+responses remain unchanged, and subsequent accepted replays return `UNCHANGED`.
+Install/restart this API before the coordinated desktop recovery update; no
+schema migration or clinical data rewrite is required.
 
 Accepted outcomes expose only the canonical Lifestyle assessment UUID. Patient
 identity and Medical ID fields remain null for this non-patient resource.

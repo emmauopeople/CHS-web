@@ -283,7 +283,7 @@ runIntegration('Lifestyle processing with PostgreSQL', () => {
     });
   });
 
-  it('rejects noncanonical encounter state and a period not ending on the session date', async () => {
+  it('waits for a draft encounter to complete and rejects a period not ending on the session date', async () => {
     const draftLocalEncounterId = '92000000-0000-4000-8000-000000000097';
     await insertEncounter(
       servicePool,
@@ -306,9 +306,24 @@ runIntegration('Lifestyle processing with PostgreSQL', () => {
         now,
       ),
     ).resolves.toMatchObject({
-      status: 'REJECTED',
-      errors: [{ code: 'LIFESTYLE_ENCOUNTER_STATE_INVALID' }],
+      status: 'RETRY',
+      errors: [{ code: 'DEPENDENCY_NOT_AVAILABLE', path: '/payload/localEncounterId', retryable: true }],
     });
+
+    await servicePool.query(
+      `UPDATE screening_encounters SET status='COMPLETED',
+      completed_at='2026-08-20T15:40:00.000Z' WHERE local_encounter_id=$1`,
+      [draftLocalEncounterId],
+    );
+    await expect(
+      processLifestyleRecord(
+        servicePool,
+        context,
+        await startBatch(servicePool, fixture, draftEncounter),
+        draftEncounter,
+        now,
+      ),
+    ).resolves.toMatchObject({ status: 'ACCEPTED' });
 
     const wrongPeriod = reidentifiedRecord(baseRecord, {
       localResourceId: 'e2000000-0000-4000-8000-000000000096',
@@ -342,6 +357,226 @@ runIntegration('Lifestyle processing with PostgreSQL', () => {
       errors: [{ code: 'LIFESTYLE_PERIOD_INVALID', path: '/payload/periodEnd' }],
     });
   });
+  it.each(['DRAFT', 'COMPLETED'] as const)(
+    'recovers an exact legacy state rejection with a %s parent while preserving batch evidence',
+    async (state) => {
+      const suffix = state === 'DRAFT' ? '80' : '81';
+      const localId = `92000000-0000-4000-8000-0000000000${suffix}`;
+      const canonicalId = `93000000-0000-4000-8000-0000000000${suffix}`;
+      await insertEncounter(servicePool, canonicalId, localId, 'DRAFT');
+      const record = reidentifiedRecord(baseRecord, {
+        localResourceId: randomUUID(),
+        recordId: randomUUID(),
+        localEncounterId: localId,
+        idSuffix: suffix,
+      });
+      const originalBatch = await startBatch(servicePool, fixture, record);
+      const initial = await processLifestyleRecord(
+        servicePool,
+        context,
+        originalBatch,
+        record,
+        now,
+      );
+      expect(initial.status).toBe('RETRY');
+      const legacy = {
+        ...initial,
+        status: 'REJECTED',
+        errors: [
+          {
+            code: 'LIFESTYLE_ENCOUNTER_STATE_INVALID',
+            path: '/payload/localEncounterId',
+            retryable: false,
+          },
+        ],
+      };
+      await servicePool.query(
+        `UPDATE sync_records SET status='REJECTED',errors=$1::jsonb WHERE record_id=$2`,
+        [JSON.stringify(legacy.errors), record.recordId],
+      );
+      await servicePool.query(
+        `UPDATE sync_batches SET status='REJECTED',completed_at=$1,rejected_count=1,
+      response_body=jsonb_build_object('contractVersion','1.0','batchId',batch_id,'batchStatus','REJECTED',
+        'receivedAt',received_at,'completedAt',$1::timestamptz,'outcomes',$2::jsonb) WHERE id=$3`,
+        [now.toISOString(), JSON.stringify([legacy]), originalBatch],
+      );
+      const before = await servicePool.query(
+        'SELECT id,payload_hash FROM sync_records WHERE record_id=$1',
+        [record.recordId],
+      );
+      const responseBefore = await servicePool.query(
+        'SELECT response_body FROM sync_batches WHERE id=$1',
+        [originalBatch],
+      );
+      const complete = () =>
+        servicePool.query(
+          `UPDATE screening_encounters SET status='COMPLETED',
+      completed_at='2026-08-20T15:40:00.000Z' WHERE id=$1`,
+          [canonicalId],
+        );
+      if (state === 'COMPLETED') await complete();
+
+      const changed = { ...record, capturedAt: '2026-08-20T16:31:00.000Z' };
+      await expect(
+        processLifestyleRecord(
+          servicePool,
+          context,
+          await startBatch(servicePool, fixture, changed),
+          changed,
+          now,
+        ),
+      ).resolves.toMatchObject({
+        status: 'REJECTED',
+        errors: [{ code: 'RECORD_PAYLOAD_MISMATCH' }],
+      });
+      let recovered = await processLifestyleRecord(
+        servicePool,
+        context,
+        await startBatch(servicePool, fixture, record),
+        record,
+        now,
+      );
+      if (state === 'DRAFT') {
+        expect(recovered).toMatchObject({
+          status: 'RETRY',
+          errors: [{ code: 'DEPENDENCY_NOT_AVAILABLE', retryable: true }],
+        });
+        await complete();
+        recovered = await processLifestyleRecord(
+          servicePool,
+          context,
+          await startBatch(servicePool, fixture, record),
+          record,
+          now,
+        );
+      }
+      expect(recovered.status).toBe('ACCEPTED');
+      await expect(
+        processLifestyleRecord(
+          servicePool,
+          context,
+          await startBatch(servicePool, fixture, record),
+          record,
+          now,
+        ),
+      ).resolves.toMatchObject({
+        status: 'UNCHANGED',
+        canonicalResourceId: recovered.canonicalResourceId,
+      });
+      expect(
+        (
+          await servicePool.query('SELECT id,payload_hash FROM sync_records WHERE record_id=$1', [
+            record.recordId,
+          ])
+        ).rows,
+      ).toEqual(before.rows);
+      expect(
+        (
+          await servicePool.query('SELECT response_body FROM sync_batches WHERE id=$1', [
+            originalBatch,
+          ])
+        ).rows,
+      ).toEqual(responseBefore.rows);
+      expect(
+        (
+          await servicePool.query(
+            'SELECT count(*)::int AS count FROM lifestyle_assessments WHERE encounter_id=$1',
+            [canonicalId],
+          )
+        ).rows,
+      ).toEqual([{ count: 1 }]);
+    },
+  );
+
+  it.each(['VOID', 'AMENDED', 'OTHER_ERROR'] as const)(
+    'keeps %s permanently rejected during legacy recovery',
+    async (state) => {
+      const suffix = state === 'VOID' ? '82' : state === 'AMENDED' ? '83' : '84';
+      const localId = `92000000-0000-4000-8000-0000000000${suffix}`;
+      const canonicalId = `93000000-0000-4000-8000-0000000000${suffix}`;
+      await insertEncounter(servicePool, canonicalId, localId, 'DRAFT');
+      const record = reidentifiedRecord(baseRecord, {
+        localResourceId: randomUUID(),
+        recordId: randomUUID(),
+        localEncounterId: localId,
+        idSuffix: suffix,
+      });
+      await processLifestyleRecord(
+        servicePool,
+        context,
+        await startBatch(servicePool, fixture, record),
+        record,
+        now,
+      );
+      const errors = [
+        {
+          code:
+            state === 'OTHER_ERROR'
+              ? 'LIFESTYLE_PERIOD_INVALID'
+              : 'LIFESTYLE_ENCOUNTER_STATE_INVALID',
+          path: '/payload/localEncounterId',
+          retryable: false,
+        },
+      ];
+      await servicePool.query(
+        "UPDATE sync_records SET status='REJECTED',errors=$1::jsonb WHERE record_id=$2",
+        [JSON.stringify(errors), record.recordId],
+      );
+      if (state === 'VOID')
+        await servicePool.query(
+          "UPDATE screening_encounters SET status='VOID',void_reason='Synthetic void' WHERE id=$1",
+          [canonicalId],
+        );
+      else if (state === 'AMENDED')
+        await servicePool.query(
+          `UPDATE screening_encounters SET status='AMENDED',
+      completed_at='2026-08-20T15:40:00.000Z',amendment_of_encounter_id=$1,amendment_reason='Synthetic amendment' WHERE id=$2`,
+          [canonicalEncounterId, canonicalId],
+        );
+      else
+        await servicePool.query(
+          "UPDATE screening_encounters SET status='COMPLETED',completed_at='2026-08-20T15:40:00.000Z' WHERE id=$1",
+          [canonicalId],
+        );
+      await expect(
+        processLifestyleRecord(
+          servicePool,
+          context,
+          await startBatch(servicePool, fixture, record),
+          record,
+          now,
+        ),
+      ).resolves.toMatchObject({ status: 'REJECTED', errors });
+      expect(
+        (
+          await servicePool.query(
+            'SELECT count(*)::int AS count FROM lifestyle_assessments WHERE encounter_id=$1',
+            [canonicalId],
+          )
+        ).rows,
+      ).toEqual([{ count: 0 }]);
+      // New records are subject to the same terminal encounter guard.
+      if (state !== 'OTHER_ERROR') {
+        const fresh = {
+          ...record,
+          recordId: randomUUID(),
+          localResourceId: randomUUID(),
+        };
+        await expect(
+          processLifestyleRecord(
+            servicePool,
+            context,
+            await startBatch(servicePool, fixture, fresh),
+            fresh,
+            now,
+          ),
+        ).resolves.toMatchObject({
+          status: 'REJECTED',
+          errors: [{ code: 'LIFESTYLE_ENCOUNTER_STATE_INVALID' }],
+        });
+      }
+    },
+  );
 });
 
 async function startBatch(

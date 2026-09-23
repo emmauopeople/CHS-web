@@ -49,12 +49,16 @@ function toInstant(value: string): string | undefined {
 }
 
 function BatchStatus({ batch }: Readonly<{ batch: SyncBatchMonitoringItem }>) {
+  const retryOnly = batch.status === 'REJECTED' && batch.counts.retry > 0 &&
+    batch.counts.rejected === 0;
   return (
     <div className="sync-status-stack">
       <span className={`status sync-health sync-health-${batch.attentionState.toLowerCase()}`}>
         {humanize(batch.attentionState)}
       </span>
-      <span className="sync-batch-state">{humanize(batch.status)}</span>
+      <span className="sync-batch-state">
+        {retryOnly ? 'Retry required' : humanize(batch.status)}
+      </span>
     </div>
   );
 }
@@ -191,6 +195,7 @@ function SyncDetailPanel({
               <div><p className="eyebrow">Grouped counts only</p><h3>Resource outcomes</h3></div>
               <span>{detail.outcomeCounts.length} group{detail.outcomeCounts.length === 1 ? '' : 's'}</span>
             </div>
+            <p>Outcomes from this batch attempt. Later retries may have different results.</p>
             {detail.outcomeCounts.length > 0 ? (
               <div className="compact-table-shell">
                 <table>
@@ -344,7 +349,7 @@ export function SyncMonitoring({ api, onUnauthorized }: Props) {
             <option value="PROCESSING">Processing</option>
             <option value="ACCEPTED">Accepted</option>
             <option value="PARTIAL">Partial</option>
-            <option value="REJECTED">Rejected</option>
+            <option value="REJECTED">Rejected / retry required</option>
             <option value="FAILED">Failed</option>
           </select>
         </div>

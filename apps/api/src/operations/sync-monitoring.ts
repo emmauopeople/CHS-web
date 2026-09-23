@@ -307,6 +307,25 @@ const batchJoins = `
   JOIN locations AS location
     ON location.id = sync_batch.location_id`;
 
+// sync_records belongs to the first batch that observed a source revision and
+// its outcome can change on retry. A completed batch's immutable response is
+// the authority for that particular attempt, including replays and conflicts
+// that do not create a new sync_records row. Aggregate in PostgreSQL so raw
+// responses, identifiers and error paths never enter the monitoring result.
+const batchOutcomes = `WITH batch_outcomes AS (
+  SELECT outcome->>'resourceType' AS resource_type,
+         outcome->>'status' AS status,
+         outcome->'errors' AS errors
+  FROM sync_batches AS batch
+  CROSS JOIN LATERAL jsonb_array_elements(batch.response_body->'outcomes') AS outcome
+  WHERE batch.id = $1 AND batch.response_body IS NOT NULL
+  UNION ALL
+  SELECT record.resource_type, record.status, record.errors
+  FROM sync_records AS record
+  JOIN sync_batches AS batch ON batch.id = record.batch_internal_id
+  WHERE batch.id = $1 AND batch.response_body IS NULL
+)`;
+
 export async function listSyncBatches(
   database: MonitoringDatabase,
   accessScope: PatientAccessScope,
@@ -370,15 +389,16 @@ export async function getSyncBatchDetail(
 
   const [outcomes, errors] = await Promise.all([
     database.query<OutcomeCountRow>(
-      `SELECT resource_type, status, count(*)::text AS outcome_count
-       FROM sync_records
-       WHERE batch_internal_id = $1
+      `${batchOutcomes}
+       SELECT resource_type, status, count(*)::text AS outcome_count
+       FROM batch_outcomes
        GROUP BY resource_type, status
        ORDER BY resource_type, status`,
       [batchReference],
     ),
     database.query<ErrorCodeCountRow>(
-      `SELECT
+      `${batchOutcomes}
+       SELECT
          CASE
            WHEN error_item->>'code' ~ '^[A-Z][A-Z0-9_]{0,99}$'
              THEN error_item->>'code'
@@ -390,9 +410,8 @@ export async function getSyncBatchDetail(
            ELSE false
          END AS retryable,
          count(*)::text AS error_count
-       FROM sync_records AS sync_record
+       FROM batch_outcomes AS sync_record
        CROSS JOIN LATERAL jsonb_array_elements(sync_record.errors) AS error_item
-       WHERE sync_record.batch_internal_id = $1
        GROUP BY error_code, retryable
        ORDER BY error_code, retryable`,
       [batchReference],

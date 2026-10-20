@@ -14,8 +14,9 @@ export const staffPermissions = [
   'IDENTITY_REVIEW_RESOLVE',
   'SYNC_MONITOR',
   'DESKTOP_INSTALLATION_MANAGE',
+  'FHIR_READ',
 ] as const;
-export type AccountRole = 'STAFF' | 'ADMIN' | 'SUPER_ADMIN';
+export type AccountRole = 'STAFF' | 'ADMIN' | 'SUPER_ADMIN' | 'FHIR_VIEWER';
 type Account = {
   id: string;
   oidc_issuer: string;
@@ -211,7 +212,7 @@ export async function createAccount(
         );
     }
     const permissions =
-      input.role === 'STAFF'
+      input.role === 'FHIR_VIEWER' ? ['FHIR_READ'] : input.role === 'STAFF'
         ? [...new Set(input.permissions)]
         : [...staffPermissions, 'USER_MANAGE'];
     if (input.role === 'STAFF' && permissions.includes('USER_MANAGE'))

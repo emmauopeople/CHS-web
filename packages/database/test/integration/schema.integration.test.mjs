@@ -52,6 +52,7 @@ test(
         '0018_operations_account_administration.sql',
         '0019_provider_access.sql',
         '0020_fhir_publication.sql',
+        '0021_fhir_viewer.sql',
       ]);
       assert.deepEqual(secondRun.applied, []);
 

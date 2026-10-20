@@ -152,3 +152,11 @@ All require OIDC, `USER_MANAGE`, an active admin/super admin account and `reason
 - `POST /api/v1/operations/fhir/status`: super admin publication counts and bounded failure metadata.
 
 Management bodies require `reasonCode: PROVIDER_ADMINISTRATION`; FHIR status uses `FHIR_ADMINISTRATION`. Provider clinical retrieval requires approved client status, unexpired organization and patient grants, the matching `history:read` or `fhir:read` scope, and a permitted care reason. No client-supplied organization scope is accepted. Credentials are issued once only and never stored in PostgreSQL or audit metadata. Revocation is checked on every request and page; rotation invalidates older issued tokens. See the provider and FHIR runbooks for request contracts and operational boundaries.
+
+## FHIR resource viewer
+
+`POST /api/v1/operations/fhir/access` reports whether the active account is restricted to the FHIR workspace.
+
+`POST /api/v1/operations/fhir/patients/search` requires `FHIR_READ`, `reasonCode: FHIR_DEMONSTRATION` and at least a name (2–120 characters) or an exact date of birth. Results contain up to ten actual published Patient resources per page within the grant scope.
+
+`POST /api/v1/operations/fhir/resources/read` requires `FHIR_READ`, the same reason, a patient UUID and optional mapped resource type. Returns up to 25 actual published R4 resources in a collection, with generation-bound pagination. No arbitrary FHIR proxy or writes are provided. Names, dates and clinical JSON never enter audit metadata.

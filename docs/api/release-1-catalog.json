@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "release": "1",
-  "endpointCount": 36,
+  "endpointCount": 39,
   "endpoints": [
     { "method": "GET", "path": "/health/live", "audience": "platform", "authentication": "NONE", "permission": null, "cache": "NO_STORE", "purpose": "Process liveness without dependency checks." },
     { "method": "GET", "path": "/health/startup", "audience": "platform", "authentication": "NONE", "permission": null, "cache": "NO_STORE", "purpose": "Startup completion state." },
@@ -38,6 +38,9 @@
     { "method": "POST", "path": "/api/v1/operations/providers/patient-access", "audience": "operations", "authentication": "OIDC_BEARER", "permission": "USER_MANAGE", "cache": "NO_STORE", "purpose": "Grant or revoke expiring patient-specific provider access." },
     { "method": "POST", "path": "/api/v1/providers/patients/history", "audience": "provider", "authentication": "OIDC_BEARER", "permission": null, "cache": "NO_STORE", "purpose": "Read authorized and explicitly shared patient history." },
     { "method": "POST", "path": "/api/v1/providers/fhir/patient", "audience": "provider", "authentication": "OIDC_BEARER", "permission": null, "cache": "NO_STORE", "purpose": "Retrieve a bounded organization-filtered FHIR patient collection." },
-    { "method": "POST", "path": "/api/v1/operations/fhir/status", "audience": "operations", "authentication": "OIDC_BEARER", "permission": "USER_MANAGE", "cache": "NO_STORE", "purpose": "Inspect publication queue status and bounded failure metadata." }
+    { "method": "POST", "path": "/api/v1/operations/fhir/status", "audience": "operations", "authentication": "OIDC_BEARER", "permission": "USER_MANAGE", "cache": "NO_STORE", "purpose": "Inspect publication queue status and bounded failure metadata." },
+    {"method": "POST", "path": "/api/v1/operations/fhir/access", "audience": "operations", "authentication": "OIDC_BEARER", "permission": null, "cache": "NO_STORE", "purpose": "Read active portal FHIR workspace restriction."},
+    {"method": "POST", "path": "/api/v1/operations/fhir/patients/search", "audience": "operations", "authentication": "OIDC_BEARER", "permission": "FHIR_READ", "cache": "NO_STORE", "purpose": "Search published scoped FHIR Patients by name or birth date using POST."},
+    {"method": "POST", "path": "/api/v1/operations/fhir/resources/read", "audience": "operations", "authentication": "OIDC_BEARER", "permission": "FHIR_READ", "cache": "NO_STORE", "purpose": "Read bounded actual published R4 resources by patient and optional resource type."}
   ]
 }

@@ -184,6 +184,8 @@ export async function registerProviderRoutes(
       const db = await database.connect();
       try {
         await db.query('BEGIN');
+        const viewer = await db.query("SELECT 1 FROM operations_users WHERE oidc_issuer=$1 AND oidc_subject=$2 AND account_role='FHIR_VIEWER'",[verified.issuer,verified.subject]);
+        if(viewer.rowCount) throw new ProviderAccessError();
         const result = await db.query(
           `INSERT INTO provider_requests(id,requester_issuer,requester_subject,organization_name,registration_identifier,contact_email,purpose)
     VALUES($1,$2,$3,$4,$5,$6,$7) ON CONFLICT(requester_issuer,requester_subject) WHERE status='PENDING' DO NOTHING RETURNING id`,

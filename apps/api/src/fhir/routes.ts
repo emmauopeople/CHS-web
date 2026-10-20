@@ -1,3 +1,4 @@
+import { registerFhirViewer } from './viewer.js';
 import { randomUUID } from 'node:crypto';
 import type { FastifyInstance } from 'fastify';
 import type { Pool } from 'pg';
@@ -30,6 +31,7 @@ export async function registerFhirRoutes(
     transport: FhirTransport | null;
   },
 ) {
+  await registerFhirViewer(app,database,tokenVerifier,transport);
   app.post<{
     Body: {
       reasonCode: string;

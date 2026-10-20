@@ -157,7 +157,7 @@ Introduced at migration 0015. HSW-019D now exposes authorized, bounded read proj
 
 ### HSW-019D history retrieval (migration 0016)
 
-Canonical schema: 20 migrations and 67 tables.
+Canonical schema: 21 migrations and 67 tables.
 
 | Table | Purpose and boundary |
 | --- | --- |

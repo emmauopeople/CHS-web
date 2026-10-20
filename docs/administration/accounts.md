@@ -27,3 +27,9 @@ Create accounts from Accounts → Load accounts. Staff permissions are explicitl
 Suspension updates Keycloak, terminates identity sessions and blocks subsequent CHS requests. Password resets terminate identity sessions and require password change. A distributed provider/database failure can require retry: the provider might have completed a change before a database failure. Creating an identity starts disabled and removes it on provisioning failure; without committed CHS grants it cannot access application data. All requests use bounded provider timeouts. Self-suspension and self-reset are blocked here; use the sign-in account flow for your own password, or another super admin for account changes.
 
 Account lists are limited to 50 per page and organization selectors to 500. Administrators cannot manage a staff account that also has grants outside their own scope, including inactive grants. Permission or role changes for an existing account are currently controlled provisioning operations; the initial workspace supports account creation, suspension, activation and password reset.
+
+## FHIR demonstration accounts
+
+A super admin can choose **FHIR viewer (read only)** in Accounts, select the organization and create the account. The API assigns exactly `FHIR_READ` regardless of other requested permissions. First sign-in requires a password change. The portal opens directly in FHIR Resources and hides other workspaces. API authorization also rejects other operational permissions for this role, even if an incorrect grant is later inserted. Admins cannot create or manage this role.
+
+Existing administrators receive FHIR read permission within their management scope through migration 0021; staff may be delegated FHIR read explicitly. No public FHIR server access or write capability is granted.

@@ -7,6 +7,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { migrateWithClient } from '../../../../packages/database/src/migration-runner.mjs';
 import { buildApp } from '../../src/app.js';
 import type { AppConfig } from '../../src/config.js';
+import { getSyncBatchDetail } from '../../src/operations/sync-monitoring.js';
 import { beginSyncBatch } from '../../src/sync/batch-intake.js';
 import {
   authenticateInstallation,
@@ -20,6 +21,7 @@ import type {
   ScreeningSessionSyncRecord,
   SyncBatchRequest,
   SyncBatchResponse,
+  VitalsSyncRecord,
 } from '../../src/sync/types.js';
 
 const connectionString = process.env.DATABASE_TEST_URL;
@@ -321,6 +323,95 @@ runIntegration('desktop synchronization HTTP routes', () => {
       tobacco_products: 2,
       physical_activities: 2,
     });
+  });
+
+  it('preserves each attempt in monitoring through dependency retries, recovery, replay and conflict', async () => {
+    const encounter = structuredClone(request.records.find(
+      (record) => record.resourceType === 'SCREENING_ENCOUNTER',
+    )) as ScreeningEncounterSyncRecord;
+    const vitals = structuredClone(request.records.find(
+      (record) => record.resourceType === 'VITALS',
+    )) as VitalsSyncRecord;
+    const parent = { ...encounter, recordId: randomUUID(), localResourceId: randomUUID() };
+    const child: VitalsSyncRecord = {
+      ...vitals,
+      recordId: randomUUID(),
+      localResourceId: randomUUID(),
+      payload: {
+        ...vitals.payload,
+        localEncounterId: parent.localResourceId,
+        readings: vitals.payload.readings.map((reading) => ({
+          ...reading, localReadingId: randomUUID(),
+        })),
+      },
+    };
+    const attempts: { request: SyncBatchRequest; response: SyncBatchResponse; reference: string }[] = [];
+    const send = async (records: SyncBatchRequest['records']) => {
+      const payload = { ...request, batchId: randomUUID(), records };
+      const result = await app.inject({
+        method: 'POST', url: '/api/v1/sync/batches',
+        headers: { authorization: bearer }, payload,
+      });
+      expect(result.statusCode).toBe(200);
+      const row = await servicePool.query<{ id: string }>(
+        'SELECT id FROM sync_batches WHERE batch_id = $1', [payload.batchId],
+      );
+      const attempt = { request: payload, response: result.json<SyncBatchResponse>(), reference: row.rows[0]!.id };
+      attempts.push(attempt);
+      return attempt;
+    };
+
+    const first = await send([child]);
+    const retry = await send([child]);
+    for (const attempt of [first, retry]) {
+      expect(attempt.response.outcomes[0]).toMatchObject({
+        status: 'RETRY', errors: [{ code: 'DEPENDENCY_NOT_AVAILABLE', retryable: true }],
+      });
+    }
+    // A later retry owns no idempotency row: this was the empty Inspect panel.
+    const retryRows = await servicePool.query(
+      'SELECT count(*)::int AS count FROM sync_records WHERE batch_internal_id = $1', [retry.reference],
+    );
+    expect(retryRows.rows[0].count).toBe(0);
+
+    expect((await send([parent])).response.outcomes[0]?.status).toBe('ACCEPTED');
+    const recovered = await send([child]);
+    expect(recovered.response.outcomes[0]?.status).toBe('ACCEPTED');
+    const unchanged = await send([child]);
+    expect(unchanged.response.outcomes[0]?.status).toBe('UNCHANGED');
+    const conflict = await send([{
+      ...child, payload: { ...child.payload, weightKg: 99 },
+    }]);
+    expect(conflict.response.outcomes[0]).toMatchObject({
+      status: 'REJECTED', errors: [{ code: 'RECORD_PAYLOAD_MISMATCH', retryable: false }],
+    });
+
+    for (const attempt of attempts) {
+      const detail = await getSyncBatchDetail(servicePool, { kind: 'GLOBAL' }, attempt.reference);
+      const outcome = attempt.response.outcomes[0]!;
+      expect(detail.outcomeCounts).toEqual([{
+        resourceType: outcome.resourceType, status: outcome.status, count: 1,
+      }]);
+      expect(detail.errorCodeCounts).toEqual(outcome.errors.map((error) => ({
+        code: error.code, retryable: error.retryable, count: 1,
+      })));
+      expect(JSON.stringify(detail)).not.toContain(child.localResourceId);
+      expect(JSON.stringify(detail)).not.toContain('localEncounterId');
+      expect(JSON.stringify(detail)).not.toContain('weightKg');
+    }
+    const replay = await app.inject({
+      method: 'POST', url: '/api/v1/sync/batches',
+      headers: { authorization: bearer }, payload: retry.request,
+    });
+    expect(replay.statusCode).toBe(200);
+    expect(replay.json()).toEqual(retry.response);
+    const counts = await servicePool.query(
+      `SELECT
+         (SELECT count(*)::int FROM sync_records WHERE local_resource_id = $1) AS records,
+         (SELECT count(*)::int FROM screening_vital_sets WHERE local_vitals_id = $1) AS vital_sets`,
+      [child.localResourceId],
+    );
+    expect(counts.rows[0]).toEqual({ records: 1, vital_sets: 1 });
   });
 });
 

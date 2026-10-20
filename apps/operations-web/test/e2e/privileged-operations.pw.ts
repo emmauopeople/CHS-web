@@ -160,6 +160,39 @@ test('loads redacted synchronization metadata without URL leakage', async ({ pag
   }
 });
 
+test('shows retry-only batches accurately and exposes their grouped cause', async ({ page }) => {
+  await seedAuthenticatedSession(page);
+  const retry = {
+    ...syncMonitoringDetail,
+    status: 'REJECTED',
+    counts: { accepted: 0, unchanged: 0, reviewRequired: 0, rejected: 0, retry: 6 },
+    outcomeCounts: [{ resourceType: 'VITALS', status: 'RETRY', count: 6 }],
+    errorCodeCounts: [{ code: 'DEPENDENCY_NOT_AVAILABLE', retryable: true, count: 6 }],
+  };
+  await page.route('**/api/v1/operations/sync/batches/search', (route) => fulfillJson(route, {
+    ...syncMonitoringPage,
+    totalItems: 2,
+    items: [retry, {
+      ...retry,
+      batchReference: '51000000-0000-4000-8000-000000000099',
+      counts: { ...retry.counts, retry: 5, rejected: 1 },
+    }],
+  }));
+  await page.route('**/api/v1/operations/sync/batches/detail', (route) => fulfillJson(route, retry));
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Sync Monitoring' }).click();
+  await page.getByRole('button', { name: 'Load batches' }).click();
+  const table = page.getByRole('table', { name: 'Scoped synchronization batch results' });
+  await expect(table.getByText('Retry required', { exact: true })).toHaveCount(1);
+  await expect(table.getByText('Rejected', { exact: true })).toHaveCount(1);
+  await table.getByRole('button', { name: 'Inspect', exact: true }).first().click();
+  const panel = page.getByRole('complementary', { name: 'Synchronization batch details' });
+  await expect(panel.getByText('Retry required', { exact: true })).toBeVisible();
+  await expect(panel.getByText('DEPENDENCY_NOT_AVAILABLE', { exact: true })).toBeVisible();
+  await expect(panel.getByText('No record outcomes are stored for this batch.')).toHaveCount(0);
+  await expect(panel.getByText('Outcomes from this batch attempt. Later retries may have different results.')).toBeVisible();
+});
+
 test('resolves an identity review only after evidence comparison and confirmation', async ({
   page,
 }) => {

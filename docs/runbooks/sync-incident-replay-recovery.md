@@ -40,6 +40,25 @@ the incident record.
 5. Preserve the desktop outbox item unchanged. Never edit and resubmit it under
    the same batch ID.
 
+### Repeated retry batches
+
+Inspect **Resource outcomes** and **Error summary** for the selected attempt.
+Completed batch details are derived from the immutable stored response; they do
+not change when a later attempt succeeds. A record's idempotency row belongs to
+its first batch, so querying only `sync_records.batch_internal_id` can miss all
+outcomes in a later retry batch. Incomplete batches without a stored response
+show the processing outcomes available so far.
+
+The wire contract uses `REJECTED` for a batch containing only rejected or
+retryable outcomes. The portal displays **Retry required** when such a batch has
+retry outcomes and no rejected records; it remains marked **Attention**. This
+does not claim that retrying will succeed without resolving the reported cause.
+
+Repeated `DEPENDENCY_NOT_AVAILABLE` needs investigation of the missing parent
+record or preceding history event, including rejected or identity-review
+parents. Preserve the queue while diagnosing it; neither clearing it nor
+recreating a patient is a recovery procedure.
+
 ## Decision table
 
 | Observation | Safe action | Prohibited action |

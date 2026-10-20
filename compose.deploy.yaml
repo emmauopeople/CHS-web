@@ -1,0 +1,165 @@
+name: chs
+
+x-database-environment: &database-environment
+  NODE_ENV: production
+
+services:
+  postgres:
+    image: postgres:18-alpine@sha256:77f585114c32fbca283dc835b0596f4e52b51b4c6662d7810b2f4084f60a1873
+    environment:
+      POSTGRES_DB: chs
+      POSTGRES_USER: chs
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets: [postgres_password]
+    volumes: [postgres-data:/var/lib/postgresql]
+    networks: [database]
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U chs -d chs"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    mem_limit: 1g
+    restart: unless-stopped
+
+  migrate:
+    build: {context: ., dockerfile: infra/Dockerfile, target: tools}
+    environment: *database-environment
+    secrets: [postgres_password]
+    networks: [database]
+    depends_on:
+      postgres: {condition: service_healthy}
+    mem_limit: 512m
+    restart: "no"
+
+  api:
+    build: {context: ., dockerfile: infra/Dockerfile, target: api}
+    environment:
+      <<: *database-environment
+      HOST: 0.0.0.0
+      PORT: 3000
+      LOG_LEVEL: info
+      DATABASE_POOL_MAX: 10
+      OPERATIONS_OIDC_ISSUER: ${OPERATIONS_OIDC_ISSUER:-}
+      OPERATIONS_OIDC_AUDIENCE: ${OPERATIONS_OIDC_AUDIENCE:-}
+      OPERATIONS_OIDC_JWKS_URL: ${OPERATIONS_OIDC_JWKS_URL:-}
+    secrets: [postgres_password]
+    networks: [database, application]
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:3000/health/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+    mem_limit: 768m
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    restart: unless-stopped
+
+  gateway:
+    build:
+      context: .
+      dockerfile: infra/Dockerfile
+      target: gateway
+      args:
+        VITE_CHS_API_BASE_URL: https://${CHS_API_HOST:?Set CHS_API_HOST}
+        VITE_OPERATIONS_OIDC_AUTHORIZATION_ENDPOINT: ${VITE_OPERATIONS_OIDC_AUTHORIZATION_ENDPOINT:-https://identity.example.invalid/authorize}
+        VITE_OPERATIONS_OIDC_TOKEN_ENDPOINT: ${VITE_OPERATIONS_OIDC_TOKEN_ENDPOINT:-https://identity.example.invalid/token}
+        VITE_OPERATIONS_OIDC_END_SESSION_ENDPOINT: ${VITE_OPERATIONS_OIDC_END_SESSION_ENDPOINT:-}
+        VITE_OPERATIONS_OIDC_CLIENT_ID: ${VITE_OPERATIONS_OIDC_CLIENT_ID:-chs-operations-web}
+        VITE_OPERATIONS_OIDC_SCOPE: ${VITE_OPERATIONS_OIDC_SCOPE:-openid profile}
+    environment:
+      CHS_PORTAL_HOST: ${CHS_PORTAL_HOST:?Set CHS_PORTAL_HOST}
+      CHS_API_HOST: ${CHS_API_HOST:?Set CHS_API_HOST}
+      CHS_AUTH_HOST: ${CHS_AUTH_HOST:?Set CHS_AUTH_HOST}
+      NGINX_ENVSUBST_FILTER: ^CHS_
+    ports: ["127.0.0.1:${CHS_LOCAL_PORT:-8090}:80"]
+    networks: [application]
+    depends_on:
+      api: {condition: service_healthy}
+      identity: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, wget, -q, -O, /dev/null, http://127.0.0.1/health/gateway]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    mem_limit: 128m
+    restart: unless-stopped
+
+  identity-db:
+    image: postgres:18-alpine@sha256:77f585114c32fbca283dc835b0596f4e52b51b4c6662d7810b2f4084f60a1873
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD_FILE: /run/secrets/identity_database_password
+    secrets: [identity_database_password]
+    volumes: [identity-data:/var/lib/postgresql]
+    networks: [identity-database]
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U keycloak -d keycloak"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    mem_limit: 512m
+    restart: unless-stopped
+
+  identity:
+    image: quay.io/keycloak/keycloak:26.7.3@sha256:29be7252db0a106f1cd2ac17b9a56ff2668073da645638a38b9fc67deeb2d6c4
+    entrypoint: [/bin/bash, /opt/chs/identity-entrypoint.sh]
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://identity-db:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_HOSTNAME: https://${CHS_AUTH_HOST:?Set CHS_AUTH_HOST}
+      KC_HTTP_ENABLED: "true"
+      KC_PROXY_HEADERS: xforwarded
+      KC_HEALTH_ENABLED: "true"
+      KC_BOOTSTRAP_ADMIN_USERNAME: chs-admin
+      JAVA_OPTS_KC_HEAP: -XX:MaxRAMPercentage=65 -XX:InitialRAMPercentage=30
+    secrets: [identity_database_password, identity_admin_password, reviewer_password]
+    volumes:
+      - ./infra/identity-entrypoint.sh:/opt/chs/identity-entrypoint.sh:ro
+      - ./.deployment/identity-import:/opt/keycloak/data/import:ro
+    networks: [identity-database, application]
+    depends_on:
+      identity-db: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, /bin/bash, -c, "exec 3<>/dev/tcp/127.0.0.1/9000; printf 'GET /health/ready HTTP/1.0\r\nHost: localhost\r\n\r\n' >&3; head -1 <&3 | grep -q '200'"]
+      interval: 15s
+      timeout: 5s
+      retries: 30
+      start_period: 90s
+    mem_limit: 1536m
+    security_opt: [no-new-privileges:true]
+    restart: unless-stopped
+
+  admin:
+    build: {context: ., dockerfile: infra/Dockerfile, target: tools}
+    profiles: [tools]
+    environment: *database-environment
+    secrets: [postgres_password]
+    volumes: [./.deployment/inputs:/inputs:ro]
+    networks: [database]
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+    mem_limit: 512m
+
+secrets:
+  postgres_password:
+    file: ./.deployment/secrets/postgres_password
+  identity_database_password:
+    file: ./.deployment/secrets/identity_database_password
+  identity_admin_password:
+    file: ./.deployment/secrets/identity_admin_password
+  reviewer_password:
+    file: ./.deployment/secrets/reviewer_password
+
+networks:
+  database: {internal: true}
+  application: {}
+  identity-database: {internal: true}
+
+volumes:
+  postgres-data: {}
+  identity-data: {}

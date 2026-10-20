@@ -60,6 +60,11 @@ referrals, addenda/review flags, and read-only patient-history downloads.
 
 ## Prerequisites
 
+For the isolated PC pilot deployment with Docker Compose, HTTPS hostnames,
+Keycloak sign-in and a dedicated Cloudflare Tunnel, see
+[the deployment guide](infra/README.md). The existing `compose.yaml` below
+remains the development database configuration.
+
 - Node.js 24 LTS
 - Corepack with pnpm
 - Docker with Compose (for local PostgreSQL)

@@ -30,6 +30,10 @@ const revocationFields = new Set([
 
 type LifecycleDatabase = Pick<Pool, 'connect'>;
 type LifecycleDependencies = Readonly<{
+  authorizeOrganization?: (organizationId: string) => void;
+  operationsUserId?: string;
+  requestId?: string;
+  allowRevokedRecovery?: boolean;
   now?: Date;
   randomId?: () => string;
   generateToken?: () => string;
@@ -155,6 +159,7 @@ export async function rotateInstallationCredential(
     await client.query('BEGIN');
     await lockInstallation(client, input.installationId);
     const installation = await requireInstallation(client, input.installationId);
+    dependencies.authorizeOrganization?.(installation.organization_id);
     if (installation.status !== 'ACTIVE') {
       throw new InstallationCredentialLifecycleError(
         'INSTALLATION_NOT_ACTIVE',
@@ -170,18 +175,22 @@ export async function rotateInstallationCredential(
        FOR UPDATE`,
       [input.installationId],
     );
-    if (
-      activeCredentials.rows.length !== 1 ||
-      activeCredentials.rows[0]?.id !== input.expectedCredentialId
-    ) {
+    let replacedCredential = activeCredentials.rows[0];
+    if (activeCredentials.rows.length === 0 && dependencies.allowRevokedRecovery) {
+      const latest = await client.query<CredentialRow>(
+        `SELECT id, token_prefix, status, revoked_at FROM desktop_installation_credentials
+         WHERE installation_id = $1 ORDER BY issued_at DESC, id DESC LIMIT 1 FOR UPDATE`,
+        [input.installationId],
+      );
+      if (latest.rows[0]?.status === 'REVOKED') replacedCredential = latest.rows[0];
+    }
+    if (activeCredentials.rows.length > 1 || !replacedCredential || replacedCredential.id !== input.expectedCredentialId) {
       throw new InstallationCredentialLifecycleError(
         'CREDENTIAL_STATE_CONFLICT',
         'The expected credential is no longer the sole active credential',
       );
     }
-    const replacedCredential = activeCredentials.rows[0];
-
-    await client.query(
+    if (replacedCredential.status !== 'REVOKED') await client.query(
       `UPDATE desktop_installation_credentials
        SET status = 'REVOKED', revoked_at = $1, updated_at = $1
        WHERE id = $2`,
@@ -208,7 +217,8 @@ export async function rotateInstallationCredential(
       installationId: input.installationId,
       actionCode: 'DESKTOP_INSTALLATION_CREDENTIAL_ROTATE',
       reasonCode: input.reasonCode,
-      requestId,
+      requestId: dependencies.requestId ?? requestId,
+      operationsUserId: dependencies.operationsUserId ?? null,
       occurredAt: issuedAt,
       metadata: {
         credentialId,
@@ -250,6 +260,7 @@ export async function revokeInstallationCredential(
     await client.query('BEGIN');
     await lockInstallation(client, input.installationId);
     const installation = await requireInstallation(client, input.installationId);
+    dependencies.authorizeOrganization?.(installation.organization_id);
     const credentialResult = await client.query<CredentialRow>(
       `SELECT id, token_prefix, status, revoked_at
        FROM desktop_installation_credentials
@@ -288,7 +299,8 @@ export async function revokeInstallationCredential(
       installationId: input.installationId,
       actionCode: 'DESKTOP_INSTALLATION_CREDENTIAL_REVOKE',
       reasonCode: input.reasonCode,
-      requestId,
+      requestId: dependencies.requestId ?? requestId,
+      operationsUserId: dependencies.operationsUserId ?? null,
       occurredAt: revokedAt,
       metadata: {
         credentialId: credential.id,
@@ -347,6 +359,7 @@ async function insertLifecycleAudit(
   event: Readonly<{
     id: string;
     organizationId: string;
+    operationsUserId: string | null;
     installationId: string;
     actionCode: string;
     reasonCode: string;
@@ -360,7 +373,7 @@ async function insertLifecycleAudit(
        id, organization_id, action_code, entity_type, entity_id, reason_code,
        request_id, occurred_at, metadata, operations_user_id, outcome_code
      ) VALUES ($1, $2, $3, 'DESKTOP_INSTALLATION', $4, $5, $6, $7,
-       $8::jsonb, NULL, 'SUCCESS')`,
+       $8::jsonb, $9, 'SUCCESS')`,
     [
       event.id,
       event.organizationId,
@@ -370,6 +383,7 @@ async function insertLifecycleAudit(
       event.requestId,
       event.occurredAt,
       JSON.stringify(event.metadata),
+      event.operationsUserId,
     ],
   );
 }

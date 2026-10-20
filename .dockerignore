@@ -1,0 +1,12 @@
+.git
+**/node_modules
+**/dist
+.env
+.env.*
+.deployment
+.local-auth
+coverage
+playwright-report
+test-results
+tmp
+*.log

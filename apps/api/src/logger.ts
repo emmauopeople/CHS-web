@@ -13,6 +13,8 @@ export function loggerOptions(config: AppConfig): LoggerOptions {
         'res.headers["set-cookie"]',
         '*.accessToken',
         '*.refreshToken',
+        '*.installationToken',
+        'installationToken',
         '*.password',
       ],
       censor: '[REDACTED]',

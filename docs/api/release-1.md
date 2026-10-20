@@ -122,3 +122,12 @@ The response includes canonical demographics and independent clinical resources,
 Cursors expire after fifteen minutes and are bound to caller, credential (installation), scope, patient, reason, filters and page size. Changes to history in the requested window produce `409 HISTORY_CURSOR_STALE`; clients discard the incomplete traversal and refresh. Exact repeated continuation requests return the same records and next cursor while the data and access remain unchanged. Recheck revocation, identity and scope on every page. Read/audit/cursor operations commit together; audit failure prevents clinical data delivery.
 
 See [HSW-019D](../sync/HSW-019D-patient-history-retrieval.md) for the complete contract and acceptance sequence.
+
+## Desktop installation administration
+
+All endpoints require OIDC and the dedicated organization-scoped `DESKTOP_INSTALLATION_MANAGE` grant. Bodies require `reasonCode: INSTALLATION_ADMINISTRATION`. Mutations derive the actor from the authenticated session and audit inside the transaction. Full tokens are returned once only by enroll/rotate, with no-store responses; list responses contain prefixes only.
+
+- `POST /api/v1/operations/desktop-installations/search`
+- `POST /api/v1/operations/desktop-installations/enroll`
+- `POST /api/v1/operations/desktop-installations/rotate`
+- `POST /api/v1/operations/desktop-installations/revoke`

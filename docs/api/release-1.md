@@ -131,3 +131,11 @@ All endpoints require OIDC and the dedicated organization-scoped `DESKTOP_INSTAL
 - `POST /api/v1/operations/desktop-installations/enroll`
 - `POST /api/v1/operations/desktop-installations/rotate`
 - `POST /api/v1/operations/desktop-installations/revoke`
+
+## Portal account administration
+
+- `POST /api/v1/operations/accounts/search` lists scoped accounts and organization choices, 50 per page.
+- `POST /api/v1/operations/accounts/create` creates a disabled identity, provisions scoped CHS grants, then activates the identity. The generated temporary password is returned once and requires a password change at first sign-in.
+- `POST /api/v1/operations/accounts/change` accepts confirmed `SUSPEND`, `ACTIVATE`, or `RESET_PASSWORD` actions.
+
+All require OIDC, `USER_MANAGE`, an active admin/super admin account and `reasonCode: ACCOUNT_ADMINISTRATION`. Admins manage staff only, and only when every target grant is within their organization scope. Super admins manage all account roles. Self-management through these endpoints is blocked; the last active super admin cannot be suspended. Account mutations and their CHS audit events commit together. Credentials never appear in lists or audit metadata. The backend uses a private realm service account; browser accounts are not Keycloak administrators. See [account administration](../administration/accounts.md).

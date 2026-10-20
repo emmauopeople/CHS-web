@@ -1,4 +1,5 @@
 export type AppConfig = Readonly<{
+  accountIdentity?: Readonly<{baseUrl:string;realm:string;clientId:string;clientSecret:string}> | null;
   nodeEnv: 'development' | 'test' | 'production';
   host: string;
   port: number;
@@ -113,6 +114,12 @@ export function loadConfig(
   }
 
   return {
+    accountIdentity: environment.ACCOUNT_IDENTITY_CLIENT_SECRET ? {
+      baseUrl: required(environment,'ACCOUNT_IDENTITY_BASE_URL').replace(/\/$/,''),
+      realm: required(environment,'ACCOUNT_IDENTITY_REALM'),
+      clientId: required(environment,'ACCOUNT_IDENTITY_CLIENT_ID'),
+      clientSecret: required(environment,'ACCOUNT_IDENTITY_CLIENT_SECRET'),
+    } : null,
     nodeEnv: nodeEnv as AppConfig['nodeEnv'],
     host: environment.HOST?.trim() || '0.0.0.0',
     port: integer(environment, 'PORT', 3000),

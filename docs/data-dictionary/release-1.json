@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "release": "1",
-  "migrationCount": 17,
+  "migrationCount": 18,
   "tableCount": 60,
   "tables": [
     { "name": "schema_migrations", "domain": "migration", "classification": "METADATA", "viewerAccess": "NONE", "purpose": "Immutable migration version, checksum, and application-time ledger." },

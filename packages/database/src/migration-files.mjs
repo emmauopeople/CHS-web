@@ -37,7 +37,9 @@ export async function discoverMigrations(
     }
     versions.add(version);
 
-    const sql = await readFile(join(migrationsDirectory, filename), 'utf8');
+    const sql = (
+      await readFile(join(migrationsDirectory, filename), 'utf8')
+    ).replaceAll('\r\n', '\n');
     if (sql.trim().length === 0) {
       throw new Error(`Migration is empty: ${filename}`);
     }
@@ -47,6 +49,11 @@ export async function discoverMigrations(
       filename,
       sql,
       checksum: createHash('sha256').update(sql).digest('hex'),
+      // Existing Windows deployments recorded CRLF hashes. Accept exactly that
+      // byte-equivalent representation; every other SQL change remains invalid.
+      crlfChecksum: createHash('sha256')
+        .update(sql.replaceAll('\n', '\r\n'))
+        .digest('hex'),
     });
   }
 

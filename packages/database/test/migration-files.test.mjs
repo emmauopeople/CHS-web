@@ -1,8 +1,54 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { readFile, mkdtemp, writeFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { createHash } from 'node:crypto';
+import { migrateWithClient } from '../src/migration-runner.mjs';
 import { test } from 'node:test';
 
 import { discoverMigrations } from '../src/migration-files.mjs';
+
+test('migration checksums tolerate only LF/CRLF representation changes', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'chs-migration-lines-'));
+  const filename = '0001_line_endings.sql';
+  const sql = 'CREATE TABLE line_endings (id integer);\n';
+  const hash = (value) => createHash('sha256').update(value).digest('hex');
+  try {
+    await writeFile(join(directory, filename), sql.replaceAll('\n', '\r\n'));
+    const [migration] = await discoverMigrations(directory);
+    assert.equal(migration.checksum, hash(sql));
+    const calls = [];
+    const client = {
+      async query(query) {
+        calls.push(query);
+        return {
+          rows: query.startsWith('SELECT version')
+            ? [
+                {
+                  version: '0001',
+                  filename,
+                  checksum: hash(sql.replaceAll('\n', '\r\n')),
+                },
+              ]
+            : [],
+        };
+      },
+    };
+    assert.deepEqual(
+      (await migrateWithClient({ client, migrationsDirectory: directory }))
+        .applied,
+      [],
+    );
+    await writeFile(join(directory, filename), sql.replace('integer', 'text'));
+    await assert.rejects(
+      migrateWithClient({ client, migrationsDirectory: directory }),
+      /checksum mismatch/,
+    );
+    assert.equal(calls.at(-1), 'ROLLBACK');
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
 
 test('database package uses a cross-platform syntax checker', async () => {
   const packageJson = JSON.parse(
@@ -16,7 +62,7 @@ test('database package uses a cross-platform syntax checker', async () => {
 test('canonical migration is numbered, hashed, and contains the required model', async () => {
   const migrations = await discoverMigrations();
 
-  assert.equal(migrations.length, 17);
+  assert.equal(migrations.length, 18);
   assert.equal(migrations[0].version, '0001');
   assert.equal(
     migrations[0].filename,
@@ -40,42 +86,30 @@ test('canonical migration is numbered, hashed, and contains the required model',
   assert.match(migrations[2].sql, /ix_persons_identity_name_phone/);
   assert.match(migrations[2].sql, /ix_persons_identity_name_approximate_age/);
   assert.match(migrations[2].sql, /ix_person_identifiers_active_lookup/);
-  assert.equal(
-    migrations[3].filename,
-    '0004_patient_viewer_query_indexes.sql',
-  );
+  assert.equal(migrations[3].filename, '0004_patient_viewer_query_indexes.sql');
   assert.match(migrations[3].checksum, /^[0-9a-f]{64}$/);
   assert.match(migrations[3].sql, /ix_persons_viewer_status_name_prefix/);
   assert.match(migrations[3].sql, /ix_screening_encounters_viewer_history/);
-  assert.equal(
-    migrations[4].filename,
-    '0005_operations_access_and_audit.sql',
-  );
+  assert.equal(migrations[4].filename, '0005_operations_access_and_audit.sql');
   assert.match(migrations[4].checksum, /^[0-9a-f]{64}$/);
   assert.match(migrations[4].sql, /CREATE TABLE operations_users/);
   assert.match(migrations[4].sql, /CREATE TABLE operations_access_grants/);
   assert.match(migrations[4].sql, /operations_user_id/);
   assert.match(migrations[4].sql, /outcome_code/);
-  assert.equal(
-    migrations[5].filename,
-    '0006_medical_id_recovery.sql',
-  );
+  assert.equal(migrations[5].filename, '0006_medical_id_recovery.sql');
   assert.match(migrations[5].checksum, /^[0-9a-f]{64}$/);
   assert.match(migrations[5].sql, /CREATE TABLE medical_id_recovery_cases/);
-  assert.match(migrations[5].sql, /CREATE TABLE medical_id_recovery_candidates/);
-  assert.match(migrations[5].sql, /REVIEW_REQUIRED/);
-  assert.equal(
-    migrations[6].filename,
-    '0007_sync_operations_monitoring.sql',
+  assert.match(
+    migrations[5].sql,
+    /CREATE TABLE medical_id_recovery_candidates/,
   );
+  assert.match(migrations[5].sql, /REVIEW_REQUIRED/);
+  assert.equal(migrations[6].filename, '0007_sync_operations_monitoring.sql');
   assert.match(migrations[6].checksum, /^[0-9a-f]{64}$/);
   assert.match(migrations[6].sql, /'SYNC_MONITOR'/);
   assert.match(migrations[6].sql, /ix_sync_batches_operations_status_received/);
   assert.match(migrations[6].sql, /ix_sync_records_operations_outcomes/);
-  assert.equal(
-    migrations[7].filename,
-    '0008_identity_review_evidence.sql',
-  );
+  assert.equal(migrations[7].filename, '0008_identity_review_evidence.sql');
   assert.match(migrations[7].checksum, /^[0-9a-f]{64}$/);
   assert.match(
     migrations[7].sql,
@@ -83,34 +117,22 @@ test('canonical migration is numbered, hashed, and contains the required model',
   );
   assert.match(migrations[7].sql, /uq_identity_review_evidence_revision/);
   assert.match(migrations[7].sql, /ix_identity_review_evidence_latest/);
-  assert.equal(
-    migrations[8].filename,
-    '0009_identity_review_resolution.sql',
-  );
+  assert.equal(migrations[8].filename, '0009_identity_review_resolution.sql');
   assert.match(migrations[8].checksum, /^[0-9a-f]{64}$/);
   assert.match(migrations[8].sql, /ADD COLUMN acknowledgment_status/);
   assert.match(migrations[8].sql, /ADD COLUMN patient_status/);
   assert.match(migrations[8].sql, /'IDENTITY_REVIEW_RESOLVE'/);
   assert.match(migrations[8].sql, /CREATE TABLE identity_review_resolutions/);
   assert.match(migrations[8].sql, /uq_identity_review_resolutions_case/);
-  assert.equal(
-    migrations[9].filename,
-    '0010_identity_resolution_delivery.sql',
-  );
+  assert.equal(migrations[9].filename, '0010_identity_resolution_delivery.sql');
   assert.match(migrations[9].checksum, /^[0-9a-f]{64}$/);
   assert.match(
     migrations[9].sql,
     /CREATE TABLE identity_resolution_deliveries/,
   );
-  assert.match(
-    migrations[9].sql,
-    /ix_identity_resolution_deliveries_pending/,
-  );
+  assert.match(migrations[9].sql, /ix_identity_resolution_deliveries_pending/);
   assert.match(migrations[9].sql, /delivery_status = 'PENDING'/);
-  assert.equal(
-    migrations[10].filename,
-    '0011_lifestyle_ingestion.sql',
-  );
+  assert.equal(migrations[10].filename, '0011_lifestyle_ingestion.sql');
   assert.match(migrations[10].checksum, /^[0-9a-f]{64}$/);
   assert.match(migrations[10].sql, /CREATE TABLE lifestyle_assessments/);
   assert.match(migrations[10].sql, /CREATE TABLE lifestyle_alcohol_baselines/);

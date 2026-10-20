@@ -10,6 +10,8 @@ The HAPI image is versioned and digest-pinned to `hapiproject/hapi:v8.12.0-2`; P
 
 ```powershell
 node scripts/deployment/setup.mjs
+## Linux only: retain mode 0600 and assign the HAPI secret to its non-root UID.
+sudo chown 65532:65532 .deployment/secrets/fhir_database_password
 docker compose --env-file .deployment/deploy.env -f compose.deploy.yaml -f compose.fhir.deploy.yaml --profile interoperability up -d --build --wait
 ```
 

@@ -139,6 +139,8 @@ jobs:
           node-version-file: .nvmrc
       - name: Generate isolated CI configuration
         run: node scripts/deployment/setup.mjs
+      - name: Set private FHIR secret ownership for the container user
+        run: sudo chown 65532:65532 .deployment/secrets/fhir_database_password
       - name: Start private test stores
         run: docker compose -p chs-ci --env-file .deployment/deploy.env -f compose.deploy.yaml -f compose.fhir.deploy.yaml --profile interoperability up -d --wait --wait-timeout 600 postgres fhir-db fhir
       - name: Verify multi-installation and real R4 publication

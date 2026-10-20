@@ -9,6 +9,7 @@ import { authorizeProvider, ProviderAccessError } from '../providers/access.js';
 import {
   authorizeOperationsPermission,
   OperationsAuthorizationError,
+  operationsPrincipalFingerprint,
 } from '../operations/access.js';
 import {
   accountActor,
@@ -59,8 +60,11 @@ export async function registerFhirRoutes(
     async (req, reply) => {
       reply.header('cache-control', 'no-store');
       const db = await database.connect();
+      let verified: Awaited<
+        ReturnType<OperationsTokenVerifier['verify']>
+      > | null = null;
       try {
-        const verified = await tokenVerifier.verify(req.headers.authorization);
+        verified = await tokenVerifier.verify(req.headers.authorization);
         const input = req.body,
           page = input.page ?? 1;
         await db.query('BEGIN');
@@ -161,14 +165,24 @@ export async function registerFhirRoutes(
           error instanceof OperationsAuthenticationError;
         await db.query(
           `INSERT INTO audit_events(id,action_code,entity_type,reason_code,request_id,occurred_at,outcome_code,metadata)
-    VALUES($1,'PROVIDER_FHIR_READ','PERSON',$2,$3,now(),$4,'{}')`,
+    VALUES($1,'PROVIDER_FHIR_READ','PERSON',$2,$3,now(),$4,$5::jsonb)`,
           [
             randomUUID(),
             req.body.reasonCode,
             req.id,
             known && error.statusCode === 403 ? 'DENIED' : 'ERROR',
+            JSON.stringify(
+              verified
+                ? {
+                    principalFingerprint:
+                      operationsPrincipalFingerprint(verified),
+                  }
+                : {},
+            ),
           ],
         );
+        if (known && error.statusCode === 401)
+          reply.header('www-authenticate', 'Bearer');
         return reply.code(known ? error.statusCode : 503).send({
           code: known ? error.code : 'FHIR_SERVICE_UNAVAILABLE',
           requestId: req.id,

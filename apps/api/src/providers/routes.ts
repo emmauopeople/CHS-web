@@ -4,6 +4,7 @@ import type { Pool, PoolClient } from 'pg';
 import {
   authorizeOperationsPermission,
   OperationsAuthorizationError,
+  operationsPrincipalFingerprint,
 } from '../operations/access.js';
 import {
   accountActor,
@@ -46,11 +47,20 @@ async function audit(
   id: string | null,
   requestId: string,
   outcome = 'SUCCESS',
+  metadata: Record<string, string> = {},
 ) {
   await db.query(
     `INSERT INTO audit_events(id,operations_user_id,action_code,entity_type,entity_id,reason_code,request_id,occurred_at,outcome_code,metadata)
- VALUES($1,$2,$3,'PROVIDER_ACCESS',$4,'PROVIDER_ADMINISTRATION',$5,now(),$6,'{}')`,
-    [randomUUID(), actor, action, id, requestId, outcome],
+ VALUES($1,$2,$3,'PROVIDER_ACCESS',$4,'PROVIDER_ADMINISTRATION',$5,now(),$6,$7::jsonb)`,
+    [
+      randomUUID(),
+      actor,
+      action,
+      id,
+      requestId,
+      outcome,
+      JSON.stringify(metadata),
+    ],
   );
 }
 function expiry(value: unknown, maxDays: number) {
@@ -103,14 +113,12 @@ export async function registerProviderRoutes(
       ) => Promise<unknown>,
     ) =>
     async (req: FastifyRequest, reply: FastifyReply) => {
+      let verified: VerifiedOperationsIdentity | null = null;
       reply.header('cache-control', 'no-store').header('pragma', 'no-cache');
       try {
+        verified = await tokenVerifier.verify(req.headers.authorization);
         return reply.send(
-          await operation(
-            req.body as Record<string, unknown>,
-            await tokenVerifier.verify(req.headers.authorization),
-            req,
-          ),
+          await operation(req.body as Record<string, unknown>, verified, req),
         );
       } catch (error) {
         if (
@@ -121,16 +129,32 @@ export async function registerProviderRoutes(
           error instanceof ProviderAccessError ||
           error instanceof HistoryError
         ) {
+          const knownActor = verified
+            ? ((
+                await database.query<{ id: string }>(
+                  'SELECT id FROM operations_users WHERE oidc_issuer=$1 AND oidc_subject=$2',
+                  [verified.issuer, verified.subject],
+                )
+              ).rows[0]?.id ?? null)
+            : null;
           await audit(
             database,
             error instanceof OperationsAuthorizationError
               ? error.operationsUserId
-              : null,
+              : knownActor,
             action,
             null,
             req.id,
             error.statusCode === 403 ? 'DENIED' : 'ERROR',
+            verified
+              ? {
+                  principalFingerprint:
+                    operationsPrincipalFingerprint(verified),
+                }
+              : {},
           );
+          if (error.statusCode === 401)
+            reply.header('www-authenticate', 'Bearer');
           return reply
             .code(error.statusCode)
             .send({ code: error.code, requestId: req.id });

@@ -5,8 +5,9 @@ export const accountPermissions = [
   'IDENTITY_REVIEW_RESOLVE',
   'SYNC_MONITOR',
   'DESKTOP_INSTALLATION_MANAGE',
+  'FHIR_READ',
 ] as const;
-export type AccountRole = 'STAFF' | 'ADMIN' | 'SUPER_ADMIN';
+export type AccountRole = 'STAFF' | 'ADMIN' | 'SUPER_ADMIN' | 'FHIR_VIEWER';
 export type AccountRecord = {
   id: string;
   username: string | null;
@@ -61,7 +62,7 @@ export function accountPage(v: unknown): v is AccountPage {
         (a.username === null || typeof a.username === 'string') &&
         typeof a.displayName === 'string' &&
         (a.email === null || typeof a.email === 'string') &&
-        ['STAFF', 'ADMIN', 'SUPER_ADMIN'].includes(String(a.role)) &&
+        ['STAFF', 'ADMIN', 'SUPER_ADMIN', 'FHIR_VIEWER'].includes(String(a.role)) &&
         ['ACTIVE', 'SUSPENDED'].includes(String(a.status)) &&
         Array.isArray(a.organizationIds) &&
         a.organizationIds.every(id),

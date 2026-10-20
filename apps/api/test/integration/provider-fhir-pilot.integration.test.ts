@@ -603,6 +603,36 @@ run(
       expect(row.status).toBe('PUBLISHED');
       expect(row.generation).toBe(row.published_generation);
     }, 60000);
+    it('allows only scoped read-only FHIR demonstrations and rejects other operational access', async () => {
+      const viewerId=randomUUID();
+      await pool.query("INSERT INTO operations_users(id,oidc_issuer,oidc_subject,display_name,status,account_role,created_at,updated_at) VALUES($1,$2,'fhir-viewer','FHIR demonstration','ACTIVE','FHIR_VIEWER',now(),now())",[viewerId,issuer]);
+      for(const permission of ['FHIR_READ','PATIENT_READ','USER_MANAGE']) await pool.query("INSERT INTO operations_access_grants(id,operations_user_id,permission_code,scope_kind,organization_id,active,granted_at,created_at,updated_at) VALUES($1,$2,$3,'ORGANIZATION',$4,true,now(),now(),now())",[randomUUID(),viewerId,permission,org]);
+      const reasonCode='FHIR_DEMONSTRATION';
+      const access=await call('/api/v1/operations/fhir/access',{reasonCode},'fhir-viewer');
+      expect(access.json()).toEqual({fhirOnly:true});
+      expect((await call('/api/v1/operations/fhir/patients/search',{reasonCode},'fhir-viewer')).statusCode).toBe(400);
+      const person=(await pool.query('SELECT display_name,name_normalized,date_of_birth::text FROM persons WHERE id=$1',[personId])).rows[0];
+      const search=await call('/api/v1/operations/fhir/patients/search',{reasonCode,name:person.name_normalized,...(person.date_of_birth?{dateOfBirth:person.date_of_birth}:{})},'fhir-viewer');
+      expect(search.statusCode).toBe(200);
+      expect(search.json().items.some((p:{personId:string})=>p.personId===personId)).toBe(true);
+      expect(search.json().items.every((p:{resource:{resourceType:string}})=>p.resource.resourceType==='Patient')).toBe(true);
+      const read=await call('/api/v1/operations/fhir/resources/read',{reasonCode,personId,resourceType:'Encounter'},'fhir-viewer');
+      expect(read.statusCode).toBe(200);
+      expect(read.json().bundle.entry.length).toBeGreaterThan(0);
+      expect(read.json().bundle.entry.every((e:{resource:{resourceType:string}})=>e.resource.resourceType==='Encounter')).toBe(true);
+      expect((await call('/api/v1/operations/fhir/resources/read',{reasonCode,personId,resourceType:'Binary'},'fhir-viewer')).statusCode).toBe(400);
+      expect((await call('/api/v1/operations/fhir/resources/read',{reasonCode,personId,generation:'0'},'fhir-viewer')).statusCode).toBe(409);
+      const externalResources=(await pool.query('SELECT resource_id FROM fhir_resource_registry WHERE organization_id=$1',[externalOrg])).rows;
+      for(const r of externalResources)expect(read.body).not.toContain(r.resource_id);
+      expect((await call('/api/v1/operations/fhir/resources/read',{reasonCode,personId:randomUUID()},'fhir-viewer')).statusCode).toBe(404);
+      expect((await call('/api/v1/operations/patients/search',{reasonCode:'CARE_DELIVERY',search:person.display_name},'fhir-viewer')).statusCode).toBe(403);
+      expect((await call('/api/v1/operations/accounts/search',{reasonCode:'ACCOUNT_ADMINISTRATION'},'fhir-viewer')).statusCode).toBe(403);
+      expect((await call('/api/v1/providers/onboarding/request',{reasonCode:'PROVIDER_ADMINISTRATION',organizationName:'Restricted',registrationIdentifier:'TEST',contactEmail:'test@example.test',purpose:'Restricted account cannot request write access'},'fhir-viewer')).statusCode).toBe(403);
+      const audit=(await pool.query("SELECT metadata FROM audit_events WHERE action_code IN ('FHIR_PATIENT_SEARCH','FHIR_RESOURCE_READ')")).rows;
+      expect(audit.length).toBeGreaterThan(0);expect(JSON.stringify(audit)).not.toContain(person.display_name);
+      await pool.query("UPDATE operations_users SET status='SUSPENDED' WHERE id=$1",[viewerId]);
+      expect((await call('/api/v1/operations/fhir/resources/read',{reasonCode,personId},'fhir-viewer')).statusCode).toBe(403);
+    });
     it('revokes an individual sharing grant and the whole provider immediately', async () => {
       expect(
         (

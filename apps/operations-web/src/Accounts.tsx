@@ -136,7 +136,7 @@ export function Accounts({
                   ...(email ? { email } : {}),
                   role,
                   ...(role === 'SUPER_ADMIN' ? {} : { organizationId }),
-                  permissions,
+                  permissions: role === 'FHIR_VIEWER' ? ['FHIR_READ'] : permissions,
                 });
                 await load(page.page);
                 setSecret(result);
@@ -191,6 +191,7 @@ export function Accounts({
                   <option value="STAFF">Staff</option>
                   {page.actorRole === 'SUPER_ADMIN' ? (
                     <>
+                      <option value="FHIR_VIEWER">FHIR viewer (read only)</option>
                       <option value="ADMIN">Admin</option>
                       <option value="SUPER_ADMIN">Super admin</option>
                     </>
@@ -238,7 +239,7 @@ export function Accounts({
                   </label>
                 ))}
               </fieldset>
-            ) : (
+            ) : role === 'FHIR_VIEWER' ? (<p>FHIR viewers can only search and read published FHIR resources in the selected organization. They cannot open clinical operations or manage accounts.</p>) : (
               <p>
                 Admins receive patient access, Medical ID recovery, identity
                 review and resolution, sync monitoring, desktop installation

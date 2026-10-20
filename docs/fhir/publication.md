@@ -57,3 +57,11 @@ docker compose --env-file .deployment/deploy.env -f compose.deploy.yaml -f compo
 Keep backup copies and deployment secrets encrypted and separate from source control. For a rebuild, use a new isolated FHIR store, clear/rebuild its corresponding derived registry under a controlled maintenance procedure and requeue canonical patients. Never drop operational tables or reset desktop outboxes to repair a FHIR problem.
 
 Configuration follows the [HAPI server documentation](https://github.com/hapifhir/hapi-fhir-jpaserver-starter) and resource structure follows [FHIR R4](https://hl7.org/fhir/R4/).
+
+## Demonstration interface
+
+The **FHIR Resources** workspace searches published Patients by name and/or date of birth with POST requests. Select a patient, then filter Patient, Encounter, Observation or another mapped resource type. The viewer displays actual JSON returned by the private FHIR server, including IDs, codes, status and subject/encounter references. References can be followed when the target is present on the current resource page; otherwise choose its resource type. The POST request example shows the submitted JSON without a bearer token.
+
+Only current published generations are returned. Search pages contain at most ten patients; resource pages contain at most twenty-five entries, with a 4 MiB response ceiling. Changing source data invalidates continued resource pagination. Searches, reads and denials are audited without names, birth dates or clinical JSON in audit metadata. Patient search responses and resources use no-store headers and are cleared when the browser tab is hidden.
+
+A **FHIR viewer** account has only organization-scoped FHIR read access. It cannot view canonical clinical operations, synchronization, recovery, identity review, provider onboarding or account administration. Demonstrating real records requires an authorized organization scope; automated acceptance uses synthetic fixtures.

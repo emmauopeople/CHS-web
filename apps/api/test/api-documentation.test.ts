@@ -87,6 +87,7 @@ describe('Release 1 API documentation', () => {
     const permissions = new Set([
       'DESKTOP_INSTALLATION_MANAGE',
       'USER_MANAGE',
+      'FHIR_READ',
       'PATIENT_READ',
       'MEDICAL_ID_RECOVER',
       'IDENTITY_REVIEW',
@@ -104,7 +105,8 @@ describe('Release 1 API documentation', () => {
 
       if (endpoint.audience === 'operations') {
         expect(endpoint.authentication).toBe('OIDC_BEARER');
-        expect(permissions.has(endpoint.permission ?? '')).toBe(true);
+        if(endpoint.path === '/api/v1/operations/fhir/access') expect(endpoint.permission).toBeNull();
+        else expect(permissions.has(endpoint.permission ?? '')).toBe(true);
       } else {
         expect(endpoint.permission).toBeNull();
       }

@@ -9,6 +9,7 @@ type AccessDatabase = Pick<Pool, 'query'>;
 type AccessRow = Readonly<{
   operations_user_id: string;
   display_name: string;
+  account_role?: string;
   user_status: 'ACTIVE' | 'SUSPENDED';
   scope_kind: 'GLOBAL' | 'ORGANIZATION' | null;
   organization_id: string | null;
@@ -30,7 +31,8 @@ export type OperationsAuthorizationErrorCode =
   | 'IDENTITY_REVIEW_RESOLUTION_NOT_PERMITTED'
   | 'SYNC_MONITOR_NOT_PERMITTED'
   | 'DESKTOP_INSTALLATION_MANAGEMENT_NOT_PERMITTED'
-  | 'ACCOUNT_MANAGEMENT_NOT_PERMITTED';
+  | 'ACCOUNT_MANAGEMENT_NOT_PERMITTED'
+  | 'FHIR_READ_NOT_PERMITTED';
 
 export type OperationsPermission =
   | 'PATIENT_READ'
@@ -39,7 +41,8 @@ export type OperationsPermission =
   | 'IDENTITY_REVIEW_RESOLVE'
   | 'SYNC_MONITOR'
   | 'DESKTOP_INSTALLATION_MANAGE'
-  | 'USER_MANAGE';
+  | 'USER_MANAGE'
+  | 'FHIR_READ';
 
 export class OperationsAuthorizationError extends Error {
   readonly statusCode = 403;
@@ -58,6 +61,7 @@ function permissionDeniedCode(
   permission: OperationsPermission,
 ): OperationsAuthorizationErrorCode {
   switch (permission) {
+    case 'FHIR_READ': return 'FHIR_READ_NOT_PERMITTED';
     case 'USER_MANAGE':
       return 'ACCOUNT_MANAGEMENT_NOT_PERMITTED';
     case 'PATIENT_READ':
@@ -96,6 +100,7 @@ export async function authorizeOperationsPermission(
     `SELECT
        operations_user.id AS operations_user_id,
        operations_user.display_name,
+       operations_user.account_role,
        operations_user.status AS user_status,
        access_grant.scope_kind,
        access_grant.organization_id
@@ -125,7 +130,7 @@ export async function authorizeOperationsPermission(
       fingerprint,
     );
   }
-  if (result.rows.every((row) => row.scope_kind === null)) {
+  if ((user.account_role === 'FHIR_VIEWER' && permission !== 'FHIR_READ') || result.rows.every((row) => row.scope_kind === null)) {
     throw new OperationsAuthorizationError(
       permissionDeniedCode(permission),
       user.operations_user_id,

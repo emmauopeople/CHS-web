@@ -62,6 +62,15 @@ integration(
       permissions: ['PATIENT_READ'],
       ...extra,
     });
+    it('creates a FHIR-only account with exactly its read permission', async () => {
+      const result=await call('create',creation({role:'FHIR_VIEWER',permissions:['PATIENT_READ']}));
+      expect(result.statusCode).toBe(200);
+      const account=(await pool.query('SELECT account_role FROM operations_users WHERE id=$1',[result.json().id])).rows[0];
+      expect(account.account_role).toBe('FHIR_VIEWER');
+      const grants=await pool.query('SELECT permission_code FROM operations_access_grants WHERE operations_user_id=$1',[result.json().id]);
+      expect(grants.rows.map(r=>r.permission_code)).toEqual(['FHIR_READ']);
+      expect((await call('create',creation({role:'FHIR_VIEWER',permissions:['FHIR_READ']}),'admin')).statusCode).toBe(403);
+    });
     beforeAll(async () => {
       root = new pg.Pool({ connectionString: process.env.DATABASE_TEST_URL });
       const db = await root.connect();

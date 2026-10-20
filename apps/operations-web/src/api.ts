@@ -1,3 +1,4 @@
+import { fhirAccess, fhirPatients, fhirResources } from './fhir-contract';
 import { isHistoryPage, type HistoryRequest } from '../../../packages/contracts/src/patient-history.mjs';
 import { accountPage, accountResult, type AccountCreate, type AccountChange } from './account-contract';
 import {providerPage,providerSecret,fhirStatus,type ProviderReview,type ProviderPatientAccess} from './provider-contract';
@@ -850,6 +851,9 @@ export function createOperationsApi(
       return post(apiBaseUrl, '/api/v1/operations/desktop-installations/search', accessToken,
         {reasonCode:'INSTALLATION_ADMINISTRATION',page}, installationPage, fetchImplementation);
     },
+    getFhirAccess() { return post(apiBaseUrl,'/api/v1/operations/fhir/access',accessToken,{reasonCode:'FHIR_DEMONSTRATION'},fhirAccess,fetchImplementation); },
+    searchFhirPatients(input: {reasonCode:'FHIR_DEMONSTRATION';name?:string;dateOfBirth?:string;page?:number}) { return post(apiBaseUrl,'/api/v1/operations/fhir/patients/search',accessToken,input,fhirPatients,fetchImplementation); },
+    readFhirResources(input: {reasonCode:'FHIR_DEMONSTRATION';personId:string;resourceType?:string;page?:number;generation?:string}) { return post(apiBaseUrl,'/api/v1/operations/fhir/resources/read',accessToken,input,fhirResources,fetchImplementation); },
     searchAccounts(page=1) {
       return post(apiBaseUrl,'/api/v1/operations/accounts/search',accessToken,{reasonCode:'ACCOUNT_ADMINISTRATION',page},accountPage,fetchImplementation);
     },

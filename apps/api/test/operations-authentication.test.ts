@@ -84,6 +84,7 @@ describe('operations OIDC authentication', () => {
       subject: 'operations-user-1',
       sessionId: 'session-1',
       authorizedParty: 'operations-web',
+      issuedAt: Math.floor(now.getTime() / 1_000) - 60,
     });
     await operationsVerifier.verify(`Bearer ${token()}`);
     expect(fetchJwks).toHaveBeenCalledTimes(1);

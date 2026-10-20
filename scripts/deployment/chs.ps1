@@ -1,12 +1,14 @@
 param(
     [ValidateSet('setup', 'up', 'status', 'check', 'backup', 'public')]
-    [string]$Action = 'status'
+    [string]$Action = 'status',
+    [switch]$Interoperability
 )
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 Push-Location $root
 try {
     $compose = @('compose', '--env-file', '.deployment/deploy.env', '-f', 'compose.deploy.yaml')
+    if ($Interoperability) { $compose += @('-f', 'compose.fhir.deploy.yaml', '--profile', 'interoperability') }
     switch ($Action) {
         'setup' { & node scripts/deployment/setup.mjs }
         'up' { & docker @compose up -d --build --wait --wait-timeout 300 }
@@ -24,10 +26,12 @@ try {
             $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
             $destination = Join-Path $root ".deployment/backups/$stamp"
             New-Item -ItemType Directory -Path $destination -Force | Out-Null
-            foreach ($database in @(
+            $databases = @(
                 @{Service='postgres'; User='chs'; Database='chs'},
                 @{Service='identity-db'; User='keycloak'; Database='keycloak'}
-            )) {
+            )
+            if ($Interoperability) { $databases += @{Service='fhir-db'; User='fhir'; Database='hapi_fhir'} }
+            foreach ($database in $databases) {
                 $service = $database.Service
                 & docker @compose exec -T $service pg_dump -U $database.User -d $database.Database -Fc -f /tmp/chs-backup.dump
                 if ($LASTEXITCODE -ne 0) { throw "Backup failed: $service" }

@@ -82,7 +82,7 @@ describe('Release 1 API documentation', () => {
   it('records bounded authentication, permissions, caching, and purposes', async () => {
     const catalog = await loadCatalog();
     const methods = new Set(['GET', 'POST']);
-    const audiences = new Set(['platform', 'installation', 'operations']);
+    const audiences = new Set(['platform', 'installation', 'operations', 'provider']);
     const authentication = new Set(['NONE', 'INSTALLATION_BEARER', 'OIDC_BEARER']);
     const permissions = new Set([
       'DESKTOP_INSTALLATION_MANAGE',

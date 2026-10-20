@@ -9,7 +9,7 @@ const directory = resolve(root, '.deployment');
 for (const name of ['secrets', 'inputs', 'backups', 'identity-import']) {
   mkdirSync(resolve(directory, name), { recursive: true });
 }
-for (const name of ['postgres_password', 'identity_database_password', 'identity_admin_password', 'reviewer_password', 'account_identity_client_secret']) {
+for (const name of ['postgres_password', 'identity_database_password', 'identity_admin_password', 'reviewer_password', 'account_identity_client_secret', 'provider_identity_client_secret', 'fhir_database_password']) {
   const path = resolve(directory, 'secrets', name);
   if (!existsSync(path)) writeFileSync(path, randomBytes(32).toString('hex'), { flag: 'wx', mode: 0o600 });
 }

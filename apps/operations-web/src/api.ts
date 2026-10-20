@@ -1,5 +1,6 @@
 import { isHistoryPage, type HistoryRequest } from '../../../packages/contracts/src/patient-history.mjs';
 import { accountPage, accountResult, type AccountCreate, type AccountChange } from './account-contract';
+import {providerPage,providerSecret,fhirStatus,type ProviderReview,type ProviderPatientAccess} from './provider-contract';
 import { installationPage, installationToken, installationRevocation, type EnrollmentInput, type RotationInput, type RevocationInput } from './installation-contract';
 import type {
   PatientAccessReason,
@@ -851,6 +852,24 @@ export function createOperationsApi(
     },
     searchAccounts(page=1) {
       return post(apiBaseUrl,'/api/v1/operations/accounts/search',accessToken,{reasonCode:'ACCOUNT_ADMINISTRATION',page},accountPage,fetchImplementation);
+    },
+    requestProvider(input:{reasonCode:'PROVIDER_ADMINISTRATION';organizationName:string;registrationIdentifier:string;contactEmail:string;purpose:string}) {
+      return post(apiBaseUrl,'/api/v1/providers/onboarding/request',accessToken,input,providerSecret,fetchImplementation);
+    },
+    searchProviders(page=1) {
+      return post(apiBaseUrl,'/api/v1/operations/providers/search',accessToken,{reasonCode:'PROVIDER_ADMINISTRATION',page},providerPage,fetchImplementation);
+    },
+    reviewProvider(input:ProviderReview) {
+      return post(apiBaseUrl,'/api/v1/operations/providers/review',accessToken,input,providerSecret,fetchImplementation);
+    },
+    providerCredentials(input:{reasonCode:'PROVIDER_ADMINISTRATION';clientId:string;action:'ROTATE'|'REVOKE';confirmed:true}) {
+      return post(apiBaseUrl,'/api/v1/operations/providers/credentials',accessToken,input,providerSecret,fetchImplementation);
+    },
+    providerPatientAccess(input:ProviderPatientAccess) {
+      return post(apiBaseUrl,'/api/v1/operations/providers/patient-access',accessToken,input,providerSecret,fetchImplementation);
+    },
+    fhirStatus() {
+      return post(apiBaseUrl,'/api/v1/operations/fhir/status',accessToken,{reasonCode:'FHIR_ADMINISTRATION'},fhirStatus,fetchImplementation);
     },
     createAccount(input:AccountCreate) {
       return post(apiBaseUrl,'/api/v1/operations/accounts/create',accessToken,input,accountResult,fetchImplementation);

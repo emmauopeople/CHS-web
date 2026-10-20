@@ -45,7 +45,7 @@ services:
       ACCOUNT_IDENTITY_BASE_URL: http://identity:8080
       ACCOUNT_IDENTITY_REALM: chs
       ACCOUNT_IDENTITY_CLIENT_ID: chs-account-admin
-    secrets: [postgres_password, account_identity_client_secret]
+    secrets: [postgres_password, account_identity_client_secret, provider_identity_client_secret]
     networks: [database, application]
     depends_on:
       migrate: {condition: service_completed_successfully}
@@ -159,7 +159,18 @@ services:
     command: [node, scripts/deployment/bootstrap-accounts.mjs, chs-reviewer]
     mem_limit: 512m
 
+  provider-bootstrap:
+    build: {context: ., dockerfile: infra/Dockerfile, target: tools}
+    profiles: [tools]
+    environment: *database-environment
+    secrets: [postgres_password, identity_admin_password, provider_identity_client_secret]
+    networks: [database, application]
+    command: [node, scripts/deployment/bootstrap-provider-identity.mjs]
+    mem_limit: 512m
+
 secrets:
+  provider_identity_client_secret:
+    file: ./.deployment/secrets/provider_identity_client_secret
   account_identity_client_secret:
     file: ./.deployment/secrets/account_identity_client_secret
   postgres_password:

@@ -1,4 +1,6 @@
 export type AppConfig = Readonly<{
+  providerIdentity?: Readonly<{baseUrl:string;realm:string;clientId:string;clientSecret:string}> | null;
+  fhirBaseUrl?: string | null;
   accountIdentity?: Readonly<{baseUrl:string;realm:string;clientId:string;clientSecret:string}> | null;
   nodeEnv: 'development' | 'test' | 'production';
   host: string;
@@ -114,6 +116,13 @@ export function loadConfig(
   }
 
   return {
+    fhirBaseUrl: environment.FHIR_BASE_URL?.trim() || null,
+    providerIdentity: environment.PROVIDER_IDENTITY_CLIENT_SECRET ? {
+      baseUrl: required(environment,'ACCOUNT_IDENTITY_BASE_URL').replace(/\/$/,''),
+      realm: required(environment,'ACCOUNT_IDENTITY_REALM'),
+      clientId: 'chs-provider-admin',
+      clientSecret: required(environment,'PROVIDER_IDENTITY_CLIENT_SECRET'),
+    } : null,
     accountIdentity: environment.ACCOUNT_IDENTITY_CLIENT_SECRET ? {
       baseUrl: required(environment,'ACCOUNT_IDENTITY_BASE_URL').replace(/\/$/,''),
       realm: required(environment,'ACCOUNT_IDENTITY_REALM'),

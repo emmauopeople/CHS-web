@@ -1,0 +1,93 @@
+services:
+  interoperability-check:
+    build: {context: ., dockerfile: infra/Dockerfile, target: tools}
+    profiles: [tools]
+    environment:
+      NODE_ENV: test
+      FHIR_TEST_BASE_URL: http://fhir:8080/fhir
+    secrets: [postgres_password]
+    networks: [database, fhir-application]
+    volumes: [./acceptance-results:/evidence]
+    command: [node, scripts/deployment/check-interoperability.mjs]
+    mem_limit: 768m
+
+  api:
+    environment:
+      FHIR_BASE_URL: http://fhir:8080/fhir
+    networks: [database, application, fhir-application]
+
+  fhir-db:
+    image: postgres:18-alpine@sha256:77f585114c32fbca283dc835b0596f4e52b51b4c6662d7810b2f4084f60a1873
+    profiles: [interoperability]
+    environment:
+      POSTGRES_DB: hapi_fhir
+      POSTGRES_USER: fhir
+      POSTGRES_PASSWORD_FILE: /run/secrets/fhir_database_password
+    secrets: [fhir_database_password]
+    volumes: [fhir-data:/var/lib/postgresql]
+    networks: [fhir-database]
+    mem_limit: 512m
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U fhir -d hapi_fhir"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+
+  fhir:
+    image: hapiproject/hapi:v8.12.0-2@sha256:0ff86aac4c7bd13a1ee226444a70263bb46ed1c28ef543c30a44f865b80ca04e
+    profiles: [interoperability]
+    environment:
+      SPRING_CONFIG_IMPORT: optional:configtree:/run/secrets/
+      SPRING_DATASOURCE_URL: jdbc:postgresql://fhir-db:5432/hapi_fhir
+      SPRING_DATASOURCE_USERNAME: fhir
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
+      HIBERNATE_DIALECT: ca.uhn.fhir.jpa.model.dialect.HapiFhirPostgresDialect
+      HAPI_FHIR_FHIR_VERSION: R4
+      HAPI_FHIR_VALIDATION_REQUESTS_ENABLED: "true"
+      HAPI_FHIR_BULK_EXPORT_ENABLED: "false"
+      HAPI_FHIR_BULK_IMPORT_ENABLED: "false"
+      HAPI_FHIR_OPENAPI_ENABLED: "false"
+      SPRING_AI_MCP_SERVER_ENABLED: "false"
+      JAVA_TOOL_OPTIONS: -Xms256m -Xmx1400m -XX:MaxMetaspaceSize=384m -XX:MaxDirectMemorySize=128m
+      LOGGING_LEVEL_CA_UHN_FHIR_JPA_INTERCEPTOR: WARN
+    secrets:
+      - source: fhir_database_password
+        target: spring.datasource.password
+    networks: [fhir-database, fhir-application]
+    depends_on:
+      fhir-db: {condition: service_healthy}
+    mem_limit: 2g
+    healthcheck:
+      test: [CMD, java, -cp, /app, HealthCheck]
+      interval: 30s
+      timeout: 15s
+      retries: 20
+      start_period: 180s
+    restart: unless-stopped
+
+  fhir-worker:
+    build: {context: ., dockerfile: infra/Dockerfile, target: api}
+    profiles: [interoperability]
+    environment:
+      NODE_ENV: production
+      FHIR_BASE_URL: http://fhir:8080/fhir
+    secrets: [postgres_password]
+    networks: [database, fhir-application]
+    command: [node, apps/api/dist/fhir/worker.js]
+    depends_on:
+      fhir: {condition: service_healthy}
+      migrate: {condition: service_completed_successfully}
+    mem_limit: 512m
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    restart: unless-stopped
+
+secrets:
+  fhir_database_password:
+    file: ./.deployment/secrets/fhir_database_password
+networks:
+  fhir-database: {internal: true}
+  fhir-application: {internal: true}
+volumes:
+  fhir-data: {}

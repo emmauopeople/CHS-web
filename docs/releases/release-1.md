@@ -1,7 +1,8 @@
 # Release 1 candidate notes
 
-Status: Application candidate; cloud deployment and desktop acceptance remain
-gated.
+Status: PC pilot deployment is running. Combined automated acceptance is
+implemented; physical two-PC acceptance and the desktop 1.0.2 installer approval
+remain open. See [HSW-019F](../sync/HSW-019F-pilot-acceptance.md).
 
 ## Delivered application scope
 
@@ -21,22 +22,30 @@ gated.
   load evidence, backup/restore rehearsal, and sync recovery evidence.
 - Canonical data dictionary, API guide, backup/restore runbook, and
   synchronization incident/replay/recovery runbook.
+- Food/OTC, referrals and follow-ups, immutable addenda/review histories and
+  bounded all-domain central history retrieval, with a read-only desktop cache.
+- Isolated Docker Compose deployment, private PostgreSQL, Keycloak, HTTPS
+  hostnames and a dedicated Cloudflare tunnel.
+- Portal staff/admin/super admin management, desktop enrollment and credential
+  lifecycle controls, and hospital/provider approval with patient-specific sharing.
+- Optional private, PostgreSQL-backed HAPI FHIR R4 publication with a durable
+  retry queue, stable registry and authorized provider retrieval.
 
 ## Compatibility baseline
 
 - Node.js 24 LTS and pnpm 11.
 - Fastify 5 and React 19.
-- PostgreSQL 18 with immutable migrations `0001` through `0011`.
+- PostgreSQL 18 with immutable migrations `0001` through `0020`.
 - HSD-SYNC-001 batch contract and HSD-SYNC-005B finalized Lifestyle contract.
-- Two deployable applications—API and static operations web—and one operational
-  PostgreSQL database. Release 1 remains a modular monolith.
+- The API and static operations web remain a modular monolith. Keycloak and
+  the optional FHIR server/database/publication worker are separate deployment
+  services; operational PostgreSQL remains authoritative.
 
 ## Excluded from this candidate
 
-- Food, OTC medicine, referral, and document ingestion until their desktop
-  contracts are frozen.
-- FHIR server/mapping, hospital onboarding, provider access, document pipeline,
-  and LLM-assisted analysis.
+- Document ingestion/extraction, a dedicated doctor document portal, and
+  LLM-assisted analysis.
+- Partner-specific/national FHIR profiles and SMART-on-FHIR launch support.
 - Prometheus, Grafana, Fluent Bit, OpenSearch, Kubernetes/EKS, ingress, managed
   identity, and cloud infrastructure deployment.
 - Automatic identity merging, replacement Medical IDs, browser retry buttons,
@@ -44,10 +53,11 @@ gated.
 
 ## Gates before a production pilot
 
-1. Complete the desktop sync worker and run the cross-repository Release 1
-   demonstration: offline capture, restart durability, reconnect, sync,
-   acknowledgment/CHS-ID persistence, operations viewing, exact replay, and
-   credential revocation.
+1. Complete the physical two-PC cross-repository demonstration with the new
+   verified installer: offline capture, restart durability, reconnect, sync,
+   acknowledgment/CHS-ID persistence, history/cache viewing, late follow-up,
+   exact replay and credential revocation. The automated suites cover these
+   service boundaries; they do not replace device acceptance.
 2. Select the hosting region and data-residency model; complete legal, privacy,
    consent, retention, deletion, and incident-ownership decisions.
 3. Deploy production-like staging with TLS, private PostgreSQL, managed secrets,

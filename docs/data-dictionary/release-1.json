@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "release": "1",
-  "migrationCount": 18,
-  "tableCount": 60,
+  "migrationCount": 20,
+  "tableCount": 67,
   "tables": [
     { "name": "schema_migrations", "domain": "migration", "classification": "METADATA", "viewerAccess": "NONE", "purpose": "Immutable migration version, checksum, and application-time ledger." },
     { "name": "organizations", "domain": "platform", "classification": "OPERATIONAL", "viewerAccess": "CANONICAL_PATIENT", "purpose": "Screening program or organization identity and status." },
@@ -63,6 +63,13 @@
     { "name": "encounter_addenda", "domain": "clinical", "classification": "CLINICAL", "viewerAccess": "CANONICAL_PATIENT", "purpose": "Immutable encounter addenda with original authors and creation timestamps." },
     { "name": "encounter_review_flags", "domain": "clinical", "classification": "CLINICAL", "viewerAccess": "CANONICAL_PATIENT", "purpose": "Immutable review flag definitions linked to their original encounters and authors." },
     { "name": "encounter_review_status_events", "domain": "clinical", "classification": "CLINICAL", "viewerAccess": "CANONICAL_PATIENT", "purpose": "Append-only review opening, resolution, dismissal and reopening history with original authors and timestamps." },
-    { "name": "patient_history_cursors", "domain": "operations", "classification": "SECURITY", "viewerAccess": "NONE", "purpose": "Bind short-lived opaque pagination positions to an authenticated caller, query and canonical history version without storing clinical content." }
+    { "name": "patient_history_cursors", "domain": "operations", "classification": "SECURITY", "viewerAccess": "NONE", "purpose": "Bind short-lived opaque pagination positions to an authenticated caller, query and canonical history version without storing clinical content." },
+    { "name": "provider_requests", "domain": "operations", "classification": "SECURITY", "viewerAccess": "NONE", "purpose": "Hospital onboarding request and reviewed approval state." },
+    { "name": "provider_clients", "domain": "operations", "classification": "SECURITY", "viewerAccess": "NONE", "purpose": "Approved OAuth client identity and expiry without stored secrets." },
+    { "name": "provider_organization_grants", "domain": "operations", "classification": "SECURITY", "viewerAccess": "NONE", "purpose": "Approved source organization bounds for provider clients." },
+    { "name": "provider_patient_grants", "domain": "operations", "classification": "SECURITY", "viewerAccess": "NONE", "purpose": "Explicit expiring patient-sharing authorization and revocation." },
+    { "name": "fhir_publish_queue", "domain": "sync", "classification": "OPERATIONAL", "viewerAccess": "NONE", "purpose": "Durable generation-based asynchronous FHIR publication work." },
+    { "name": "fhir_resource_registry", "domain": "sync", "classification": "OPERATIONAL", "viewerAccess": "NONE", "purpose": "Stable published FHIR resource identity and content hash registry." },
+    { "name": "fhir_publication_events", "domain": "sync", "classification": "OPERATIONAL", "viewerAccess": "NONE", "purpose": "Publication success and failure evidence without clinical payloads." }
   ]
 }

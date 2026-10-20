@@ -123,3 +123,34 @@ jobs:
             apps/operations-web/test-results
           if-no-files-found: ignore
           retention-days: 7
+
+  interoperability:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@v7.1.0
+        with:
+          node-version-file: .nvmrc
+      - name: Generate isolated CI configuration
+        run: node scripts/deployment/setup.mjs
+      - name: Start private test stores
+        run: docker compose -p chs-ci --env-file .deployment/deploy.env -f compose.deploy.yaml -f compose.fhir.deploy.yaml --profile interoperability up -d --wait --wait-timeout 600 postgres fhir-db fhir
+      - name: Verify multi-installation and real R4 publication
+        run: docker compose -p chs-ci --env-file .deployment/deploy.env -f compose.deploy.yaml -f compose.fhir.deploy.yaml --profile tools run --rm --build --no-deps interoperability-check
+      - name: Upload interoperability evidence
+        if: always()
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: interoperability-acceptance
+          path: acceptance-results/interoperability-acceptance.json
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Stop isolated CI stores
+        if: always()
+        run: docker compose -p chs-ci --env-file .deployment/deploy.env -f compose.deploy.yaml -f compose.fhir.deploy.yaml --profile interoperability down

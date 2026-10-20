@@ -3,7 +3,7 @@
 ## Purpose and authority
 
 This dictionary describes the PostgreSQL schema after migrations `0001` through
-`0018`. PostgreSQL constraints and the approved synchronization contracts remain
+`0020`. PostgreSQL constraints and the approved synchronization contracts remain
 the executable authority for field types and accepted values. The companion
 [`release-1.json`](release-1.json) catalog is checked against every `CREATE
 TABLE` statement and the migration ledger table during tests, so undocumented
@@ -157,8 +157,20 @@ Introduced at migration 0015. HSW-019D now exposes authorized, bounded read proj
 
 ### HSW-019D history retrieval (migration 0016)
 
-Canonical schema: 18 migrations and 60 tables.
+Canonical schema: 20 migrations and 67 tables.
 
 | Table | Purpose and boundary |
 | --- | --- |
 | `patient_history_cursors` | Fifteen-minute opaque pagination state: hashed caller/query bindings, canonical version digest, keyset position and expiry. No clinical payload or patient demographics. Every continuation rechecks authorization and patient linkage. Expired rows are removed in bounded batches during retrieval. |
+
+## Provider and interoperability records
+
+| Table | Purpose |
+| --- | --- |
+| `provider_requests` | Hospital onboarding request and reviewed approval state. |
+| `provider_clients` | Approved OAuth client identity and expiry without stored secrets. |
+| `provider_organization_grants` | Approved source organization bounds for provider clients. |
+| `provider_patient_grants` | Explicit expiring patient-sharing authorization and revocation. |
+| `fhir_publish_queue` | Durable generation-based asynchronous FHIR publication work. |
+| `fhir_resource_registry` | Stable published FHIR resource identity and content hash registry. |
+| `fhir_publication_events` | Publication success and failure evidence without clinical payloads. |

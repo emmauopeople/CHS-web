@@ -15,6 +15,7 @@ export type VerifiedOperationsIdentity = Readonly<{
   subject: string;
   sessionId: string | null;
   authorizedParty: string | null;
+  issuedAt?: number;
 }>;
 
 export type OperationsTokenVerifier = Readonly<{
@@ -261,6 +262,7 @@ export function createOidcOperationsTokenVerifier(
         subject,
         sessionId: stringClaim(payload.sid, 255),
         authorizedParty: stringClaim(payload.azp, 255),
+        ...(typeof payload.iat === 'number' ? {issuedAt:payload.iat} : {}),
       };
     },
   };

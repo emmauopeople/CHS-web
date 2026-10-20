@@ -1,4 +1,5 @@
 import { DesktopInstallations } from './DesktopInstallations';
+import { Accounts } from './Accounts';
 import { PatientHistory } from './PatientHistory';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -641,7 +642,7 @@ export default function App({ config }: AppProps) {
   const [authBusy, setAuthBusy] = useState(() => hasAuthorizationResponse());
   const [authError, setAuthError] = useState<string | null>(null);
   const [reason, setReason] = useState<PatientAccessReason | ''>('');
-  const [workspaceView, setWorkspaceView] = useState<'PATIENTS' | 'RECOVERY' | 'SYNC' | 'IDENTITY' | 'INSTALLATIONS'>('PATIENTS');
+  const [workspaceView, setWorkspaceView] = useState<'PATIENTS' | 'RECOVERY' | 'SYNC' | 'IDENTITY' | 'INSTALLATIONS' | 'ACCOUNTS'>('PATIENTS');
   const [form, setForm] = useState<SearchForm>(initialSearch);
   const [submittedForm, setSubmittedForm] = useState<SearchForm | null>(null);
   const [results, setResults] = useState<PatientListPage | null>(null);
@@ -864,6 +865,7 @@ export default function App({ config }: AppProps) {
             Identity Review
           </button>
           <button className={workspaceView === 'INSTALLATIONS' ? 'active' : ''} type="button" onClick={() => { clearPatientData(); setWorkspaceView('INSTALLATIONS'); }}>Desktop Installations</button>
+          <button className={workspaceView === 'ACCOUNTS' ? 'active' : ''} type="button" onClick={() => { clearPatientData(); setWorkspaceView('ACCOUNTS'); }}>Accounts</button>
         </nav>
         <div className="topbar-actions">
           <span className="secure-indicator"><i aria-hidden="true" /> Secure session</span>
@@ -874,14 +876,14 @@ export default function App({ config }: AppProps) {
         <section className="page-heading">
           <div>
             <p className="eyebrow">
-              {workspaceView === 'INSTALLATIONS' ? 'Central PostgreSQL · desktop administration' : workspaceView === 'SYNC'
+              {workspaceView === 'ACCOUNTS' ? 'CHS · account administration' : workspaceView === 'INSTALLATIONS' ? 'Central PostgreSQL · desktop administration' : workspaceView === 'SYNC'
                 ? 'Central PostgreSQL · synchronization operations'
                 : workspaceView === 'IDENTITY'
                   ? 'Central PostgreSQL · identity reconciliation'
                   : 'Central PostgreSQL · canonical records'}
             </p>
             <h1>
-              {workspaceView === 'INSTALLATIONS' ? 'Desktop Installations' : workspaceView === 'PATIENTS'
+              {workspaceView === 'ACCOUNTS' ? 'Accounts' : workspaceView === 'INSTALLATIONS' ? 'Desktop Installations' : workspaceView === 'PATIENTS'
                 ? 'Patient Viewer'
                 : workspaceView === 'RECOVERY'
                   ? 'Medical ID Recovery'
@@ -890,7 +892,7 @@ export default function App({ config }: AppProps) {
                     : 'Identity Review'}
             </h1>
             <p>
-              {workspaceView === 'INSTALLATIONS' ? 'Enroll screening PCs and manage their individual synchronization credentials.' : workspaceView === 'PATIENTS'
+              {workspaceView === 'ACCOUNTS' ? 'Create portal accounts and manage authorized access.' : workspaceView === 'INSTALLATIONS' ? 'Enroll screening PCs and manage their individual synchronization credentials.' : workspaceView === 'PATIENTS'
                 ? 'Search deduplicated patient records and review accepted screening history.'
                 : workspaceView === 'RECOVERY'
                   ? 'Safely recover an existing CHS Medical ID without creating a replacement.'
@@ -899,11 +901,11 @@ export default function App({ config }: AppProps) {
                     : 'Compare submitted identity evidence with masked candidates and resolve duplicate-risk cases.'}
             </p>
           </div>
-          {workspaceView === 'SYNC' || workspaceView === 'IDENTITY' || workspaceView === 'INSTALLATIONS' ? (
+          {workspaceView === 'ACCOUNTS' || workspaceView === 'SYNC' || workspaceView === 'IDENTITY' || workspaceView === 'INSTALLATIONS' ? (
             <div className="reason-field">
               <span className="reason-label">Reason for access</span>
               <div className="fixed-reason">
-                {workspaceView === 'INSTALLATIONS' ? 'Installation administration' : workspaceView === 'SYNC' ? 'Operations support' : 'Identity reconciliation'}
+                {workspaceView === 'ACCOUNTS' ? 'Account administration' : workspaceView === 'INSTALLATIONS' ? 'Installation administration' : workspaceView === 'SYNC' ? 'Operations support' : 'Identity reconciliation'}
               </div>
               <small>Fixed by the workspace contract and recorded in the audit.</small>
             </div>
@@ -974,6 +976,8 @@ export default function App({ config }: AppProps) {
               </section>
             )}
           </>
+        ) : workspaceView === 'ACCOUNTS' && api ? (
+          <Accounts api={api} onUnauthorized={() => { clearAuthSession(); setSession(null); }} />
         ) : workspaceView === 'INSTALLATIONS' && api ? (
           <DesktopInstallations api={api} onUnauthorized={() => { clearAuthSession(); setSession(null); }} />
         ) : workspaceView === 'RECOVERY' && api ? (

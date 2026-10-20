@@ -1,4 +1,6 @@
 import { registerPatientHistoryRoutes } from './history/routes.js';
+import { registerAccountRoutes } from './operations/account-routes.js';
+import { createAccountIdentity, type AccountIdentity } from './administration/account-identity.js';
 import { registerDesktopInstallationRoutes } from './operations/desktop-installation-routes.js';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
@@ -25,6 +27,7 @@ export type BuildAppDependencies = Readonly<{
   config: AppConfig;
   database: Pick<Database, 'pool' | 'check' | 'close'>;
   operationsTokenVerifier?: OperationsTokenVerifier;
+  accountIdentity?: AccountIdentity;
 }>;
 
 function normalizeError(error: unknown) {
@@ -104,6 +107,8 @@ export async function buildApp(dependencies: BuildAppDependencies) {
       : createDisabledOperationsTokenVerifier());
 
   await registerPatientHistoryRoutes(app, { database: dependencies.database.pool, tokenVerifier: operationsTokenVerifier });
+  await registerAccountRoutes(app, { database: dependencies.database.pool, tokenVerifier: operationsTokenVerifier,
+    identity: dependencies.accountIdentity ?? (dependencies.config.accountIdentity ? createAccountIdentity(dependencies.config.accountIdentity) : null) });
   await registerDesktopInstallationRoutes(app, { database: dependencies.database.pool, tokenVerifier: operationsTokenVerifier });
 
   await registerOperationsRoutes(app, {

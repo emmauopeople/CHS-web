@@ -29,7 +29,8 @@ export type OperationsAuthorizationErrorCode =
   | 'IDENTITY_REVIEW_NOT_PERMITTED'
   | 'IDENTITY_REVIEW_RESOLUTION_NOT_PERMITTED'
   | 'SYNC_MONITOR_NOT_PERMITTED'
-  | 'DESKTOP_INSTALLATION_MANAGEMENT_NOT_PERMITTED';
+  | 'DESKTOP_INSTALLATION_MANAGEMENT_NOT_PERMITTED'
+  | 'ACCOUNT_MANAGEMENT_NOT_PERMITTED';
 
 export type OperationsPermission =
   | 'PATIENT_READ'
@@ -37,7 +38,8 @@ export type OperationsPermission =
   | 'IDENTITY_REVIEW'
   | 'IDENTITY_REVIEW_RESOLVE'
   | 'SYNC_MONITOR'
-  | 'DESKTOP_INSTALLATION_MANAGE';
+  | 'DESKTOP_INSTALLATION_MANAGE'
+  | 'USER_MANAGE';
 
 export class OperationsAuthorizationError extends Error {
   readonly statusCode = 403;
@@ -56,6 +58,8 @@ function permissionDeniedCode(
   permission: OperationsPermission,
 ): OperationsAuthorizationErrorCode {
   switch (permission) {
+    case 'USER_MANAGE':
+      return 'ACCOUNT_MANAGEMENT_NOT_PERMITTED';
     case 'PATIENT_READ':
       return 'PATIENT_READ_NOT_PERMITTED';
     case 'MEDICAL_ID_RECOVER':

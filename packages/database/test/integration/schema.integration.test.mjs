@@ -49,6 +49,7 @@ test(
         '0015_encounter_history_ingestion.sql',
         '0016_patient_history_cursors.sql',
         '0017_desktop_installation_management.sql',
+        '0018_operations_account_administration.sql',
       ]);
       assert.deepEqual(secondRun.applied, []);
 

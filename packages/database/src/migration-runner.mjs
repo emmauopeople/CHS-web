@@ -48,7 +48,10 @@ export async function migrateWithClient({
           `Migration ${applied.version} filename mismatch: database=${applied.filename} local=${local.filename}`,
         );
       }
-      if (local.checksum !== applied.checksum) {
+      if (
+        local.checksum !== applied.checksum &&
+        local.crlfChecksum !== applied.checksum
+      ) {
         throw new Error(
           `Migration ${applied.version} checksum mismatch; applied migrations are immutable`,
         );

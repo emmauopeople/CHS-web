@@ -42,7 +42,10 @@ services:
       OPERATIONS_OIDC_ISSUER: ${OPERATIONS_OIDC_ISSUER:-}
       OPERATIONS_OIDC_AUDIENCE: ${OPERATIONS_OIDC_AUDIENCE:-}
       OPERATIONS_OIDC_JWKS_URL: ${OPERATIONS_OIDC_JWKS_URL:-}
-    secrets: [postgres_password]
+      ACCOUNT_IDENTITY_BASE_URL: http://identity:8080
+      ACCOUNT_IDENTITY_REALM: chs
+      ACCOUNT_IDENTITY_CLIENT_ID: chs-account-admin
+    secrets: [postgres_password, account_identity_client_secret]
     networks: [database, application]
     depends_on:
       migrate: {condition: service_completed_successfully}
@@ -145,7 +148,20 @@ services:
       migrate: {condition: service_completed_successfully}
     mem_limit: 512m
 
+  account-bootstrap:
+    build: {context: ., dockerfile: infra/Dockerfile, target: tools}
+    profiles: [tools]
+    environment:
+      <<: *database-environment
+      OPERATIONS_OIDC_ISSUER: ${OPERATIONS_OIDC_ISSUER:?Set OIDC issuer}
+    secrets: [postgres_password, identity_admin_password, account_identity_client_secret]
+    networks: [database, application]
+    command: [node, scripts/deployment/bootstrap-accounts.mjs, chs-reviewer]
+    mem_limit: 512m
+
 secrets:
+  account_identity_client_secret:
+    file: ./.deployment/secrets/account_identity_client_secret
   postgres_password:
     file: ./.deployment/secrets/postgres_password
   identity_database_password:

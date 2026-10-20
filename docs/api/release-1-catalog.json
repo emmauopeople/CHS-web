@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "release": "1",
-  "endpointCount": 25,
+  "endpointCount": 28,
   "endpoints": [
     { "method": "GET", "path": "/health/live", "audience": "platform", "authentication": "NONE", "permission": null, "cache": "NO_STORE", "purpose": "Process liveness without dependency checks." },
     { "method": "GET", "path": "/health/startup", "audience": "platform", "authentication": "NONE", "permission": null, "cache": "NO_STORE", "purpose": "Startup completion state." },
@@ -24,9 +24,12 @@
     { "method": "POST", "path": "/api/v1/operations/sync/batches/detail", "audience": "operations", "authentication": "OIDC_BEARER", "permission": "SYNC_MONITOR", "cache": "NO_STORE", "purpose": "Read grouped outcomes and stable safe errors for one batch." },
     { "method": "POST", "path": "/api/v1/sync/patients/history", "audience": "installation", "authentication": "INSTALLATION_BEARER", "permission": null, "cache": "NO_STORE", "purpose": "Retrieve bounded canonical patient history with audited purpose, server-derived scope and stable opaque pagination." },
     { "method": "POST", "path": "/api/v1/operations/patients/history", "audience": "operations", "authentication": "OIDC_BEARER", "permission": "PATIENT_READ", "cache": "NO_STORE", "purpose": "Retrieve bounded canonical patient history with audited purpose, server-derived scope and stable opaque pagination." },
-    {"method":"POST","path":"/api/v1/operations/desktop-installations/search","audience":"operations","authentication":"OIDC_BEARER","permission":"DESKTOP_INSTALLATION_MANAGE","cache":"NO_STORE","purpose":"List authorized desktops, credential metadata and active screening locations."},
-    {"method":"POST","path":"/api/v1/operations/desktop-installations/enroll","audience":"operations","authentication":"OIDC_BEARER","permission":"DESKTOP_INSTALLATION_MANAGE","cache":"NO_STORE","purpose":"Enroll a desktop and reveal its first sync token once."},
-    {"method":"POST","path":"/api/v1/operations/desktop-installations/rotate","audience":"operations","authentication":"OIDC_BEARER","permission":"DESKTOP_INSTALLATION_MANAGE","cache":"NO_STORE","purpose":"Replace an installation credential and reveal the new token once."},
-    {"method":"POST","path":"/api/v1/operations/desktop-installations/revoke","audience":"operations","authentication":"OIDC_BEARER","permission":"DESKTOP_INSTALLATION_MANAGE","cache":"NO_STORE","purpose":"Revoke a specific desktop synchronization credential."}
+    { "method": "POST", "path": "/api/v1/operations/desktop-installations/search", "audience": "operations", "authentication": "OIDC_BEARER", "permission": "DESKTOP_INSTALLATION_MANAGE", "cache": "NO_STORE", "purpose": "List authorized desktops, credential metadata and active screening locations." },
+    { "method": "POST", "path": "/api/v1/operations/desktop-installations/enroll", "audience": "operations", "authentication": "OIDC_BEARER", "permission": "DESKTOP_INSTALLATION_MANAGE", "cache": "NO_STORE", "purpose": "Enroll a desktop and reveal its first sync token once." },
+    { "method": "POST", "path": "/api/v1/operations/desktop-installations/rotate", "audience": "operations", "authentication": "OIDC_BEARER", "permission": "DESKTOP_INSTALLATION_MANAGE", "cache": "NO_STORE", "purpose": "Replace an installation credential and reveal the new token once." },
+    { "method": "POST", "path": "/api/v1/operations/desktop-installations/revoke", "audience": "operations", "authentication": "OIDC_BEARER", "permission": "DESKTOP_INSTALLATION_MANAGE", "cache": "NO_STORE", "purpose": "Revoke a specific desktop synchronization credential." },
+    { "method": "POST", "path": "/api/v1/operations/accounts/search", "audience": "operations", "authentication": "OIDC_BEARER", "permission": "USER_MANAGE", "cache": "NO_STORE", "purpose": "List authorized CHS portal accounts and organization choices." },
+    { "method": "POST", "path": "/api/v1/operations/accounts/create", "audience": "operations", "authentication": "OIDC_BEARER", "permission": "USER_MANAGE", "cache": "NO_STORE", "purpose": "Create a scoped portal identity with an initial temporary password." },
+    { "method": "POST", "path": "/api/v1/operations/accounts/change", "audience": "operations", "authentication": "OIDC_BEARER", "permission": "USER_MANAGE", "cache": "NO_STORE", "purpose": "Suspend, activate or reset an authorized portal account." }
   ]
 }

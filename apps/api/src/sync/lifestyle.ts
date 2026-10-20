@@ -840,9 +840,34 @@ export async function processLifestyleRecord(
       }
       const prior = priorResult.rows[0]!;
       if (prior.status !== 'RETRY') {
-        const outcome = outcomeFromExisting(record, prior);
-        await client.query('COMMIT');
-        return outcome;
+        // Older servers permanently rejected a completed Lifestyle section while
+        // its encounter was still a draft. Reconsider only this exact, unchanged
+        // record when its local-root encounter can still complete. The saved
+        // response of the original batch remains immutable.
+        const legacyStateRejection =
+          prior.status === 'REJECTED' &&
+          prior.lifestyle_assessment_id === null &&
+          prior.errors.length === 1 &&
+          prior.errors[0]?.code === 'LIFESTYLE_ENCOUNTER_STATE_INVALID' &&
+          prior.errors[0]?.path === '/payload/localEncounterId' &&
+          prior.errors[0]?.retryable === false;
+        const recoverable = legacyStateRejection
+          ? await client.query(
+              `SELECT id FROM screening_encounters
+               WHERE installation_id = $1 AND local_encounter_id = $2
+                 AND status IN ('DRAFT', 'COMPLETED') AND source_type = 'LOCAL'
+                 AND amendment_of_encounter_id IS NULL FOR SHARE`,
+              [context.installationId, record.payload.localEncounterId],
+            )
+          : null;
+        if (recoverable?.rowCount !== 1) {
+          const outcome = outcomeFromExisting(record, prior);
+          await client.query('COMMIT');
+          return outcome;
+        }
+        // This transition is private to this transaction. All normal context,
+        // provenance, period, baseline and content checks still run below.
+        await client.query("UPDATE sync_records SET status = 'RETRY' WHERE id = $1", [prior.id]);
       }
       retryRecordId = prior.id;
     }
@@ -963,7 +988,7 @@ export async function processLifestyleRecord(
       );
     }
     if (
-      encounter.status !== 'COMPLETED' ||
+      !['DRAFT', 'COMPLETED'].includes(encounter.status) ||
       encounter.source_type !== 'LOCAL' ||
       encounter.amendment_of_encounter_id !== null
     ) {
@@ -979,6 +1004,19 @@ export async function processLifestyleRecord(
           'LIFESTYLE_ENCOUNTER_STATE_INVALID',
           '/payload/localEncounterId',
         ),
+        processedAt,
+        retryRecordId,
+      );
+    }
+    if (encounter.status === 'DRAFT') {
+      return finish(
+        client,
+        context,
+        batchInternalId,
+        mutationActor.id,
+        record,
+        recordHash,
+        dependencyOutcome(record, '/payload/localEncounterId'),
         processedAt,
         retryRecordId,
       );

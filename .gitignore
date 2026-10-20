@@ -17,3 +17,4 @@ recovery-results/
 .vscode/
 tmp/
 .local-auth/
+.local-fhir/

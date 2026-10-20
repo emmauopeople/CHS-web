@@ -1,5 +1,5 @@
 import { createPublicKey, verify as verifySignature } from 'node:crypto';
-import type { JsonWebKey, KeyObject } from 'node:crypto';
+import type { JsonWebKeyInput, KeyObject } from 'node:crypto';
 
 import type { AppConfig } from '../config.js';
 
@@ -154,7 +154,7 @@ export function createOidcOperationsTokenVerifier(
             keys.set(
               candidate.kid,
               createPublicKey({
-                key: candidate as unknown as JsonWebKey,
+                key: candidate as unknown as JsonWebKeyInput['key'],
                 format: 'jwk',
               }),
             );

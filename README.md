@@ -98,7 +98,13 @@ If you do not have an identity provider, follow
 It supplies a local Keycloak realm, public PKCE client, and organization-scoped
 reviewer provisioning without replacing your existing database configuration.
 
+For the separate local database used by future HAPI FHIR modeling, see
+[Local FHIR PostgreSQL](docs/fhir/local-postgres.md). It runs in its own
+`chs-fhir` Compose project on localhost port 5434 with an independent volume
+and credentials. It does not change the operations database or start HAPI yet.
+
 ## Operational endpoints
+
 
 - `GET /health/live` — process liveness
 - `GET /health/ready` — dependency readiness, including PostgreSQL

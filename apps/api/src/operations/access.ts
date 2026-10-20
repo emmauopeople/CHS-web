@@ -28,14 +28,16 @@ export type OperationsAuthorizationErrorCode =
   | 'MEDICAL_ID_RECOVERY_NOT_PERMITTED'
   | 'IDENTITY_REVIEW_NOT_PERMITTED'
   | 'IDENTITY_REVIEW_RESOLUTION_NOT_PERMITTED'
-  | 'SYNC_MONITOR_NOT_PERMITTED';
+  | 'SYNC_MONITOR_NOT_PERMITTED'
+  | 'DESKTOP_INSTALLATION_MANAGEMENT_NOT_PERMITTED';
 
 export type OperationsPermission =
   | 'PATIENT_READ'
   | 'MEDICAL_ID_RECOVER'
   | 'IDENTITY_REVIEW'
   | 'IDENTITY_REVIEW_RESOLVE'
-  | 'SYNC_MONITOR';
+  | 'SYNC_MONITOR'
+  | 'DESKTOP_INSTALLATION_MANAGE';
 
 export class OperationsAuthorizationError extends Error {
   readonly statusCode = 403;
@@ -64,6 +66,8 @@ function permissionDeniedCode(
       return 'IDENTITY_REVIEW_RESOLUTION_NOT_PERMITTED';
     case 'SYNC_MONITOR':
       return 'SYNC_MONITOR_NOT_PERMITTED';
+    case 'DESKTOP_INSTALLATION_MANAGE':
+      return 'DESKTOP_INSTALLATION_MANAGEMENT_NOT_PERMITTED';
   }
 }
 

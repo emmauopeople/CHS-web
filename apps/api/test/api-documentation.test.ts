@@ -85,6 +85,7 @@ describe('Release 1 API documentation', () => {
     const audiences = new Set(['platform', 'installation', 'operations']);
     const authentication = new Set(['NONE', 'INSTALLATION_BEARER', 'OIDC_BEARER']);
     const permissions = new Set([
+      'DESKTOP_INSTALLATION_MANAGE',
       'PATIENT_READ',
       'MEDICAL_ID_RECOVER',
       'IDENTITY_REVIEW',

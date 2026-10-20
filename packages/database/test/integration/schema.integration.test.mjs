@@ -48,6 +48,7 @@ test(
         '0014_referral_ingestion.sql',
         '0015_encounter_history_ingestion.sql',
         '0016_patient_history_cursors.sql',
+        '0017_desktop_installation_management.sql',
       ]);
       assert.deepEqual(secondRun.applied, []);
 

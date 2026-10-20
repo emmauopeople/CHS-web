@@ -1,4 +1,5 @@
 import { registerPatientHistoryRoutes } from './history/routes.js';
+import { registerDesktopInstallationRoutes } from './operations/desktop-installation-routes.js';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
 import { randomUUID } from 'node:crypto';
@@ -103,6 +104,7 @@ export async function buildApp(dependencies: BuildAppDependencies) {
       : createDisabledOperationsTokenVerifier());
 
   await registerPatientHistoryRoutes(app, { database: dependencies.database.pool, tokenVerifier: operationsTokenVerifier });
+  await registerDesktopInstallationRoutes(app, { database: dependencies.database.pool, tokenVerifier: operationsTokenVerifier });
 
   await registerOperationsRoutes(app, {
     database: dependencies.database.pool,

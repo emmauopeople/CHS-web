@@ -85,6 +85,9 @@ export class InstallationEnrollmentError extends Error {
 }
 
 type EnrollmentDependencies = Readonly<{
+  authorizeOrganization?: (organizationId: string) => void;
+  operationsUserId?: string;
+  requestId?: string;
   now?: Date;
   randomId?: () => string;
   generateToken?: () => string;
@@ -182,6 +185,7 @@ export async function enrollDesktopInstallation(
       input.installationId,
     ]);
 
+    dependencies.authorizeOrganization?.(input.organizationId);
     await assertEnrollmentContext(client, input);
 
     await client.query(
@@ -232,13 +236,13 @@ export async function enrollDesktopInstallation(
          id, organization_id, action_code, entity_type, entity_id, reason_code,
          request_id, occurred_at, metadata, operations_user_id, outcome_code
        ) VALUES ($1, $2, 'DESKTOP_INSTALLATION_ENROLL', 'DESKTOP_INSTALLATION',
-         $3, $4, $5, $6, $7::jsonb, NULL, 'SUCCESS')`,
+         $3, $4, $5, $6, $7::jsonb, $8, 'SUCCESS')`,
       [
         auditEventId,
         input.organizationId,
         input.installationId,
         input.reasonCode,
-        requestId,
+        dependencies.requestId ?? requestId,
         issuedAt,
         JSON.stringify({
           configuredLocationId: input.configuredLocationId,
@@ -247,6 +251,7 @@ export async function enrollDesktopInstallation(
           sourceLocationId: input.sourceLocationId,
           tokenPrefix: installationTokenPrefix(installationToken),
         }),
+        dependencies.operationsUserId ?? null,
       ],
     );
 

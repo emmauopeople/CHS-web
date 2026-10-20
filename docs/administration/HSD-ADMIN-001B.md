@@ -20,6 +20,9 @@ patient information remains deferred to a later release.
 
 Only permissions with implemented protected workflows can be provisioned:
 
+- `DESKTOP_INSTALLATION_MANAGE` — enroll desktops, view scoped installation metadata,
+  replace sync tokens and revoke credentials; see [Desktop Installations](desktop-installations.md).
+
 - `PATIENT_READ` — canonical patient search and clinical detail;
 - `MEDICAL_ID_RECOVER` — controlled Medical ID recovery;
 - `IDENTITY_REVIEW` — scoped, read-only identity-review investigation;

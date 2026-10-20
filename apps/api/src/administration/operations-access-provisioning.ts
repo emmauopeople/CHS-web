@@ -19,6 +19,7 @@ const grantFields = new Set([
   'expiresAt',
 ]);
 const supportedPermissions = new Set<OperationsPermission>([
+  'DESKTOP_INSTALLATION_MANAGE',
   'PATIENT_READ',
   'MEDICAL_ID_RECOVER',
   'IDENTITY_REVIEW',

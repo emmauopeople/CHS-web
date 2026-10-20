@@ -1,4 +1,5 @@
 import { isHistoryPage, type HistoryRequest } from '../../../packages/contracts/src/patient-history.mjs';
+import { installationPage, installationToken, installationRevocation, type EnrollmentInput, type RotationInput, type RevocationInput } from './installation-contract';
 import type {
   PatientAccessReason,
   PatientDetail,
@@ -843,6 +844,19 @@ export function createOperationsApi(
   fetchImplementation: typeof fetch = fetch,
 ) {
   return {
+    searchDesktopInstallations(page = 1) {
+      return post(apiBaseUrl, '/api/v1/operations/desktop-installations/search', accessToken,
+        {reasonCode:'INSTALLATION_ADMINISTRATION',page}, installationPage, fetchImplementation);
+    },
+    enrollDesktop(input: EnrollmentInput) {
+      return post(apiBaseUrl, '/api/v1/operations/desktop-installations/enroll', accessToken, input, installationToken, fetchImplementation);
+    },
+    rotateDesktopCredential(input: RotationInput) {
+      return post(apiBaseUrl, '/api/v1/operations/desktop-installations/rotate', accessToken, input, installationToken, fetchImplementation);
+    },
+    revokeDesktopCredential(input: RevocationInput) {
+      return post(apiBaseUrl, '/api/v1/operations/desktop-installations/revoke', accessToken, input, installationRevocation, fetchImplementation);
+    },
     getPatientHistory(input: HistoryRequest) {
       return post(apiBaseUrl, '/api/v1/operations/patients/history', accessToken, input, isHistoryPage, fetchImplementation);
     },

@@ -77,7 +77,7 @@ export function Accounts({
     setPage(next);
   };
   return (
-    <section aria-label="Account administration">
+    <section className="administration-workspace" aria-label="Account administration">
       <p>
         Admins manage staff within their organizations. Super admins also create
         and manage admins. Every account action is audited.

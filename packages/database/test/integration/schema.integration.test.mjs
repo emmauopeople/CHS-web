@@ -50,6 +50,8 @@ test(
         '0016_patient_history_cursors.sql',
         '0017_desktop_installation_management.sql',
         '0018_operations_account_administration.sql',
+        '0019_provider_access.sql',
+        '0020_fhir_publication.sql',
       ]);
       assert.deepEqual(secondRun.applied, []);
 
@@ -61,7 +63,7 @@ test(
         [schema],
       );
       const tableNames = tableResult.rows.map((row) => row.table_name);
-      assert.equal(tableNames.length, 60);
+      assert.equal(tableNames.length, 67);
       assert.ok(tableNames.includes('schema_migrations'));
       assert.ok(tableNames.includes('patient_history_cursors'));
       assert.ok(tableNames.includes('screening_encounters'));

@@ -139,3 +139,16 @@ All endpoints require OIDC and the dedicated organization-scoped `DESKTOP_INSTAL
 - `POST /api/v1/operations/accounts/change` accepts confirmed `SUSPEND`, `ACTIVATE`, or `RESET_PASSWORD` actions.
 
 All require OIDC, `USER_MANAGE`, an active admin/super admin account and `reasonCode: ACCOUNT_ADMINISTRATION`. Admins manage staff only, and only when every target grant is within their organization scope. Super admins manage all account roles. Self-management through these endpoints is blocked; the last active super admin cannot be suspended. Account mutations and their CHS audit events commit together. Credentials never appear in lists or audit metadata. The backend uses a private realm service account; browser accounts are not Keycloak administrators. See [account administration](../administration/accounts.md).
+
+## Hospital/provider and FHIR access
+
+- `POST /api/v1/providers/onboarding/request`: authenticated request, no clinical access.
+- `POST /api/v1/operations/providers/search`: super admin request/client listing.
+- `POST /api/v1/operations/providers/review`: confirmed approval or rejection with source organizations and expiry.
+- `POST /api/v1/operations/providers/credentials`: confirmed rotation or revocation.
+- `POST /api/v1/operations/providers/patient-access`: explicit expiring patient-sharing grant or revocation.
+- `POST /api/v1/providers/patients/history`: scoped, reason-gated central history using approved provider OAuth tokens.
+- `POST /api/v1/providers/fhir/patient`: bounded collection of published R4 resources for a permitted patient and source organizations.
+- `POST /api/v1/operations/fhir/status`: super admin publication counts and bounded failure metadata.
+
+Management bodies require `reasonCode: PROVIDER_ADMINISTRATION`; FHIR status uses `FHIR_ADMINISTRATION`. Provider clinical retrieval requires approved client status, unexpired organization and patient grants, the matching `history:read` or `fhir:read` scope, and a permitted care reason. No client-supplied organization scope is accepted. Credentials are issued once only and never stored in PostgreSQL or audit metadata. Revocation is checked on every request and page; rotation invalidates older issued tokens. See the provider and FHIR runbooks for request contracts and operational boundaries.

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "release": "1",
-  "endpointCount": 28,
+  "endpointCount": 36,
   "endpoints": [
     { "method": "GET", "path": "/health/live", "audience": "platform", "authentication": "NONE", "permission": null, "cache": "NO_STORE", "purpose": "Process liveness without dependency checks." },
     { "method": "GET", "path": "/health/startup", "audience": "platform", "authentication": "NONE", "permission": null, "cache": "NO_STORE", "purpose": "Startup completion state." },
@@ -30,6 +30,14 @@
     { "method": "POST", "path": "/api/v1/operations/desktop-installations/revoke", "audience": "operations", "authentication": "OIDC_BEARER", "permission": "DESKTOP_INSTALLATION_MANAGE", "cache": "NO_STORE", "purpose": "Revoke a specific desktop synchronization credential." },
     { "method": "POST", "path": "/api/v1/operations/accounts/search", "audience": "operations", "authentication": "OIDC_BEARER", "permission": "USER_MANAGE", "cache": "NO_STORE", "purpose": "List authorized CHS portal accounts and organization choices." },
     { "method": "POST", "path": "/api/v1/operations/accounts/create", "audience": "operations", "authentication": "OIDC_BEARER", "permission": "USER_MANAGE", "cache": "NO_STORE", "purpose": "Create a scoped portal identity with an initial temporary password." },
-    { "method": "POST", "path": "/api/v1/operations/accounts/change", "audience": "operations", "authentication": "OIDC_BEARER", "permission": "USER_MANAGE", "cache": "NO_STORE", "purpose": "Suspend, activate or reset an authorized portal account." }
+    { "method": "POST", "path": "/api/v1/operations/accounts/change", "audience": "operations", "authentication": "OIDC_BEARER", "permission": "USER_MANAGE", "cache": "NO_STORE", "purpose": "Suspend, activate or reset an authorized portal account." },
+    { "method": "POST", "path": "/api/v1/providers/onboarding/request", "audience": "provider", "authentication": "OIDC_BEARER", "permission": null, "cache": "NO_STORE", "purpose": "Submit an authenticated hospital access request." },
+    { "method": "POST", "path": "/api/v1/operations/providers/search", "audience": "operations", "authentication": "OIDC_BEARER", "permission": "USER_MANAGE", "cache": "NO_STORE", "purpose": "List hospital requests and approved client metadata." },
+    { "method": "POST", "path": "/api/v1/operations/providers/review", "audience": "operations", "authentication": "OIDC_BEARER", "permission": "USER_MANAGE", "cache": "NO_STORE", "purpose": "Approve or reject a hospital request with explicit organization scope." },
+    { "method": "POST", "path": "/api/v1/operations/providers/credentials", "audience": "operations", "authentication": "OIDC_BEARER", "permission": "USER_MANAGE", "cache": "NO_STORE", "purpose": "Rotate or revoke an approved provider credential." },
+    { "method": "POST", "path": "/api/v1/operations/providers/patient-access", "audience": "operations", "authentication": "OIDC_BEARER", "permission": "USER_MANAGE", "cache": "NO_STORE", "purpose": "Grant or revoke expiring patient-specific provider access." },
+    { "method": "POST", "path": "/api/v1/providers/patients/history", "audience": "provider", "authentication": "OIDC_BEARER", "permission": null, "cache": "NO_STORE", "purpose": "Read authorized and explicitly shared patient history." },
+    { "method": "POST", "path": "/api/v1/providers/fhir/patient", "audience": "provider", "authentication": "OIDC_BEARER", "permission": null, "cache": "NO_STORE", "purpose": "Retrieve a bounded organization-filtered FHIR patient collection." },
+    { "method": "POST", "path": "/api/v1/operations/fhir/status", "audience": "operations", "authentication": "OIDC_BEARER", "permission": "USER_MANAGE", "cache": "NO_STORE", "purpose": "Inspect publication queue status and bounded failure metadata." }
   ]
 }

@@ -7,8 +7,11 @@ Release 1 receives screening data from approved desktop installations,
 validates and normalizes it, removes duplicates, stores canonical records in
 PostgreSQL, assigns a CHS medical ID, and provides an internal patient viewer.
 
-FHIR mapping, a FHIR server, hospital/provider OAuth2 access, and LLM-assisted
-analysis are intentionally deferred until later releases.
+Hospital/provider approval, expiring patient-sharing grants and private FHIR R4
+publication are now implemented as an optional interoperability deployment. See
+[provider access](docs/administration/provider-access.md), [FHIR publication](docs/fhir/publication.md)
+and [combined pilot acceptance](docs/sync/HSW-019F-pilot-acceptance.md). The doctor
+document portal and LLM-assisted analysis remain later milestones.
 
 ## Repository status
 
@@ -35,7 +38,8 @@ The operations API also exposes a scoped, redacted view of desktop sync batch
 health. The React operations portal consumes it through a low-bandwidth,
 manually refreshed synchronization dashboard.
 Internal operations identities and their least-privilege portal grants can be
-created through a controlled operator command after the OIDC identity exists.
+created through the Accounts workspace by authorized admins/super admins; controlled
+operator provisioning remains available for bootstrap and recovery.
 Sync-created identity-review cases retain append-only, minimum-necessary
 evidence snapshots without raw payload JSON. A separately authorized,
 organization-scoped operations API now exposes a masked review queue and

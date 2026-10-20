@@ -19,3 +19,4 @@ tmp/
 .local-auth/
 .local-fhir/
 .deployment/
+acceptance-results/

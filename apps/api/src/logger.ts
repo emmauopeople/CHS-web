@@ -19,6 +19,8 @@ export function loggerOptions(config: AppConfig): LoggerOptions {
         '*.temporaryPassword',
         'temporaryPassword',
         '*.clientSecret',
+        'clientSecret',
+        '*.secret',
       ],
       censor: '[REDACTED]',
     },

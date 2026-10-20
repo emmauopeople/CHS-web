@@ -25,6 +25,7 @@ import {
   CHS_MEDICAL_ID_TYPE,
 } from '../sync/medical-id.js';
 import { historyIndexSql, historyPayload } from './queries.js';
+import {authorizeProvider} from '../providers/access.js';
 
 export class HistoryError extends Error {
   constructor(
@@ -37,7 +38,8 @@ export class HistoryError extends Error {
 }
 export type HistoryCaller =
   | Readonly<{ kind: 'INSTALLATION'; authorization: string | undefined }>
-  | Readonly<{ kind: 'OPERATIONS'; identity: VerifiedOperationsIdentity }>;
+  | Readonly<{ kind: 'OPERATIONS'; identity: VerifiedOperationsIdentity }>
+  | Readonly<{ kind: 'PROVIDER'; identity: VerifiedOperationsIdentity }>;
 export type HistoryAuditContext = Readonly<{
   requestId: string;
   route: string;
@@ -98,6 +100,7 @@ export async function readPatientHistory(
   now = new Date(),
 ): Promise<HistoryPage> {
   const input = validateHistoryRange(request, caller.kind === 'INSTALLATION');
+  if(caller.kind==='PROVIDER'&&!['CARE_DELIVERY','CARE_COORDINATION','PATIENT_REQUEST'].includes(input.reasonCode))throw new HistoryError('HISTORY_ACCESS_DENIED',403);
   const limit = input.limit ?? 25;
   const types = [...(input.resourceTypes ?? historyResourceTypes)].sort();
   const client = await database.connect();
@@ -105,6 +108,7 @@ export async function readPatientHistory(
   let practitionerId: string | null = null;
   let organizationId: string | null = null;
   let installationId: string | null = null;
+  let providerClientId: string | null = null;
   let transaction = false;
   const audit = async (
     outcome: 'SUCCESS' | 'DENIED' | 'NOT_FOUND' | 'ERROR',
@@ -128,6 +132,7 @@ export async function readPatientHistory(
         JSON.stringify({
           audience: caller.kind,
           installationId,
+          providerClientId,
           route: context.route,
           itemCount,
         }),
@@ -199,6 +204,11 @@ export async function readPatientHistory(
         body.requesterLocalActorId,
         scope,
       ]);
+    } else if(caller.kind === 'PROVIDER') {
+      const provider=await authorizeProvider(client,caller.identity,'history:read',input.personId);
+      providerClientId=provider.clientId;
+      scope={kind:'ORGANIZATIONS',organizationIds:provider.organizationIds};
+      ownerKey=hash([caller.kind,provider.clientId,scope,provider.credentialVersion]);
     } else {
       const principal = await authorizePatientRead(
         client,
